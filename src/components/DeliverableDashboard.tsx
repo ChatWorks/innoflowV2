@@ -29,6 +29,43 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
 
   useEffect(() => {
     fetchDeliverableStats();
+    
+    // Set up real-time subscription for time entries
+    const timeEntriesChannel = supabase
+      .channel('time-entries-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'time_entries',
+        },
+        () => {
+          fetchDeliverableStats();
+        }
+      )
+      .subscribe();
+
+    // Set up real-time subscription for tasks
+    const tasksChannel = supabase
+      .channel('tasks-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tasks',
+        },
+        () => {
+          fetchDeliverableStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(timeEntriesChannel);
+      supabase.removeChannel(tasksChannel);
+    };
   }, [deliverables, tasks]);
 
   const fetchDeliverableStats = async () => {
@@ -62,9 +99,36 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
   };
 
   const formatTime = (minutes: number) => {
+    if (minutes === 0) return '0m';
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  };
+
+  const getDeadlineStatus = (dueDate: string | null) => {
+    if (!dueDate) return { text: 'Geen deadline', variant: 'outline' as const };
+    
+    const today = new Date();
+    const deadline = new Date(dueDate);
+    const diffDays = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) {
+      return { text: 'Verlopen', variant: 'destructive' as const };
+    } else if (diffDays === 0) {
+      return { text: 'Vandaag', variant: 'default' as const };
+    } else if (diffDays <= 3) {
+      return { text: `${diffDays} dagen`, variant: 'destructive' as const };
+    } else {
+      return { text: `${diffDays} dagen`, variant: 'outline' as const };
+    }
+  };
+
+  const formatCurrency = (hours: number, hourlyRate: number = 75) => {
+    return new Intl.NumberFormat('nl-NL', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+    }).format(hours * hourlyRate);
   };
 
   return (
@@ -134,6 +198,9 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
                         <div className="text-xl font-bold text-green-600">
                           {formatTime(stats.totalTimeMinutes)}
                         </div>
+                        <div className="text-xs text-muted-foreground">
+                          {stats.totalTimeMinutes === 0 ? 'Nog niet gestart' : 'Actief bezig'}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -147,11 +214,31 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
                       </div>
                       <div className="text-right">
                         <div className="text-xl font-bold text-blue-600">
-                          {stats.earnedHours}h / {stats.billableHours}h
+                          {formatCurrency(stats.earnedHours)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {stats.billableHours > 0 ? Math.round((stats.earnedHours / stats.billableHours) * 100) : 0}% verdiend
+                          {stats.billableHours > 0 ? Math.round((stats.earnedHours / stats.billableHours) * 100) : 0}% van {formatCurrency(stats.billableHours)}
                         </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Deadline */}
+                  <div className="bg-orange-50 dark:bg-orange-950 p-4 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-orange-600" />
+                        <span className="text-sm font-medium">Deadline</span>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant={getDeadlineStatus(deliverable.due_date).variant} className="mb-1">
+                          {getDeadlineStatus(deliverable.due_date).text}
+                        </Badge>
+                        {deliverable.due_date && (
+                          <div className="text-xs text-muted-foreground">
+                            {format(new Date(deliverable.due_date), "dd MMM yyyy", { locale: nl })}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -168,7 +255,7 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
                           {Math.round(stats.completionRate)}%
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {tasks.filter(t => t.deliverable_id === deliverable.id && t.completed).length} / {tasks.filter(t => t.deliverable_id === deliverable.id).length} taken
+                          {tasks.filter(t => t.deliverable_id === deliverable.id && t.completed).length} van {tasks.filter(t => t.deliverable_id === deliverable.id).length} taken
                         </div>
                       </div>
                     </div>
