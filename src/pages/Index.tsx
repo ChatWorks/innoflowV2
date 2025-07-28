@@ -1,27 +1,54 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Euro, Clock, User, ArrowRight, FolderOpen } from 'lucide-react';
-import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
-
+import { Search, Plus, Grid, List } from 'lucide-react';
+import { ProjectCard } from '@/components/ProjectCard';
 import { Project } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import ProjectCreationDialog from '@/components/ProjectCreationDialog';
 import Layout from '@/components/Layout';
 
-const Index = () => {
+const statusFilters = [
+  { label: 'Alle', value: 'all' },
+  { label: 'Nieuw', value: 'Nieuw' },
+  { label: 'In Progress', value: 'In Progress' },
+  { label: 'Review', value: 'Review' },
+  { label: 'Voltooid', value: 'Voltooid' },
+];
+
+export default function Index() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchProjects();
+    
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('projects-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'projects',
+        },
+        () => {
+          fetchProjects();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchProjects = async () => {
@@ -29,14 +56,14 @@ const Index = () => {
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setProjects(data as Project[] || []);
+      setProjects((data || []) as Project[]);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Kon projecten niet laden",
+        description: "Failed to fetch projects",
         variant: "destructive",
       });
     } finally {
@@ -44,24 +71,29 @@ const Index = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Nieuw': return 'default';
-      case 'In Progress': return 'secondary';
-      case 'Review': return 'outline';
-      case 'Voltooid': return 'default';
-      default: return 'secondary';
-    }
+  const filteredProjects = projects.filter(project => {
+    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         project.client.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const getStatusCounts = () => {
+    return statusFilters.slice(1).map(filter => ({
+      ...filter,
+      count: projects.filter(p => p.status === filter.value).length
+    }));
   };
+
+  const totalBudget = projects.reduce((sum, project) => sum + (project.budget || 0), 0);
+  const completedProjects = projects.filter(p => p.status === 'Voltooid').length;
+  const inProgressProjects = projects.filter(p => p.status === 'In Progress').length;
 
   if (loading) {
     return (
       <Layout>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <Clock className="h-8 w-8 animate-spin mx-auto mb-4" />
-            <p>Projecten laden...</p>
-          </div>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
       </Layout>
     );
@@ -70,94 +102,128 @@ const Index = () => {
   return (
     <Layout>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Project Management</h1>
-            <p className="text-muted-foreground mt-1">Beheer je projecten en maximaliseer je productiviteit</p>
+        {/* Project Hero Section */}
+        <div className="mb-8">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 p-8 text-white">
+            <div className="relative z-10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-4xl font-bold mb-2">Project Management</h1>
+                  <p className="text-blue-100 text-lg mb-4">
+                    Beheer je projecten en maximaliseer je productiviteit
+                  </p>
+                </div>
+                <Button 
+                  className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+                  onClick={() => navigate('/project/new')}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nieuw Project
+                </Button>
+              </div>
+            </div>
           </div>
-          <ProjectCreationDialog onProjectCreated={fetchProjects} />
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-card rounded-lg p-6 border">
+            <div className="text-3xl font-bold text-foreground">{projects.length}</div>
+            <div className="text-sm text-muted-foreground">Totaal Projecten</div>
+          </div>
+          <div className="bg-card rounded-lg p-6 border">
+            <div className="text-3xl font-bold text-foreground">{inProgressProjects}</div>
+            <div className="text-sm text-muted-foreground">Actieve Projecten</div>
+          </div>
+          <div className="bg-card rounded-lg p-6 border">
+            <div className="text-3xl font-bold text-foreground">{completedProjects}</div>
+            <div className="text-sm text-muted-foreground">Voltooid</div>
+          </div>
+          <div className="bg-card rounded-lg p-6 border">
+            <div className="text-3xl font-bold text-foreground">
+              {new Intl.NumberFormat('nl-NL', {
+                style: 'currency',
+                currency: 'EUR',
+                minimumFractionDigits: 0,
+              }).format(totalBudget)}
+            </div>
+            <div className="text-sm text-muted-foreground">Totaal Budget</div>
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div className="flex flex-col lg:flex-row gap-4 mb-8">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Zoek projecten, klanten..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            {statusFilters.map((filter) => (
+              <Button
+                key={filter.value}
+                variant={statusFilter === filter.value ? "default" : "outline"}
+                onClick={() => setStatusFilter(filter.value)}
+                className="gap-2"
+              >
+                {filter.label}
+                {filter.value !== 'all' && (
+                  <Badge variant="secondary" className="ml-1">
+                    {getStatusCounts().find(s => s.value === filter.value)?.count || 0}
+                  </Badge>
+                )}
+              </Button>
+            ))}
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              variant={viewMode === 'grid' ? "default" : "outline"}
+              size="icon"
+              onClick={() => setViewMode('grid')}
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? "default" : "outline"}
+              size="icon"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Projects Grid */}
-        {projects.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <FolderOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">Nog geen projecten</h3>
-              <p className="text-muted-foreground mb-6">Maak je eerste project aan om te beginnen</p>
-              <ProjectCreationDialog onProjectCreated={fetchProjects} />
-            </CardContent>
-          </Card>
+        {filteredProjects.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="text-muted-foreground mb-4">
+              <Search className="h-12 w-12 mx-auto mb-4" />
+              <p className="text-lg font-medium">Geen projecten gevonden</p>
+              <p className="text-sm">Probeer een andere zoekterm of filter</p>
+            </div>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
-              <Card 
-                key={project.id} 
-                className="hover:shadow-lg transition-shadow cursor-pointer group"
+          <div className={`grid gap-6 ${
+            viewMode === 'grid' 
+              ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' 
+              : 'grid-cols-1'
+          }`}>
+            {filteredProjects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
                 onClick={() => navigate(`/project/${project.id}`)}
-              >
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                        {project.name}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1">{project.client}</p>
-                    </div>
-                    <Badge variant={getStatusColor(project.status)}>
-                      {project.status}
-                    </Badge>
-                  </div>
-                  
-                  {project.description && (
-                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                      {project.description}
-                    </p>
-                  )}
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  {/* Progress */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Voortgang</span>
-                      <span className="font-medium">{project.progress}%</span>
-                    </div>
-                    <Progress value={project.progress} className="h-2" />
-                  </div>
-                  
-                  {/* Stats */}
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    {project.budget && (
-                      <div className="flex items-center gap-1">
-                        <Euro className="h-4 w-4" />
-                        €{project.budget.toLocaleString()}
-                      </div>
-                    )}
-                    {project.total_hours && (
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        {project.total_hours}h
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Date */}
-                  <div className="flex justify-between items-center text-sm text-muted-foreground">
-                    <span>
-                      Aangemaakt: {format(new Date(project.created_at), "dd MMM yyyy", { locale: nl })}
-                    </span>
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </CardContent>
-              </Card>
+              />
             ))}
           </div>
         )}
       </main>
     </Layout>
   );
-};
-
-export default Index;
+}
