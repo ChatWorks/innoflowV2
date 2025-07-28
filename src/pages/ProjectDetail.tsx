@@ -159,8 +159,38 @@ export default function ProjectDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white">
+      {/* Navigation Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-8">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">I</span>
+                </div>
+                <span className="text-xl font-semibold">Innoflow</span>
+              </div>
+              
+              <nav className="flex items-center gap-6">
+                <Button variant="ghost" onClick={() => navigate('/')} className="text-gray-600 hover:text-gray-900">
+                  Dashboard
+                </Button>
+                <span className="text-gray-400">Projecten</span>
+                <span className="text-gray-400">Kosten</span>
+                <span className="text-gray-400">Doelen</span>
+                <span className="text-gray-400">AI Advies</span>
+              </nav>
+            </div>
+            
+            <Button variant="ghost" size="sm" className="text-gray-600">
+              info
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Project Header */}
+      <div className="bg-gradient-to-r from-slate-800 to-slate-900 text-white">
         <div className="container mx-auto px-6 py-8">
           <Button 
             variant="ghost" 
@@ -171,10 +201,11 @@ export default function ProjectDetail() {
             Terug naar dashboard
           </Button>
           
-          <div className="flex items-start justify-between">
+          <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-2">{project.name}</h1>
-              <div className="flex items-center gap-4 text-gray-300">
+              <p className="text-slate-300">Real-time overzicht van je project voortgang en taken</p>
+              <div className="flex items-center gap-4 text-slate-300 mt-4">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   {project.client}
@@ -193,14 +224,10 @@ export default function ProjectDetail() {
                 )}
               </div>
             </div>
-            <Badge className={getStatusColor(project.status)}>
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
               {project.status}
             </Badge>
           </div>
-
-          {project.description && (
-            <p className="mt-4 text-gray-300 max-w-3xl">{project.description}</p>
-          )}
         </div>
       </div>
 
