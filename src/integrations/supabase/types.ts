@@ -97,6 +97,50 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          billable_hours: number
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          deliverable_id: string
+          description: string | null
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          billable_hours?: number
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          deliverable_id: string
+          description?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          billable_hours?: number
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          deliverable_id?: string
+          description?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_tasks_deliverable"
+            columns: ["deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "deliverables"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       time_entries: {
         Row: {
           created_at: string
@@ -104,6 +148,7 @@ export type Database = {
           duration_minutes: number | null
           end_time: string | null
           id: string
+          is_active: boolean | null
           project_id: string
           start_time: string
         }
@@ -113,6 +158,7 @@ export type Database = {
           duration_minutes?: number | null
           end_time?: string | null
           id?: string
+          is_active?: boolean | null
           project_id: string
           start_time: string
         }
@@ -122,6 +168,7 @@ export type Database = {
           duration_minutes?: number | null
           end_time?: string | null
           id?: string
+          is_active?: boolean | null
           project_id?: string
           start_time?: string
         }

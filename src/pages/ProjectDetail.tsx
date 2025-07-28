@@ -15,9 +15,12 @@ import {
   Circle,
   PlayCircle
 } from 'lucide-react';
-import { Project, Deliverable, TimeEntry } from '@/types/project';
+import { Project, Deliverable, TimeEntry, Task } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import ProjectTimer from '@/components/ProjectTimer';
+import TaskManagement from '@/components/TaskManagement';
+import ProjectInsights from '@/components/ProjectInsights';
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +28,7 @@ export default function ProjectDetail() {
   const [project, setProject] = useState<Project | null>(null);
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -68,6 +72,22 @@ export default function ProjectDetail() {
       if (timeError) throw timeError;
       setTimeEntries((timeData || []) as TimeEntry[]);
 
+      // Fetch tasks
+      const { data: tasksData, error: tasksError } = await supabase
+        .from('tasks')
+        .select(`
+          *,
+          deliverables:deliverable_id (
+            id,
+            title
+          )
+        `)
+        .in('deliverable_id', (deliverablesData || []).map(d => d.id))
+        .order('created_at', { ascending: false });
+
+      if (tasksError) throw tasksError;
+      setTasks((tasksData || []) as Task[]);
+
     } catch (error) {
       toast({
         title: "Error",
@@ -98,6 +118,11 @@ export default function ProjectDetail() {
   const totalTimeLogged = timeEntries
     .filter(entry => entry.duration_minutes)
     .reduce((sum, entry) => sum + (entry.duration_minutes || 0), 0);
+
+  const totalBillableHours = tasks.reduce((sum, task) => sum + task.billable_hours, 0);
+  const earnedBillableHours = tasks
+    .filter(task => task.completed)
+    .reduce((sum, task) => sum + task.billable_hours, 0);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -182,6 +207,12 @@ export default function ProjectDetail() {
 
       {/* Content */}
       <div className="container mx-auto px-6 py-8">
+        {/* Project Timer */}
+        <ProjectTimer projectId={project.id} projectName={project.name} />
+
+        {/* Project Insights */}
+        <ProjectInsights timeEntries={timeEntries} tasks={tasks} />
+
         {/* Progress & Time Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
@@ -216,27 +247,43 @@ export default function ProjectDetail() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Deliverables</CardTitle>
+              <CardTitle className="text-lg">Declarabele Uren</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
+                <Euro className="h-5 w-5 text-green-600" />
                 <span className="text-2xl font-bold">
-                  {deliverables.filter(d => d.status === 'Completed').length}/{deliverables.length}
+                  {earnedBillableHours}h / {totalBillableHours}h
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">Voltooid</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {((earnedBillableHours / totalBillableHours) * 100 || 0).toFixed(0)}% verdiend
+              </p>
+              <Progress 
+                value={(earnedBillableHours / totalBillableHours) * 100 || 0} 
+                className="h-2 mt-2" 
+              />
             </CardContent>
           </Card>
         </div>
 
         {/* Detailed Tabs */}
-        <Tabs defaultValue="deliverables" className="space-y-6">
+        <Tabs defaultValue="tasks" className="space-y-6">
           <TabsList>
+            <TabsTrigger value="tasks">Taken & Deliverables</TabsTrigger>
             <TabsTrigger value="deliverables">Deliverables</TabsTrigger>
             <TabsTrigger value="time">Tijd Tracking</TabsTrigger>
             <TabsTrigger value="overview">Overzicht</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="tasks" className="space-y-4">
+            <TaskManagement 
+              projectId={project.id}
+              deliverables={deliverables}
+              tasks={tasks}
+              onRefresh={fetchProjectData}
+            />
+          </TabsContent>
 
           <TabsContent value="deliverables" className="space-y-4">
             {deliverables.length === 0 ? (

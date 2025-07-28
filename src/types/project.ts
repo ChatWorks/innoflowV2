@@ -32,3 +32,15 @@ export interface Deliverable {
   created_at: string;
   updated_at: string;
 }
+
+export interface Task {
+  id: string;
+  deliverable_id: string;
+  title: string;
+  description?: string;
+  billable_hours: number;
+  completed: boolean;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
