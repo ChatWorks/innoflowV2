@@ -20,6 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import ProjectTimer from '@/components/ProjectTimer';
 import SimpleTaskList from '@/components/SimpleTaskList';
+import Layout from '@/components/Layout';
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -137,102 +138,81 @@ export default function ProjectDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
+      <Layout>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </Layout>
     );
   }
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Project niet gevonden</h1>
-          <Button onClick={() => navigate('/')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Terug naar dashboard
-          </Button>
+      <Layout>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Project niet gevonden</h1>
+            <Button onClick={() => navigate('/')}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Terug naar dashboard
+            </Button>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Navigation Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-8">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">I</span>
-                </div>
-                <span className="text-xl font-semibold">Innoflow</span>
-              </div>
-              
-              <nav className="flex items-center gap-6">
-                <Button variant="ghost" onClick={() => navigate('/')} className="text-gray-600 hover:text-gray-900">
-                  Dashboard
+    <Layout>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Hero Section */}
+        <div className="mb-8 animate-fade-in">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-white">
+            <div className="absolute inset-0 bg-black/10" />
+            <div className="relative z-10 flex justify-between items-start">
+              <div>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => navigate('/')}
+                  className="text-white hover:bg-white/10 mb-4"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Terug naar dashboard
                 </Button>
-                <span className="text-gray-400">Projecten</span>
-                <span className="text-gray-400">Kosten</span>
-                <span className="text-gray-400">Doelen</span>
-                <span className="text-gray-400">AI Advies</span>
-              </nav>
-            </div>
-            
-            <Button variant="ghost" size="sm" className="text-gray-600">
-              info
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Project Header */}
-      <div className="bg-gradient-to-r from-slate-800 to-slate-900 text-white">
-        <div className="container mx-auto px-6 py-8">
-          <Button 
-            variant="ghost" 
-            onClick={() => navigate('/')}
-            className="text-white hover:bg-white/10 mb-4"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Terug naar dashboard
-          </Button>
-          
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{project.name}</h1>
-              <p className="text-slate-300">Real-time overzicht van je project voortgang en taken</p>
-              <div className="flex items-center gap-4 text-slate-300 mt-4">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  {project.client}
+                <h1 className="text-4xl font-bold font-manrope mb-2">
+                  {project.name}
+                </h1>
+                <p className="text-primary-foreground/90 text-lg mb-4">
+                  Real-time overzicht van je project voortgang en taken
+                </p>
+                <div className="flex items-center gap-4 text-primary-foreground/90">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    {project.client}
+                  </div>
+                  {project.start_date && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      {new Date(project.start_date).toLocaleDateString('nl-NL')}
+                    </div>
+                  )}
+                  {project.budget && (
+                    <div className="flex items-center gap-2">
+                      <Euro className="h-4 w-4" />
+                      {formatCurrency(project.budget)}
+                    </div>
+                  )}
                 </div>
-                {project.start_date && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    {new Date(project.start_date).toLocaleDateString('nl-NL')}
-                  </div>
-                )}
-                {project.budget && (
-                  <div className="flex items-center gap-2">
-                    <Euro className="h-4 w-4" />
-                    {formatCurrency(project.budget)}
-                  </div>
-                )}
               </div>
+              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                {project.status}
+              </Badge>
             </div>
-            <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-              {project.status}
-            </Badge>
+            <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10" />
+            <div className="absolute bottom-0 left-0 -mb-8 -ml-8 h-32 w-32 rounded-full bg-white/5" />
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="container mx-auto px-6 py-8">
         {/* Simple Task List - Main Focus */}
         <SimpleTaskList 
           projectId={project.id}
@@ -240,7 +220,7 @@ export default function ProjectDetail() {
           tasks={tasks}
           onRefresh={fetchProjectData}
         />
-      </div>
-    </div>
+      </main>
+    </Layout>
   );
 }

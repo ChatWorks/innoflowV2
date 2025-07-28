@@ -11,6 +11,7 @@ import { Project } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import ProjectCreationDialog from '@/components/ProjectCreationDialog';
+import Layout from '@/components/Layout';
 
 const Index = () => {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -54,25 +55,38 @@ const Index = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Clock className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>Projecten laden...</p>
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <Clock className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p>Projecten laden...</p>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto py-12 px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Innoflow Projecten</h1>
-            <p className="text-muted-foreground mt-1">Beheer je projecten en taken</p>
+    <Layout>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Hero Section */}
+        <div className="mb-8 animate-fade-in">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-white">
+            <div className="absolute inset-0 bg-black/10" />
+            <div className="relative z-10 flex justify-between items-start">
+              <div>
+                <h1 className="text-4xl font-bold font-manrope mb-2">
+                  Project Dashboard
+                </h1>
+                <p className="text-primary-foreground/90 text-lg">
+                  Real-time overzicht van je projecten en taken
+                </p>
+              </div>
+              <ProjectCreationDialog onProjectCreated={fetchProjects} />
+            </div>
+            <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10" />
+            <div className="absolute bottom-0 left-0 -mb-8 -ml-8 h-32 w-32 rounded-full bg-white/5" />
           </div>
-          <ProjectCreationDialog onProjectCreated={fetchProjects} />
         </div>
 
         {/* Projects Grid */}
@@ -151,8 +165,8 @@ const Index = () => {
             ))}
           </div>
         )}
-      </div>
-    </div>
+      </main>
+    </Layout>
   );
 };
 
