@@ -153,6 +153,7 @@ export type Database = {
           deliverable_id: string | null
           description: string | null
           duration_minutes: number | null
+          duration_seconds: number | null
           end_time: string | null
           id: string
           is_active: boolean | null
@@ -164,6 +165,7 @@ export type Database = {
           deliverable_id?: string | null
           description?: string | null
           duration_minutes?: number | null
+          duration_seconds?: number | null
           end_time?: string | null
           id?: string
           is_active?: boolean | null
@@ -175,6 +177,7 @@ export type Database = {
           deliverable_id?: string | null
           description?: string | null
           duration_minutes?: number | null
+          duration_seconds?: number | null
           end_time?: string | null
           id?: string
           is_active?: boolean | null
