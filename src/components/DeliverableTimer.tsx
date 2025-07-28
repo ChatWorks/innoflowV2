@@ -102,18 +102,31 @@ export default function DeliverableTimer({ deliverableId, deliverableTitle, proj
     try {
       const endTime = new Date();
       const durationMinutes = Math.floor(elapsedTime / 60);
+      const durationSeconds = elapsedTime;
 
-      const { error } = await supabase
+      // Get the first (top) task for this deliverable to assign time to
+      const { data: topTask } = await supabase
+        .from('tasks')
+        .select('id')
+        .eq('deliverable_id', deliverableId)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      // Update time entry with precise duration
+      const { error: timeError } = await supabase
         .from('time_entries')
         .update({
           end_time: endTime.toISOString(),
           duration_minutes: durationMinutes,
-          is_active: false
+          duration_seconds: durationSeconds,
+          is_active: false,
+          task_id: topTask?.id || null
         })
         .eq('deliverable_id', deliverableId)
         .eq('is_active', true);
 
-      if (error) throw error;
+      if (timeError) throw timeError;
 
       setIsRunning(false);
       setCurrentSessionStart(null);
@@ -122,14 +135,23 @@ export default function DeliverableTimer({ deliverableId, deliverableTitle, proj
         clearInterval(intervalRef.current);
       }
 
+      const hours = Math.floor(elapsedTime / 3600);
+      const minutes = Math.floor((elapsedTime % 3600) / 60);
+      const seconds = elapsedTime % 60;
+      
+      let timeString = '';
+      if (hours > 0) timeString += `${hours}h `;
+      if (minutes > 0) timeString += `${minutes}m `;
+      timeString += `${seconds}s`;
+
       toast({
-        title: "Timer gepauzeerd",
-        description: `${Math.floor(elapsedTime / 60)}m ${elapsedTime % 60}s opgeslagen`,
+        title: "Timer gestopt",
+        description: `${timeString} opgeslagen${topTask ? ' en toegewezen aan bovenste taak' : ''}`,
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Kon timer niet pauzeren",
+        description: "Kon timer niet stoppen",
         variant: "destructive",
       });
     }

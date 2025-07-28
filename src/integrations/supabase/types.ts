@@ -159,6 +159,7 @@ export type Database = {
           is_active: boolean | null
           project_id: string
           start_time: string
+          task_id: string | null
         }
         Insert: {
           created_at?: string
@@ -171,6 +172,7 @@ export type Database = {
           is_active?: boolean | null
           project_id: string
           start_time: string
+          task_id?: string | null
         }
         Update: {
           created_at?: string
@@ -183,6 +185,7 @@ export type Database = {
           is_active?: boolean | null
           project_id?: string
           start_time?: string
+          task_id?: string | null
         }
         Relationships: [
           {
@@ -197,6 +200,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]

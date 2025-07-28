@@ -21,6 +21,94 @@ interface SimpleTaskListProps {
   onRefresh: () => void;
 }
 
+interface TaskRowProps {
+  task: Task;
+  isTopTask: boolean;
+  onToggle: () => void;
+}
+
+function TaskRow({ task, isTopTask, onToggle }: TaskRowProps) {
+  const [taskTimeSpent, setTaskTimeSpent] = useState<number>(0);
+
+  useEffect(() => {
+    fetchTaskTime();
+  }, [task.id]);
+
+  const fetchTaskTime = async () => {
+    const { data: timeEntries } = await supabase
+      .from('time_entries')
+      .select('duration_seconds, duration_minutes')
+      .eq('task_id', task.id)
+      .not('duration_seconds', 'is', null);
+    
+    const totalSeconds = timeEntries?.reduce((sum, entry) => {
+      const seconds = entry.duration_seconds || (entry.duration_minutes || 0) * 60;
+      return sum + seconds;
+    }, 0) || 0;
+    
+    setTaskTimeSpent(totalSeconds);
+  };
+
+  const formatTime = (seconds: number) => {
+    if (seconds === 0) return '0s';
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    let result = '';
+    if (hours > 0) result += `${hours}h `;
+    if (minutes > 0) result += `${minutes}m `;
+    if (secs > 0 || result === '') result += `${secs}s`;
+    
+    return result.trim();
+  };
+
+  return (
+    <div className={`flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors ${
+      isTopTask ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-950/50' : ''
+    }`}>
+      <Checkbox
+        checked={task.completed}
+        onCheckedChange={onToggle}
+      />
+      
+      <div className="flex-1">
+        <div className="flex items-center gap-2 mb-1">
+          <span className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+            {task.title}
+          </span>
+          {isTopTask && (
+            <Badge variant="default" className="text-xs bg-blue-500">
+              Top Taak
+            </Badge>
+          )}
+          {task.assigned_to && (
+            <Badge variant="outline" className="text-xs">
+              <User className="h-3 w-3 mr-1" />
+              {task.assigned_to}
+            </Badge>
+          )}
+          <Badge variant="secondary" className="text-xs">
+            <Clock className="h-3 w-3 mr-1" />
+            {task.billable_hours}h
+          </Badge>
+          {taskTimeSpent > 0 && (
+            <Badge variant="outline" className="text-xs bg-green-50 text-green-700">
+              <Timer className="h-3 w-3 mr-1" />
+              {formatTime(taskTimeSpent)}
+            </Badge>
+          )}
+        </div>
+        {task.description && (
+          <p className={`text-sm text-muted-foreground ${task.completed ? 'line-through' : ''}`}>
+            {task.description}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function SimpleTaskList({ projectId, deliverables, tasks, onRefresh }: SimpleTaskListProps) {
   const [statsMode, setStatsMode] = useState<Record<string, boolean>>({});
   const [deliverableStats, setDeliverableStats] = useState<Record<string, any>>({});
@@ -42,14 +130,18 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
     const stats: Record<string, any> = {};
 
     for (const deliverable of deliverables) {
-      // Get time entries for this deliverable
+      // Get time entries for this deliverable using duration_seconds for precision
       const { data: timeEntries } = await supabase
         .from('time_entries')
-        .select('duration_minutes')
+        .select('duration_seconds, duration_minutes')
         .eq('deliverable_id', deliverable.id)
-        .not('duration_minutes', 'is', null);
+        .not('duration_seconds', 'is', null);
 
-      const totalTimeMinutes = timeEntries?.reduce((sum, entry) => sum + (entry.duration_minutes || 0), 0) || 0;
+      // Use duration_seconds if available, fallback to duration_minutes * 60
+      const totalTimeSeconds = timeEntries?.reduce((sum, entry) => {
+        const seconds = entry.duration_seconds || (entry.duration_minutes || 0) * 60;
+        return sum + seconds;
+      }, 0) || 0;
       
       // Get tasks for this deliverable
       const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
@@ -61,7 +153,8 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
       const daysUntilDeadline = deliverable.due_date ? differenceInDays(new Date(deliverable.due_date), new Date()) : null;
 
       stats[deliverable.id] = {
-        totalTimeMinutes,
+        totalTimeSeconds,
+        totalTimeMinutes: Math.floor(totalTimeSeconds / 60), // Keep for compatibility
         billableHours,
         earnedHours,
         completionRate,
@@ -79,10 +172,31 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
     }));
   };
 
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  const formatTime = (seconds: number) => {
+    if (seconds === 0) return '0s';
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    let result = '';
+    if (hours > 0) result += `${hours}h `;
+    if (minutes > 0) result += `${minutes}m `;
+    if (secs > 0 || result === '') result += `${secs}s`;
+    
+    return result.trim();
+  };
+
+  const getTaskTimeSpent = async (taskId: string) => {
+    const { data: timeEntries } = await supabase
+      .from('time_entries')
+      .select('duration_seconds, duration_minutes')
+      .eq('task_id', taskId)
+      .not('duration_seconds', 'is', null);
+    
+    return timeEntries?.reduce((sum, entry) => {
+      const seconds = entry.duration_seconds || (entry.duration_minutes || 0) * 60;
+      return sum + seconds;
+    }, 0) || 0;
   };
 
   const toggleTaskCompletion = async (task: Task) => {
@@ -199,10 +313,10 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
                           <span className="text-sm font-medium text-green-700 dark:text-green-300">Tijd Gelogd</span>
                         </div>
                         <div className="text-2xl font-bold text-green-600">
-                          {formatTime(stats.totalTimeMinutes)}
+                          {formatTime(stats.totalTimeSeconds || 0)}
                         </div>
                         <div className="text-xs text-green-600/70 mt-1">
-                          {stats.totalTimeMinutes === 0 ? 'Nog niet gestart' : 'Actief gelogd'}
+                          {(stats.totalTimeSeconds || 0) === 0 ? 'Nog niet gestart' : 'Actief gelogd'}
                         </div>
                       </div>
 
@@ -262,39 +376,16 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
                       </div>
                     ) : (
                       <div className="space-y-2">
-                        {deliverableTasks.map((task) => (
-                          <div
+                        {/* Sort tasks by created_at descending (newest first = top) */}
+                        {[...deliverableTasks]
+                          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                          .map((task, index) => (
+                          <TaskRow
                             key={task.id}
-                            className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                          >
-                            <Checkbox
-                              checked={task.completed}
-                              onCheckedChange={() => toggleTaskCompletion(task)}
-                            />
-                            
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
-                                  {task.title}
-                                </span>
-                                {task.assigned_to && (
-                                  <Badge variant="outline" className="text-xs">
-                                    <User className="h-3 w-3 mr-1" />
-                                    {task.assigned_to}
-                                  </Badge>
-                                )}
-                                <Badge variant="secondary" className="text-xs">
-                                  <Clock className="h-3 w-3 mr-1" />
-                                  {task.billable_hours}h
-                                </Badge>
-                              </div>
-                              {task.description && (
-                                <p className={`text-sm text-muted-foreground ${task.completed ? 'line-through' : ''}`}>
-                                  {task.description}
-                                </p>
-                              )}
-                            </div>
-                          </div>
+                            task={task}
+                            isTopTask={index === 0}
+                            onToggle={() => toggleTaskCompletion(task)}
+                          />
                         ))}
                       </div>
                     )

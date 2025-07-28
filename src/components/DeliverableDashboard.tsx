@@ -18,6 +18,7 @@ interface DeliverableDashboardProps {
 }
 
 interface DeliverableStats {
+  totalTimeSeconds: number;
   totalTimeMinutes: number;
   billableHours: number;
   earnedHours: number;
@@ -72,14 +73,18 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
     const stats: Record<string, DeliverableStats> = {};
 
     for (const deliverable of deliverables) {
-      // Get time entries for this deliverable
+      // Get time entries for this deliverable using duration_seconds for precision
       const { data: timeEntries } = await supabase
         .from('time_entries')
-        .select('duration_minutes')
+        .select('duration_seconds, duration_minutes')
         .eq('deliverable_id', deliverable.id)
-        .not('duration_minutes', 'is', null);
+        .not('duration_seconds', 'is', null);
 
-      const totalTimeMinutes = timeEntries?.reduce((sum, entry) => sum + (entry.duration_minutes || 0), 0) || 0;
+      // Use duration_seconds if available, fallback to duration_minutes * 60
+      const totalTimeSeconds = timeEntries?.reduce((sum, entry) => {
+        const seconds = entry.duration_seconds || (entry.duration_minutes || 0) * 60;
+        return sum + seconds;
+      }, 0) || 0;
       
       // Get tasks for this deliverable
       const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
@@ -88,7 +93,8 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
       const completionRate = deliverableTasks.length > 0 ? (deliverableTasks.filter(t => t.completed).length / deliverableTasks.length) * 100 : 0;
 
       stats[deliverable.id] = {
-        totalTimeMinutes,
+        totalTimeSeconds,
+        totalTimeMinutes: Math.floor(totalTimeSeconds / 60), // Keep for compatibility
         billableHours,
         earnedHours,
         completionRate
@@ -98,11 +104,18 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
     setDeliverableStats(stats);
   };
 
-  const formatTime = (minutes: number) => {
-    if (minutes === 0) return '0m';
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  const formatTime = (seconds: number) => {
+    if (seconds === 0) return '0s';
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    let result = '';
+    if (hours > 0) result += `${hours}h `;
+    if (minutes > 0) result += `${minutes}m `;
+    if (secs > 0 || result === '') result += `${secs}s`;
+    
+    return result.trim();
   };
 
   const getDeadlineStatus = (dueDate: string | null) => {
@@ -157,7 +170,7 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {deliverables.map((deliverable) => {
-            const stats = deliverableStats[deliverable.id] || { totalTimeMinutes: 0, billableHours: 0, earnedHours: 0, completionRate: 0 };
+            const stats = deliverableStats[deliverable.id] || { totalTimeSeconds: 0, totalTimeMinutes: 0, billableHours: 0, earnedHours: 0, completionRate: 0 };
             
             return (
               <Card key={deliverable.id} className="overflow-hidden">
@@ -196,10 +209,10 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
                       </div>
                       <div className="text-right">
                         <div className="text-xl font-bold text-green-600">
-                          {formatTime(stats.totalTimeMinutes)}
+                          {formatTime(stats.totalTimeSeconds || 0)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {stats.totalTimeMinutes === 0 ? 'Nog niet gestart' : 'Actief bezig'}
+                          {(stats.totalTimeSeconds || 0) === 0 ? 'Nog niet gestart' : 'Actief bezig'}
                         </div>
                       </div>
                     </div>
