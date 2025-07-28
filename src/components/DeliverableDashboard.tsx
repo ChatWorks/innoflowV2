@@ -219,14 +219,14 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
                   </div>
 
                   {/* Declarabele Uren */}
-                  <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+                  <div className="bg-primary/5 dark:bg-primary/10 p-4 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Euro className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm font-medium">Declarabel</span>
+                        <Euro className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium text-primary">Declarabel</span>
                       </div>
                       <div className="text-right">
-                        <div className="text-xl font-bold text-blue-600">
+                        <div className="text-xl font-bold text-primary">
                           {formatCurrency(stats.earnedHours)}
                         </div>
                         <div className="text-xs text-muted-foreground">

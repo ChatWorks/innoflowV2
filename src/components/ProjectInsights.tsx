@@ -35,7 +35,7 @@ export default function ProjectInsights({ timeEntries, tasks }: ProjectInsightsP
   // Efficiency status
   const getEfficiencyStatus = (efficiency: number) => {
     if (efficiency >= 100) return { label: 'Excellent', color: 'bg-green-100 text-green-800' };
-    if (efficiency >= 80) return { label: 'Goed', color: 'bg-blue-100 text-blue-800' };
+    if (efficiency >= 80) return { label: 'Goed', color: 'bg-primary/10 text-primary' };
     if (efficiency >= 60) return { label: 'Gemiddeld', color: 'bg-yellow-100 text-yellow-800' };
     return { label: 'Onder verwachting', color: 'bg-red-100 text-red-800' };
   };

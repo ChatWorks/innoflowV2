@@ -126,7 +126,7 @@ export default function ProjectDetail() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Nieuw': return 'bg-blue-100 text-blue-800';
+      case 'Nieuw': return 'bg-primary/10 text-primary';
       case 'In Progress': return 'bg-yellow-100 text-yellow-800';
       case 'Review': return 'bg-purple-100 text-purple-800';
       case 'Voltooid': return 'bg-green-100 text-green-800';
@@ -167,7 +167,7 @@ export default function ProjectDetail() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Project Hero Section */}
         <div className="mb-8">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 p-8 text-white">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary-hover to-primary p-8 text-white">
             <div className="relative z-10">
               <Button 
                 variant="ghost" 
@@ -181,10 +181,10 @@ export default function ProjectDetail() {
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-4xl font-bold mb-2">{project.name}</h1>
-                  <p className="text-blue-100 text-lg mb-4">
+                  <p className="text-primary-foreground/80 text-lg mb-4">
                     Real-time overzicht van je project voortgang en taken
                   </p>
-                  <div className="flex items-center gap-6 text-blue-100">
+                  <div className="flex items-center gap-6 text-primary-foreground/80">
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4" />
                       <span>{project.client}</span>

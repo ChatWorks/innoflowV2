@@ -22,11 +22,11 @@ All colors MUST be HSL for proper theming.
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
 
-    /* Innoworks.ai blue branding */
-    --primary: 220 91% 56%;
+    /* Innoworks.ai blue branding - Updated to #001D5C */
+    --primary: 228 100% 18%;
     --primary-foreground: 0 0% 98%;
-    --primary-hover: 220 91% 48%;
-    --primary-glow: 220 91% 66%;
+    --primary-hover: 228 100% 15%;
+    --primary-glow: 228 100% 25%;
 
     /* Refined secondary colors */
     --secondary: 220 13% 95%;
@@ -52,7 +52,7 @@ All colors MUST be HSL for proper theming.
     /* Clean borders and inputs */
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 220 91% 56%;
+    --ring: 228 100% 18%;
 
     /* Border radius for modern look */
     --radius: 0.75rem;
@@ -79,7 +79,7 @@ All colors MUST be HSL for proper theming.
 
     --sidebar-border: 220 13% 91%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 228 100% 18%;
   }
 
   .dark {

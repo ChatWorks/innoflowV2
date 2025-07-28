@@ -15,7 +15,7 @@ interface ProjectCardProps {
 
 const getStatusColor = (status: Project['status']) => {
   switch (status) {
-    case 'Nieuw': return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
+    case 'Nieuw': return 'bg-primary/10 text-primary hover:bg-primary/20';
     case 'In Progress': return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
     case 'Review': return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
     case 'Voltooid': return 'bg-green-100 text-green-800 hover:bg-green-200';

@@ -104,12 +104,12 @@ export default function Index() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Project Hero Section */}
         <div className="mb-8">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 p-8 text-white">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary-hover to-primary p-8 text-white">
             <div className="relative z-10">
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-4xl font-bold mb-2">Project Management</h1>
-                  <p className="text-blue-100 text-lg mb-4">
+                  <p className="text-primary-foreground/80 text-lg mb-4">
                     Beheer je projecten en maximaliseer je productiviteit
                   </p>
                 </div>
