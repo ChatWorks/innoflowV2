@@ -70,77 +70,13 @@ const Index = () => {
   return (
     <Layout>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header Section */}
+        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Project Management</h1>
-            <p className="text-gray-600 mt-1">Beheer je projecten en maximaliseer je productiviteit</p>
+            <h1 className="text-3xl font-bold">Project Management</h1>
+            <p className="text-muted-foreground mt-1">Beheer je projecten en maximaliseer je productiviteit</p>
           </div>
           <ProjectCreationDialog onProjectCreated={fetchProjects} />
-        </div>
-
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gray-800 rounded-lg p-6 text-white">
-            <div className="text-3xl font-bold mb-2">{projects.length}</div>
-            <div className="text-gray-300">Totaal Projecten</div>
-          </div>
-          <div className="bg-gray-800 rounded-lg p-6 text-white">
-            <div className="text-3xl font-bold mb-2">
-              {projects.filter(p => p.status === 'In Progress').length}
-            </div>
-            <div className="text-gray-300">Actieve Projecten</div>
-          </div>
-          <div className="bg-gray-800 rounded-lg p-6 text-white">
-            <div className="text-3xl font-bold mb-2">
-              {projects.filter(p => p.status === 'Voltooid').length}
-            </div>
-            <div className="text-gray-300">Voltooid</div>
-          </div>
-          <div className="bg-gray-800 rounded-lg p-6 text-white">
-            <div className="text-3xl font-bold mb-2">
-              € {projects.reduce((sum, p) => sum + (p.budget || 0), 0).toLocaleString()}
-            </div>
-            <div className="text-gray-300">Totaal Budget</div>
-          </div>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Zoek projecten, klanten..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <div className="absolute left-3 top-2.5 text-gray-400">🔍</div>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button variant="default" size="sm">Alle</Button>
-            <Button variant="outline" size="sm">
-              Nieuw <Badge variant="secondary" className="ml-1">
-                {projects.filter(p => p.status === 'Nieuw').length}
-              </Badge>
-            </Button>
-            <Button variant="outline" size="sm">
-              In Progress <Badge variant="secondary" className="ml-1">
-                {projects.filter(p => p.status === 'In Progress').length}
-              </Badge>
-            </Button>
-            <Button variant="outline" size="sm">
-              Review <Badge variant="secondary" className="ml-1">
-                {projects.filter(p => p.status === 'Review').length}
-              </Badge>
-            </Button>
-            <Button variant="outline" size="sm">
-              Voltooid <Badge variant="secondary" className="ml-1">
-                {projects.filter(p => p.status === 'Voltooid').length}
-              </Badge>
-            </Button>
-          </div>
         </div>
 
         {/* Projects Grid */}
@@ -155,72 +91,68 @@ const Index = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => {
-              const getStatusColor = (status: string) => {
-                switch (status) {
-                  case 'Nieuw': return 'bg-blue-100 text-blue-800';
-                  case 'In Progress': return 'bg-yellow-100 text-yellow-800';
-                  case 'Review': return 'bg-purple-100 text-purple-800';
-                  case 'Voltooid': return 'bg-green-100 text-green-800';
-                  default: return 'bg-gray-100 text-gray-800';
-                }
-              };
-
-              return (
-                <Card key={project.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    {/* Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 
-                          className="text-xl font-semibold mb-1 cursor-pointer hover:text-blue-600"
-                          onClick={() => navigate(`/project/${project.id}`)}
-                        >
-                          {project.name}
-                        </h3>
-                        <div className="flex items-center gap-2 text-gray-500 mb-3">
-                          <User className="h-4 w-4" />
-                          <span className="text-sm">{project.client}</span>
-                        </div>
-                      </div>
-                      <Badge className={`${getStatusColor(project.status)} text-xs px-2 py-1`}>
-                        {project.status}
-                      </Badge>
+            {projects.map((project) => (
+              <Card 
+                key={project.id} 
+                className="hover:shadow-lg transition-shadow cursor-pointer group"
+                onClick={() => navigate(`/project/${project.id}`)}
+              >
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                        {project.name}
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">{project.client}</p>
                     </div>
-
-                    {/* Progress */}
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-gray-600">Voortgang</span>
-                        <span className="text-sm font-medium">{project.progress}%</span>
-                      </div>
-                      <Progress value={project.progress} className="h-2" />
+                    <Badge variant={getStatusColor(project.status)}>
+                      {project.status}
+                    </Badge>
+                  </div>
+                  
+                  {project.description && (
+                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                      {project.description}
+                    </p>
+                  )}
+                </CardHeader>
+                
+                <CardContent className="space-y-4">
+                  {/* Progress */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Voortgang</span>
+                      <span className="font-medium">{project.progress}%</span>
                     </div>
-
-                    {/* Budget */}
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Budget</span>
-                        <span className="text-lg font-bold">
-                          € {project.budget?.toLocaleString() || '0'}
-                        </span>
+                    <Progress value={project.progress} className="h-2" />
+                  </div>
+                  
+                  {/* Stats */}
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    {project.budget && (
+                      <div className="flex items-center gap-1">
+                        <Euro className="h-4 w-4" />
+                        €{project.budget.toLocaleString()}
                       </div>
-                    </div>
-
-                    {/* Timer and Start Button */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-gray-500">
+                    )}
+                    {project.total_hours && (
+                      <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        <span className="text-sm">00:00:00</span>
+                        {project.total_hours}h
                       </div>
-                      <Button size="sm" className="gap-2">
-                        ▶ Start
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    )}
+                  </div>
+                  
+                  {/* Date */}
+                  <div className="flex justify-between items-center text-sm text-muted-foreground">
+                    <span>
+                      Aangemaakt: {format(new Date(project.created_at), "dd MMM yyyy", { locale: nl })}
+                    </span>
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
       </main>

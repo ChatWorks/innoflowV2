@@ -165,55 +165,47 @@ export default function ProjectDetail() {
   return (
     <Layout>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Hero Section */}
-        <div className="mb-8 animate-fade-in">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-8 text-white">
-            <div className="absolute inset-0 bg-black/10" />
-            <div className="relative z-10 flex justify-between items-start">
-              <div>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => navigate('/')}
-                  className="text-white hover:bg-white/10 mb-4"
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Terug naar dashboard
-                </Button>
-                <h1 className="text-4xl font-bold font-manrope mb-2">
-                  {project.name}
-                </h1>
-                <p className="text-primary-foreground/90 text-lg mb-4">
-                  Real-time overzicht van je project voortgang en taken
-                </p>
-                <div className="flex items-center gap-4 text-primary-foreground/90">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    {project.client}
+        {/* Project Hero Section */}
+        <div className="mb-8">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 p-8 text-white">
+            <div className="relative z-10">
+              <Button 
+                variant="ghost" 
+                onClick={() => navigate('/')}
+                className="text-white hover:bg-white/10 mb-4"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Terug naar dashboard
+              </Button>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-4xl font-bold mb-2">{project.name}</h1>
+                  <p className="text-blue-100 text-lg mb-4">
+                    Real-time overzicht van je project voortgang en taken
+                  </p>
+                  <div className="flex items-center gap-6 text-blue-100">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      <span>{project.client}</span>
+                    </div>
+                    {project.budget && (
+                      <div className="flex items-center gap-2">
+                        <Euro className="h-4 w-4" />
+                        <span>€ {project.budget.toLocaleString()}</span>
+                      </div>
+                    )}
                   </div>
-                  {project.start_date && (
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      {new Date(project.start_date).toLocaleDateString('nl-NL')}
-                    </div>
-                  )}
-                  {project.budget && (
-                    <div className="flex items-center gap-2">
-                      <Euro className="h-4 w-4" />
-                      {formatCurrency(project.budget)}
-                    </div>
-                  )}
                 </div>
+                <Badge className="bg-white/20 text-white border-white/30 px-3 py-1">
+                  {project.status}
+                </Badge>
               </div>
-              <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
-                {project.status}
-              </Badge>
             </div>
-            <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-white/10" />
-            <div className="absolute bottom-0 left-0 -mb-8 -ml-8 h-32 w-32 rounded-full bg-white/5" />
           </div>
         </div>
 
-        {/* Simple Task List - Main Focus */}
+        {/* Deliverables Section */}
         <SimpleTaskList 
           projectId={project.id}
           deliverables={deliverables}
