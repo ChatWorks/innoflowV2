@@ -19,7 +19,7 @@ import { Project, Deliverable, TimeEntry, Task } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import ProjectTimer from '@/components/ProjectTimer';
-import SimpleTaskManagement from '@/components/SimpleTaskManagement';
+import DeliverableDashboard from '@/components/DeliverableDashboard';
 import ProjectInsights from '@/components/ProjectInsights';
 
 export default function ProjectDetail() {
@@ -277,7 +277,7 @@ export default function ProjectDetail() {
           </TabsList>
 
           <TabsContent value="tasks" className="space-y-4">
-            <SimpleTaskManagement 
+            <DeliverableDashboard 
               projectId={project.id}
               deliverables={deliverables}
               tasks={tasks}
