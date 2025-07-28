@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar, User, Clock } from 'lucide-react';
-import { format } from 'date-fns';
+import { Calendar, User, Clock, BarChart3, List, TrendingUp, Euro, Timer } from 'lucide-react';
+import { format, differenceInDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
 import { Deliverable, Task } from '@/types/project';
@@ -21,6 +22,8 @@ interface SimpleTaskListProps {
 }
 
 export default function SimpleTaskList({ projectId, deliverables, tasks, onRefresh }: SimpleTaskListProps) {
+  const [statsMode, setStatsMode] = useState<Record<string, boolean>>({});
+  const [deliverableStats, setDeliverableStats] = useState<Record<string, any>>({});
   const { toast } = useToast();
 
   // Sort deliverables by due date (earliest first)
@@ -30,6 +33,57 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
     if (!b.due_date) return -1;
     return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
   });
+
+  useEffect(() => {
+    fetchDeliverableStats();
+  }, [deliverables, tasks]);
+
+  const fetchDeliverableStats = async () => {
+    const stats: Record<string, any> = {};
+
+    for (const deliverable of deliverables) {
+      // Get time entries for this deliverable
+      const { data: timeEntries } = await supabase
+        .from('time_entries')
+        .select('duration_minutes')
+        .eq('deliverable_id', deliverable.id)
+        .not('duration_minutes', 'is', null);
+
+      const totalTimeMinutes = timeEntries?.reduce((sum, entry) => sum + (entry.duration_minutes || 0), 0) || 0;
+      
+      // Get tasks for this deliverable
+      const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
+      const billableHours = deliverableTasks.reduce((sum, task) => sum + task.billable_hours, 0);
+      const earnedHours = deliverableTasks.filter(t => t.completed).reduce((sum, task) => sum + task.billable_hours, 0);
+      const completionRate = deliverableTasks.length > 0 ? (deliverableTasks.filter(t => t.completed).length / deliverableTasks.length) * 100 : 0;
+      
+      // Calculate days until deadline
+      const daysUntilDeadline = deliverable.due_date ? differenceInDays(new Date(deliverable.due_date), new Date()) : null;
+
+      stats[deliverable.id] = {
+        totalTimeMinutes,
+        billableHours,
+        earnedHours,
+        completionRate,
+        daysUntilDeadline
+      };
+    }
+
+    setDeliverableStats(stats);
+  };
+
+  const toggleStatsMode = (deliverableId: string) => {
+    setStatsMode(prev => ({
+      ...prev,
+      [deliverableId]: !prev[deliverableId]
+    }));
+  };
+
+  const formatTime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  };
 
   const toggleTaskCompletion = async (task: Task) => {
     try {
@@ -78,6 +132,8 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
         ) : (
           sortedDeliverables.map((deliverable) => {
             const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
+            const stats = deliverableStats[deliverable.id];
+            const isStatsMode = statsMode[deliverable.id];
             
             return (
               <Card key={deliverable.id}>
@@ -98,61 +154,150 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      <TaskCreationDialog deliverableId={deliverable.id} onTaskCreated={onRefresh} />
-                      <DeliverableTimer 
-                        deliverableId={deliverable.id}
-                        deliverableTitle={deliverable.title}
-                        projectId={projectId}
-                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toggleStatsMode(deliverable.id)}
+                        className="gap-2"
+                      >
+                        {isStatsMode ? (
+                          <>
+                            <List className="h-4 w-4" />
+                            Taken
+                          </>
+                        ) : (
+                          <>
+                            <BarChart3 className="h-4 w-4" />
+                            Stats
+                          </>
+                        )}
+                      </Button>
+                      {!isStatsMode && (
+                        <>
+                          <TaskCreationDialog deliverableId={deliverable.id} onTaskCreated={onRefresh} />
+                          <DeliverableTimer 
+                            deliverableId={deliverable.id}
+                            deliverableTitle={deliverable.title}
+                            projectId={projectId}
+                          />
+                        </>
+                      )}
                     </div>
                   </div>
 
-                  {deliverable.description && (
+                  {deliverable.description && !isStatsMode && (
                     <p className="text-muted-foreground mb-4">{deliverable.description}</p>
                   )}
 
-                  {/* Tasks */}
-                  {deliverableTasks.length === 0 ? (
-                    <div className="text-center py-4 text-muted-foreground border-2 border-dashed rounded-lg">
-                      <p className="text-sm">Nog geen taken - klik op "Nieuwe Taak" om te beginnen</p>
+                  {/* Statistics Mode */}
+                  {isStatsMode && stats ? (
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                      {/* Tijd Gelogd */}
+                      <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Clock className="h-4 w-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-700 dark:text-green-300">Tijd Gelogd</span>
+                        </div>
+                        <div className="text-2xl font-bold text-green-600">
+                          {formatTime(stats.totalTimeMinutes)}
+                        </div>
+                        <div className="text-xs text-green-600/70 mt-1">
+                          {stats.totalTimeMinutes === 0 ? 'Nog niet gestart' : 'Actief gelogd'}
+                        </div>
+                      </div>
+
+                      {/* Declarabele Uren */}
+                      <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Euro className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Declarabel</span>
+                        </div>
+                        <div className="text-2xl font-bold text-blue-600">
+                          € {(stats.earnedHours * 75).toLocaleString()}
+                        </div>
+                        <div className="text-xs text-blue-600/70 mt-1">
+                          {stats.billableHours > 0 ? Math.round((stats.earnedHours / stats.billableHours) * 100) : 0}% van €{(stats.billableHours * 75).toLocaleString()}
+                        </div>
+                      </div>
+
+                      {/* Deadline */}
+                      <div className="bg-orange-50 dark:bg-orange-950 p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Timer className="h-4 w-4 text-orange-600" />
+                          <span className="text-sm font-medium text-orange-700 dark:text-orange-300">Deadline</span>
+                        </div>
+                        <div className="text-2xl font-bold text-orange-600">
+                          {stats.daysUntilDeadline !== null ? (
+                            stats.daysUntilDeadline > 0 ? `${stats.daysUntilDeadline}d` : 
+                            stats.daysUntilDeadline === 0 ? 'Vandaag' : 'Verlopen'
+                          ) : '∞'}
+                        </div>
+                        <div className="text-xs text-orange-600/70 mt-1">
+                          {stats.daysUntilDeadline !== null ? (
+                            stats.daysUntilDeadline > 0 ? 'dagen resterend' :
+                            stats.daysUntilDeadline === 0 ? 'deadline vandaag' : 'te laat'
+                          ) : 'geen deadline'}
+                        </div>
+                      </div>
+
+                      {/* Voortgang */}
+                      <div className="bg-purple-50 dark:bg-purple-950 p-4 rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <TrendingUp className="h-4 w-4 text-purple-600" />
+                          <span className="text-sm font-medium text-purple-700 dark:text-purple-300">Voortgang</span>
+                        </div>
+                        <div className="text-2xl font-bold text-purple-600">
+                          {Math.round(stats.completionRate)}%
+                        </div>
+                        <div className="text-xs text-purple-600/70 mt-1">
+                          {deliverableTasks.filter(t => t.completed).length} van {deliverableTasks.length} taken
+                        </div>
+                      </div>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      {deliverableTasks.map((task) => (
-                        <div
-                          key={task.id}
-                          className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                        >
-                          <Checkbox
-                            checked={task.completed}
-                            onCheckedChange={() => toggleTaskCompletion(task)}
-                          />
-                          
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
-                                {task.title}
-                              </span>
-                              {task.assigned_to && (
-                                <Badge variant="outline" className="text-xs">
-                                  <User className="h-3 w-3 mr-1" />
-                                  {task.assigned_to}
+                    /* Tasks Mode */
+                    deliverableTasks.length === 0 ? (
+                      <div className="text-center py-4 text-muted-foreground border-2 border-dashed rounded-lg">
+                        <p className="text-sm">Nog geen taken - klik op "Nieuwe Taak" om te beginnen</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {deliverableTasks.map((task) => (
+                          <div
+                            key={task.id}
+                            className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                          >
+                            <Checkbox
+                              checked={task.completed}
+                              onCheckedChange={() => toggleTaskCompletion(task)}
+                            />
+                            
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                  {task.title}
+                                </span>
+                                {task.assigned_to && (
+                                  <Badge variant="outline" className="text-xs">
+                                    <User className="h-3 w-3 mr-1" />
+                                    {task.assigned_to}
+                                  </Badge>
+                                )}
+                                <Badge variant="secondary" className="text-xs">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {task.billable_hours}h
                                 </Badge>
+                              </div>
+                              {task.description && (
+                                <p className={`text-sm text-muted-foreground ${task.completed ? 'line-through' : ''}`}>
+                                  {task.description}
+                                </p>
                               )}
-                              <Badge variant="secondary" className="text-xs">
-                                <Clock className="h-3 w-3 mr-1" />
-                                {task.billable_hours}h
-                              </Badge>
                             </div>
-                            {task.description && (
-                              <p className={`text-sm text-muted-foreground ${task.completed ? 'line-through' : ''}`}>
-                                {task.description}
-                              </p>
-                            )}
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )
                   )}
                 </CardContent>
               </Card>
