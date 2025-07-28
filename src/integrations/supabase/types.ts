@@ -67,6 +67,7 @@ export type Database = {
           progress: number | null
           start_date: string | null
           status: string
+          total_hours: number | null
           updated_at: string
         }
         Insert: {
@@ -80,6 +81,7 @@ export type Database = {
           progress?: number | null
           start_date?: string | null
           status?: string
+          total_hours?: number | null
           updated_at?: string
         }
         Update: {
@@ -93,12 +95,14 @@ export type Database = {
           progress?: number | null
           start_date?: string | null
           status?: string
+          total_hours?: number | null
           updated_at?: string
         }
         Relationships: []
       }
       tasks: {
         Row: {
+          assigned_to: string | null
           billable_hours: number
           completed: boolean
           completed_at: string | null
@@ -110,6 +114,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_to?: string | null
           billable_hours?: number
           completed?: boolean
           completed_at?: string | null
@@ -121,6 +126,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_to?: string | null
           billable_hours?: number
           completed?: boolean
           completed_at?: string | null
@@ -144,6 +150,7 @@ export type Database = {
       time_entries: {
         Row: {
           created_at: string
+          deliverable_id: string | null
           description: string | null
           duration_minutes: number | null
           end_time: string | null
@@ -154,6 +161,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deliverable_id?: string | null
           description?: string | null
           duration_minutes?: number | null
           end_time?: string | null
@@ -164,6 +172,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deliverable_id?: string | null
           description?: string | null
           duration_minutes?: number | null
           end_time?: string | null
@@ -173,6 +182,13 @@ export type Database = {
           start_time?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "time_entries_deliverable_id_fkey"
+            columns: ["deliverable_id"]
+            isOneToOne: false
+            referencedRelation: "deliverables"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "time_entries_project_id_fkey"
             columns: ["project_id"]

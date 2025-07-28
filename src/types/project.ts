@@ -6,6 +6,7 @@ export interface Project {
   status: 'Nieuw' | 'In Progress' | 'Review' | 'Voltooid';
   progress: number;
   budget?: number;
+  total_hours?: number;
   start_date?: string;
   end_date?: string;
   created_at: string;
@@ -41,6 +42,7 @@ export interface Task {
   billable_hours: number;
   completed: boolean;
   completed_at?: string;
+  assigned_to?: string;
   created_at: string;
   updated_at: string;
 }
