@@ -105,22 +105,14 @@ export default function Index() {
         {/* Project Hero Section */}
         <div className="mb-8">
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary-hover to-primary p-8 text-white">
-            {/* Clean Background Pattern */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-overlay animate-pulse"></div>
-              <div className="absolute top-0 -right-4 w-72 h-72 bg-white rounded-full mix-blend-overlay animate-pulse [animation-delay:1s]"></div>
-              <div className="absolute -bottom-8 left-1/2 w-96 h-96 bg-white rounded-full mix-blend-overlay animate-pulse [animation-delay:2s] transform -translate-x-1/2"></div>
-            </div>
-            
             {/* Gradient Overlay Animation */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 animate-[shimmer_3s_ease-in-out_infinite]"></div>
             
             <div className="relative z-10 animate-fade-in">
               <div className="flex items-center justify-between">
                 <div className="animate-[slideInLeft_0.8s_ease-out]">
-                  <h1 className="text-4xl font-bold mb-2 relative">
+                  <h1 className="text-4xl font-bold mb-2">
                     Project Management
-                    <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white/50 animate-[expandWidth_1.5s_ease-out_0.5s_forwards]"></div>
                   </h1>
                   <p className="text-primary-foreground/80 text-lg mb-4 animate-[slideInLeft_0.8s_ease-out_0.3s_both]">
                     Beheer je projecten en maximaliseer je productiviteit
