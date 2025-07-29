@@ -147,6 +147,9 @@ export type Database = {
           estimated_value: number | null
           expected_close_date: string | null
           id: string
+          is_stale: boolean
+          next_follow_up_date: string | null
+          next_follow_up_description: string | null
           notes: string | null
           phone: string | null
           probability: number | null
@@ -165,6 +168,9 @@ export type Database = {
           estimated_value?: number | null
           expected_close_date?: string | null
           id?: string
+          is_stale?: boolean
+          next_follow_up_date?: string | null
+          next_follow_up_description?: string | null
           notes?: string | null
           phone?: string | null
           probability?: number | null
@@ -183,11 +189,50 @@ export type Database = {
           estimated_value?: number | null
           expected_close_date?: string | null
           id?: string
+          is_stale?: boolean
+          next_follow_up_date?: string | null
+          next_follow_up_description?: string | null
           notes?: string | null
           phone?: string | null
           probability?: number | null
           source?: string | null
           status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          lead_id: string | null
+          message: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          lead_id?: string | null
+          message: string
+          title: string
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          lead_id?: string | null
+          message?: string
+          title?: string
+          type?: string
           updated_at?: string
           user_id?: string
         }

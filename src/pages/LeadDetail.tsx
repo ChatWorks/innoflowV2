@@ -22,12 +22,18 @@ import {
   PhoneCall,
   Video,
   StickyNote,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle,
+  Save,
+  X
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { LeadEditDialog } from '@/components/LeadEditDialog';
 import { LeadActivityDialog } from '@/components/LeadActivityDialog';
 import { LeadToProjectDialog } from '@/components/LeadToProjectDialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function LeadDetail() {
   const { id } = useParams<{ id: string }>();
@@ -40,6 +46,11 @@ export default function LeadDetail() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isActivityDialogOpen, setIsActivityDialogOpen] = useState(false);
   const [isConvertDialogOpen, setIsConvertDialogOpen] = useState(false);
+  const [isEditingFollowUp, setIsEditingFollowUp] = useState(false);
+  const [followUpData, setFollowUpData] = useState({
+    next_follow_up_date: '',
+    next_follow_up_description: '',
+  });
 
   const fetchLead = async () => {
     if (!id) return;
@@ -63,6 +74,10 @@ export default function LeadDetail() {
       }
 
       setLead(leadData as Lead);
+      setFollowUpData({
+        next_follow_up_date: leadData.next_follow_up_date || '',
+        next_follow_up_description: leadData.next_follow_up_description || '',
+      });
     } catch (error) {
       console.error('Error:', error);
     }
@@ -119,6 +134,40 @@ export default function LeadDetail() {
       case 'Notitie': return <StickyNote className="h-4 w-4" />;
       case 'Status Update': return <RefreshCw className="h-4 w-4" />;
       default: return <MessageSquare className="h-4 w-4" />;
+    }
+  };
+
+  const handleSaveFollowUp = async () => {
+    if (!lead) return;
+
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update({
+          next_follow_up_date: followUpData.next_follow_up_date || null,
+          next_follow_up_description: followUpData.next_follow_up_description || null,
+        })
+        .eq('id', lead.id);
+
+      if (error) {
+        console.error('Error updating follow-up:', error);
+        toast({
+          title: "Fout bij opslaan",
+          description: "Er is een fout opgetreden bij het opslaan van de follow-up.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Follow-up opgeslagen",
+        description: "De follow-up herinnering is succesvol bijgewerkt.",
+      });
+
+      setIsEditingFollowUp(false);
+      fetchLead();
+    } catch (error) {
+      console.error('Error:', error);
     }
   };
 
@@ -205,6 +254,29 @@ export default function LeadDetail() {
               <CardTitle>Lead Informatie</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Smart Assistant Indicators */}
+              {(lead.is_stale || lead.next_follow_up_date) && (
+                <>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
+                    <h4 className="text-sm font-medium text-blue-900">🤖 Smart Assistant</h4>
+                    {lead.is_stale && (
+                      <div className="flex items-center gap-2 text-sm text-red-600">
+                        <AlertTriangle className="h-4 w-4" />
+                        <span>Deze lead is gemarkeerd als stilgevallen</span>
+                      </div>
+                    )}
+                    {lead.next_follow_up_date && (
+                      <div className="flex items-center gap-2 text-sm text-blue-600">
+                        <Calendar className="h-4 w-4" />
+                        <span>
+                          Volgende follow-up: {new Date(lead.next_follow_up_date).toLocaleDateString('nl-NL')}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <Separator />
+                </>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center space-x-2">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
@@ -379,6 +451,113 @@ export default function LeadDetail() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Follow-up Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              🎯 Volgende Actie Planning
+              <Button 
+                size="sm" 
+                variant={isEditingFollowUp ? "outline" : "default"}
+                onClick={() => setIsEditingFollowUp(!isEditingFollowUp)}
+              >
+                {isEditingFollowUp ? (
+                  <>
+                    <X className="h-4 w-4 mr-2" />
+                    Annuleren
+                  </>
+                ) : (
+                  <>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Bewerken
+                  </>
+                )}
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isEditingFollowUp ? (
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="follow-up-date">Volgende follow-up datum</Label>
+                  <Input
+                    id="follow-up-date"
+                    type="date"
+                    value={followUpData.next_follow_up_date}
+                    onChange={(e) => setFollowUpData(prev => ({ 
+                      ...prev, 
+                      next_follow_up_date: e.target.value 
+                    }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="follow-up-description">Beschrijving van volgende actie</Label>
+                  <Textarea
+                    id="follow-up-description"
+                    placeholder="Wat moet er gebeuren bij de volgende follow-up?"
+                    value={followUpData.next_follow_up_description}
+                    onChange={(e) => setFollowUpData(prev => ({ 
+                      ...prev, 
+                      next_follow_up_description: e.target.value 
+                    }))}
+                    rows={3}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={handleSaveFollowUp}>
+                    <Save className="h-4 w-4 mr-2" />
+                    Opslaan
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsEditingFollowUp(false);
+                      setFollowUpData({
+                        next_follow_up_date: lead.next_follow_up_date || '',
+                        next_follow_up_description: lead.next_follow_up_description || '',
+                      });
+                    }}
+                  >
+                    Annuleren
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {lead.next_follow_up_date ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium">
+                          Volgende follow-up: {new Date(lead.next_follow_up_date).toLocaleDateString('nl-NL')}
+                        </p>
+                        {lead.next_follow_up_description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {lead.next_follow_up_description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center text-muted-foreground py-8">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Geen follow-up gepland</p>
+                    <Button 
+                      size="sm" 
+                      className="mt-2"
+                      onClick={() => setIsEditingFollowUp(true)}
+                    >
+                      Plan volgende actie
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <LeadEditDialog
           lead={lead}

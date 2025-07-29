@@ -6,10 +6,11 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Euro, TrendingUp, Users, Target, Settings } from 'lucide-react';
+import { Plus, Euro, TrendingUp, Users, Target, Settings, AlertTriangle, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { LeadCreationDialog } from '@/components/LeadCreationDialog';
 import { SmartAssistantSettingsDialog } from '@/components/SmartAssistantSettingsDialog';
+import { SmartAssistantTest } from '@/components/SmartAssistantTest';
 
 export default function Leads() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -225,21 +226,40 @@ export default function Leads() {
                   {statusLeads.map((lead) => (
                     <Card 
                       key={lead.id}
-                      className={`cursor-pointer hover:shadow-md transition-all border-l-4 ${getStatusColor(lead.status)}`}
+                      className={`cursor-pointer hover:shadow-md transition-all border-l-4 ${getStatusColor(lead.status)} ${
+                        lead.is_stale ? 'ring-2 ring-red-500 ring-opacity-50' : ''
+                      }`}
                       draggable
                       onDragStart={(e) => handleDragStart(e, lead.id)}
                       onClick={() => navigate(`/leads/${lead.id}`)}
                     >
                       <CardContent className="p-3 space-y-2">
-                        <h3 className="font-medium text-sm leading-tight">{lead.company_name}</h3>
+                        <div className="flex items-start justify-between">
+                          <h3 className="font-medium text-sm leading-tight">{lead.company_name}</h3>
+                          {lead.is_stale && (
+                            <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                          )}
+                        </div>
+                        
                         {lead.contact_person && (
                           <p className="text-xs text-muted-foreground">{lead.contact_person}</p>
                         )}
+                        
                         {lead.estimated_value && (
                           <p className="text-xs font-medium text-green-600">
                             €{lead.estimated_value.toLocaleString()}
                           </p>
                         )}
+                        
+                        {lead.next_follow_up_date && (
+                          <div className="flex items-center gap-1 text-xs text-blue-600">
+                            <Calendar className="h-3 w-3" />
+                            <span>
+                              Follow-up: {new Date(lead.next_follow_up_date).toLocaleDateString('nl-NL')}
+                            </span>
+                          </div>
+                        )}
+                        
                         <div className="flex items-center justify-between">
                           <Badge 
                             variant="outline" 
@@ -253,6 +273,12 @@ export default function Leads() {
                             </span>
                           )}
                         </div>
+                        
+                        {lead.is_stale && (
+                          <div className="text-xs text-red-600 font-medium">
+                            Stilgevallen lead
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -261,6 +287,8 @@ export default function Leads() {
             );
           })}
         </div>
+
+        <SmartAssistantTest />
 
         <LeadCreationDialog 
           isOpen={isCreationDialogOpen}

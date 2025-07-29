@@ -13,6 +13,9 @@ export interface Lead {
   source?: string;
   notes?: string;
   converted_to_project_id?: string;
+  is_stale: boolean;
+  next_follow_up_date?: string;
+  next_follow_up_description?: string;
   created_at: string;
   updated_at: string;
 }
