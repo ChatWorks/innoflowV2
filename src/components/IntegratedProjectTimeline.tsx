@@ -24,6 +24,7 @@ import { nl } from 'date-fns/locale';
 import { Project, Deliverable, Task, Phase, TimeEntry } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTimer } from '@/contexts/TimerContext';
 import DeliverableCreationDialog from './DeliverableCreationDialog';
 import TaskCreationDialog from './TaskCreationDialog';
 import TaskTimer from './TaskTimer';
@@ -84,6 +85,7 @@ export default function IntegratedProjectTimeline({
   const [taskTimeSpent, setTaskTimeSpent] = useState<Record<string, number>>({});
   const [statsMode, setStatsMode] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
+  const { refreshTrigger } = useTimer();
 
   // Initialize expanded phases (all open by default)
   useEffect(() => {
@@ -109,6 +111,13 @@ export default function IntegratedProjectTimeline({
     
     setTaskTimeSpent(times);
   }, [localTasks, timeEntries]);
+
+  // Listen for timer refresh events to update time data
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      onRefresh();
+    }
+  }, [refreshTrigger, onRefresh]);
 
   const togglePhase = (phaseId: string) => {
     setExpandedPhases(prev => {

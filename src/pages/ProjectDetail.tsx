@@ -18,6 +18,7 @@ import {
 import { Project, Deliverable, TimeEntry, Task, Phase } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTimer } from '@/contexts/TimerContext';
 
 import Layout from '@/components/Layout';
 import InlineEditField from '@/components/InlineEditField';
@@ -43,12 +44,20 @@ export default function ProjectDetail() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { refreshTrigger } = useTimer();
 
   useEffect(() => {
     if (id) {
       fetchProjectData();
     }
   }, [id]);
+
+  // Listen for timer refresh events to update time data
+  useEffect(() => {
+    if (id && refreshTrigger > 0) {
+      fetchTimeData();
+    }
+  }, [refreshTrigger, id]);
 
   const fetchProjectData = async () => {
     if (!id) return;
@@ -119,6 +128,24 @@ export default function ProjectDetail() {
       navigate('/');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTimeData = async () => {
+    if (!id) return;
+
+    try {
+      // Fetch only time entries for refresh
+      const { data: timeData, error: timeError } = await supabase
+        .from('time_entries')
+        .select('*')
+        .eq('project_id', id)
+        .order('start_time', { ascending: false });
+
+      if (timeError) throw timeError;
+      setTimeEntries((timeData || []) as TimeEntry[]);
+    } catch (error) {
+      console.error('Error fetching time data:', error);
     }
   };
 
