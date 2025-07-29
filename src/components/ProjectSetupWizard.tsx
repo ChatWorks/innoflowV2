@@ -16,6 +16,7 @@ interface ProjectData {
   name: string;
   client: string;
   totalHours: number;
+  projectValue: number;
   numberOfPhases: number;
 }
 
@@ -30,12 +31,14 @@ interface Deliverable {
   id: string;
   name: string;
   hours: string;
+  targetDate: string;
   tasks: Task[];
 }
 
 interface Phase {
   id: string;
   name: string;
+  targetDate: string;
   deliverables: Deliverable[];
 }
 
@@ -50,6 +53,7 @@ export default function ProjectSetupWizard() {
     name: '',
     client: '',
     totalHours: 0,
+    projectValue: 0,
     numberOfPhases: 1
   });
 
@@ -63,10 +67,12 @@ export default function ProjectSetupWizard() {
       newPhases.push({
         id: `phase-${i}`,
         name: `Fase ${i}`,
+        targetDate: '',
         deliverables: [{
           id: `deliverable-${i}-1`,
           name: '',
           hours: '',
+          targetDate: '',
           tasks: [{
             id: `task-${i}-1-1`,
             name: '',
@@ -84,6 +90,7 @@ export default function ProjectSetupWizard() {
     return projectData.name.trim() !== '' && 
            projectData.client.trim() !== '' && 
            projectData.totalHours > 0 && 
+           projectData.projectValue > 0 && 
            projectData.numberOfPhases >= 1;
   };
 
@@ -121,6 +128,7 @@ export default function ProjectSetupWizard() {
           id: `deliverable-${Date.now()}`,
           name: '',
           hours: '',
+          targetDate: '',
           tasks: [{
             id: `task-${Date.now()}`,
             name: '',
@@ -247,6 +255,7 @@ export default function ProjectSetupWizard() {
           name: projectData.name,
           client: projectData.client,
           total_hours: projectData.totalHours,
+          project_value: projectData.projectValue,
           status: 'Nieuw'
         }])
         .select()
@@ -254,14 +263,30 @@ export default function ProjectSetupWizard() {
       
       if (projectError) throw projectError;
       
-      // 2. Create deliverables and tasks
+      // 2. Create phases and deliverables
       for (const phase of phases) {
+        // Create phase first
+        const { data: phaseData, error: phaseError } = await supabase
+          .from('phases')
+          .insert([{
+            project_id: project.id,
+            name: phase.name,
+            target_date: phase.targetDate || null
+          }])
+          .select()
+          .single();
+        
+        if (phaseError) throw phaseError;
+        
+        // Create deliverables for this phase
         for (const deliverable of phase.deliverables) {
           const { data: deliverableData, error: deliverableError } = await supabase
             .from('deliverables')
             .insert([{
               project_id: project.id,
-              title: `${phase.name} - ${deliverable.name}`,
+              phase_id: phaseData.id,
+              title: deliverable.name,
+              target_date: deliverable.targetDate || null,
               status: 'Pending'
             }])
             .select()
@@ -385,6 +410,18 @@ export default function ProjectSetupWizard() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="projectValue">Project Waarde (EUR) *</Label>
+                <Input
+                  id="projectValue"
+                  type="number"
+                  placeholder="5000"
+                  min="1"
+                  value={projectData.projectValue || ''}
+                  onChange={(e) => setProjectData({ ...projectData, projectValue: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="numberOfPhases">Aantal Fases *</Label>
                 <Select 
                   value={projectData.numberOfPhases.toString()} 
@@ -454,7 +491,23 @@ export default function ProjectSetupWizard() {
               {phases.map((phase) => (
                 <Card key={phase.id} className="border-2">
                   <CardHeader>
-                    <CardTitle className="text-xl">{phase.name}</CardTitle>
+                    <div className="flex items-center gap-4">
+                      <CardTitle className="text-xl flex-1">{phase.name}</CardTitle>
+                      <div className="space-y-2">
+                        <Label htmlFor={`phase-date-${phase.id}`} className="text-sm">Target Datum</Label>
+                        <Input
+                          id={`phase-date-${phase.id}`}
+                          type="date"
+                          value={phase.targetDate}
+                          onChange={(e) => {
+                            setPhases(phases.map(p => 
+                              p.id === phase.id ? { ...p, targetDate: e.target.value } : p
+                            ));
+                          }}
+                          className="w-40"
+                        />
+                      </div>
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {phase.deliverables.map((deliverable) => (
@@ -475,6 +528,14 @@ export default function ProjectSetupWizard() {
                               placeholder="20"
                               value={deliverable.hours}
                               onChange={(e) => updateDeliverable(phase.id, deliverable.id, 'hours', e.target.value)}
+                            />
+                          </div>
+                          <div className="w-40 space-y-2">
+                            <Label>Target Datum</Label>
+                            <Input
+                              type="date"
+                              value={deliverable.targetDate}
+                              onChange={(e) => updateDeliverable(phase.id, deliverable.id, 'targetDate', e.target.value)}
                             />
                           </div>
                           {phase.deliverables.length > 1 && (
@@ -598,6 +659,10 @@ export default function ProjectSetupWizard() {
                   <div>
                     <p className="text-sm text-muted-foreground">Totaal Uren</p>
                     <p className="font-medium">{projectData.totalHours}h</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Project Waarde</p>
+                    <p className="font-medium">€{projectData.projectValue.toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Toegewezen Uren</p>

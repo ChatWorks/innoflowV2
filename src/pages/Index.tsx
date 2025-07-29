@@ -85,7 +85,7 @@ export default function Index() {
     }));
   };
 
-  const totalBudget = projects.reduce((sum, project) => sum + (project.budget || 0), 0);
+  const totalProjectValue = projects.reduce((sum, project) => sum + (project.project_value || 0), 0);
   const completedProjects = projects.filter(p => p.status === 'Voltooid').length;
   const inProgressProjects = projects.filter(p => p.status === 'In Progress').length;
 
@@ -145,9 +145,9 @@ export default function Index() {
                 style: 'currency',
                 currency: 'EUR',
                 minimumFractionDigits: 0,
-              }).format(totalBudget)}
+              }).format(totalProjectValue)}
             </div>
-            <div className="text-sm text-muted-foreground">Totaal Budget</div>
+            <div className="text-sm text-muted-foreground">Totale Project Waarde</div>
           </div>
         </div>
 

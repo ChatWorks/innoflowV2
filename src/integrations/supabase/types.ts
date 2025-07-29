@@ -20,8 +20,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          phase_id: string | null
           project_id: string
           status: string
+          target_date: string | null
           title: string
           updated_at: string
         }
@@ -30,8 +32,10 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          phase_id?: string | null
           project_id: string
           status?: string
+          target_date?: string | null
           title: string
           updated_at?: string
         }
@@ -40,8 +44,10 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          phase_id?: string | null
           project_id?: string
           status?: string
+          target_date?: string | null
           title?: string
           updated_at?: string
         }
@@ -55,6 +61,33 @@ export type Database = {
           },
         ]
       }
+      phases: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          project_id: string
+          target_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          project_id: string
+          target_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          project_id?: string
+          target_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           budget: number | null
@@ -65,6 +98,7 @@ export type Database = {
           id: string
           name: string
           progress: number | null
+          project_value: number | null
           start_date: string | null
           status: string
           total_hours: number | null
@@ -79,6 +113,7 @@ export type Database = {
           id?: string
           name: string
           progress?: number | null
+          project_value?: number | null
           start_date?: string | null
           status?: string
           total_hours?: number | null
@@ -93,6 +128,7 @@ export type Database = {
           id?: string
           name?: string
           progress?: number | null
+          project_value?: number | null
           start_date?: string | null
           status?: string
           total_hours?: number | null

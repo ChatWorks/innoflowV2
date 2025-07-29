@@ -6,6 +6,7 @@ export interface Project {
   status: 'Nieuw' | 'In Progress' | 'Review' | 'Voltooid';
   progress: number;
   budget?: number;
+  project_value?: number;
   total_hours?: number;
   start_date?: string;
   end_date?: string;
@@ -26,10 +27,21 @@ export interface TimeEntry {
 export interface Deliverable {
   id: string;
   project_id: string;
+  phase_id?: string;
   title: string;
   description?: string;
   status: 'Pending' | 'In Progress' | 'Completed';
   due_date?: string;
+  target_date?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Phase {
+  id: string;
+  project_id: string;
+  name: string;
+  target_date?: string;
   created_at: string;
   updated_at: string;
 }
