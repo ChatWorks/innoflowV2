@@ -1,0 +1,668 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, ArrowRight, Plus, Trash2, GripVertical, User, Clock } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import Layout from '@/components/Layout';
+
+interface ProjectData {
+  name: string;
+  client: string;
+  totalHours: number;
+  numberOfPhases: number;
+}
+
+interface Task {
+  id: string;
+  name: string;
+  assignedTo: string;
+  estimatedHours: string;
+}
+
+interface Deliverable {
+  id: string;
+  name: string;
+  hours: string;
+  tasks: Task[];
+}
+
+interface Phase {
+  id: string;
+  name: string;
+  deliverables: Deliverable[];
+}
+
+export default function ProjectSetupWizard() {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isCreating, setIsCreating] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Step 1 data
+  const [projectData, setProjectData] = useState<ProjectData>({
+    name: '',
+    client: '',
+    totalHours: 0,
+    numberOfPhases: 1
+  });
+
+  // Step 2 data
+  const [phases, setPhases] = useState<Phase[]>([]);
+
+  // Initialize phases when moving to step 2
+  const initializePhases = () => {
+    const newPhases: Phase[] = [];
+    for (let i = 1; i <= projectData.numberOfPhases; i++) {
+      newPhases.push({
+        id: `phase-${i}`,
+        name: `Fase ${i}`,
+        deliverables: [{
+          id: `deliverable-${i}-1`,
+          name: '',
+          hours: '',
+          tasks: [{
+            id: `task-${i}-1-1`,
+            name: '',
+            assignedTo: '',
+            estimatedHours: ''
+          }]
+        }]
+      });
+    }
+    setPhases(newPhases);
+  };
+
+  // Step 1 validation
+  const isStep1Valid = () => {
+    return projectData.name.trim() !== '' && 
+           projectData.client.trim() !== '' && 
+           projectData.totalHours > 0 && 
+           projectData.numberOfPhases >= 1;
+  };
+
+  // Step 2 validation
+  const isStep2Valid = () => {
+    return phases.every(phase => 
+      phase.deliverables.every(deliverable => 
+        deliverable.name.trim() !== '' && 
+        deliverable.hours.trim() !== '' &&
+        deliverable.tasks.every(task => 
+          task.name.trim() !== '' && 
+          task.assignedTo.trim() !== ''
+        )
+      )
+    );
+  };
+
+  // Calculate budget stats
+  const calculateBudgetStats = () => {
+    const totalHours = projectData.totalHours;
+    const assignedHours = phases.reduce((total, phase) => 
+      total + phase.deliverables.reduce((phaseTotal, deliverable) => 
+        phaseTotal + (parseFloat(deliverable.hours) || 0), 0), 0);
+    const remainingHours = totalHours - assignedHours;
+    const percentage = totalHours > 0 ? (assignedHours / totalHours) * 100 : 0;
+    
+    return { totalHours, assignedHours, remainingHours, percentage };
+  };
+
+  // Add deliverable to phase
+  const addDeliverable = (phaseId: string) => {
+    setPhases(phases.map(phase => {
+      if (phase.id === phaseId) {
+        const newDeliverable: Deliverable = {
+          id: `deliverable-${Date.now()}`,
+          name: '',
+          hours: '',
+          tasks: [{
+            id: `task-${Date.now()}`,
+            name: '',
+            assignedTo: '',
+            estimatedHours: ''
+          }]
+        };
+        return { ...phase, deliverables: [...phase.deliverables, newDeliverable] };
+      }
+      return phase;
+    }));
+  };
+
+  // Remove deliverable from phase
+  const removeDeliverable = (phaseId: string, deliverableId: string) => {
+    setPhases(phases.map(phase => {
+      if (phase.id === phaseId && phase.deliverables.length > 1) {
+        return {
+          ...phase,
+          deliverables: phase.deliverables.filter(d => d.id !== deliverableId)
+        };
+      }
+      return phase;
+    }));
+  };
+
+  // Add task to deliverable
+  const addTask = (phaseId: string, deliverableId: string) => {
+    setPhases(phases.map(phase => {
+      if (phase.id === phaseId) {
+        return {
+          ...phase,
+          deliverables: phase.deliverables.map(deliverable => {
+            if (deliverable.id === deliverableId) {
+              const newTask: Task = {
+                id: `task-${Date.now()}`,
+                name: '',
+                assignedTo: '',
+                estimatedHours: ''
+              };
+              return { ...deliverable, tasks: [...deliverable.tasks, newTask] };
+            }
+            return deliverable;
+          })
+        };
+      }
+      return phase;
+    }));
+  };
+
+  // Remove task from deliverable
+  const removeTask = (phaseId: string, deliverableId: string, taskId: string) => {
+    setPhases(phases.map(phase => {
+      if (phase.id === phaseId) {
+        return {
+          ...phase,
+          deliverables: phase.deliverables.map(deliverable => {
+            if (deliverable.id === deliverableId && deliverable.tasks.length > 1) {
+              return {
+                ...deliverable,
+                tasks: deliverable.tasks.filter(t => t.id !== taskId)
+              };
+            }
+            return deliverable;
+          })
+        };
+      }
+      return phase;
+    }));
+  };
+
+  // Update deliverable
+  const updateDeliverable = (phaseId: string, deliverableId: string, field: keyof Deliverable, value: string) => {
+    setPhases(phases.map(phase => {
+      if (phase.id === phaseId) {
+        return {
+          ...phase,
+          deliverables: phase.deliverables.map(deliverable => {
+            if (deliverable.id === deliverableId) {
+              return { ...deliverable, [field]: value };
+            }
+            return deliverable;
+          })
+        };
+      }
+      return phase;
+    }));
+  };
+
+  // Update task
+  const updateTask = (phaseId: string, deliverableId: string, taskId: string, field: keyof Task, value: string) => {
+    setPhases(phases.map(phase => {
+      if (phase.id === phaseId) {
+        return {
+          ...phase,
+          deliverables: phase.deliverables.map(deliverable => {
+            if (deliverable.id === deliverableId) {
+              return {
+                ...deliverable,
+                tasks: deliverable.tasks.map(task => {
+                  if (task.id === taskId) {
+                    return { ...task, [field]: value };
+                  }
+                  return task;
+                })
+              };
+            }
+            return deliverable;
+          })
+        };
+      }
+      return phase;
+    }));
+  };
+
+  // Handle create project
+  const handleCreateProject = async () => {
+    setIsCreating(true);
+    try {
+      // 1. Create project
+      const { data: project, error: projectError } = await supabase
+        .from('projects')
+        .insert([{
+          name: projectData.name,
+          client: projectData.client,
+          total_hours: projectData.totalHours,
+          status: 'Nieuw'
+        }])
+        .select()
+        .single();
+      
+      if (projectError) throw projectError;
+      
+      // 2. Create deliverables and tasks
+      for (const phase of phases) {
+        for (const deliverable of phase.deliverables) {
+          const { data: deliverableData, error: deliverableError } = await supabase
+            .from('deliverables')
+            .insert([{
+              project_id: project.id,
+              title: `${phase.name} - ${deliverable.name}`,
+              status: 'Pending'
+            }])
+            .select()
+            .single();
+          
+          if (deliverableError) throw deliverableError;
+          
+          // 3. Create tasks
+          for (const task of deliverable.tasks) {
+            const { error: taskError } = await supabase
+              .from('tasks')
+              .insert([{
+                deliverable_id: deliverableData.id,
+                title: task.name,
+                assigned_to: task.assignedTo,
+                billable_hours: parseFloat(task.estimatedHours) || 0
+              }]);
+            
+            if (taskError) throw taskError;
+          }
+        }
+      }
+      
+      toast({
+        title: "Project aangemaakt",
+        description: `${project.name} is succesvol aangemaakt`
+      });
+      navigate(`/project/${project.id}`);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Kon project niet aanmaken",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  // Get all tasks for step 3 overview
+  const getAllTasks = () => {
+    const allTasks: Array<{ phase: string; deliverable: string; task: Task }> = [];
+    phases.forEach(phase => {
+      phase.deliverables.forEach(deliverable => {
+        deliverable.tasks.forEach(task => {
+          allTasks.push({ phase: phase.name, deliverable: deliverable.name, task });
+        });
+      });
+    });
+    return allTasks;
+  };
+
+  const progress = currentStep === 1 ? 33 : currentStep === 2 ? 66 : 100;
+  const budgetStats = calculateBudgetStats();
+
+  return (
+    <Layout>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary-hover to-primary p-8 text-white">
+            <div className="relative z-10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-4xl font-bold mb-2">Nieuw Project Aanmaken</h1>
+                  <p className="text-primary-foreground/80 text-lg">
+                    Stap {currentStep} van 3 - {currentStep === 1 ? 'Project Informatie' : currentStep === 2 ? 'Fases & Deliverables' : 'Overzicht & Bevestiging'}
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+                  onClick={() => navigate('/')}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Terug naar Dashboard
+                </Button>
+              </div>
+              <Progress value={progress} className="mt-4 bg-white/20" />
+            </div>
+          </div>
+        </div>
+
+        {/* Step 1: Project Basic Info */}
+        {currentStep === 1 && (
+          <Card className="max-w-2xl mx-auto">
+            <CardHeader>
+              <CardTitle className="text-2xl">Project Basis Informatie</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="projectName">Project Naam *</Label>
+                <Input
+                  id="projectName"
+                  placeholder="Bijv. Website Redesign"
+                  value={projectData.name}
+                  onChange={(e) => setProjectData({ ...projectData, name: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="clientName">Klant Naam *</Label>
+                <Input
+                  id="clientName"
+                  placeholder="Bijv. Acme Corp"
+                  value={projectData.client}
+                  onChange={(e) => setProjectData({ ...projectData, client: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="totalHours">Totaal Declarabele Uren *</Label>
+                <Input
+                  id="totalHours"
+                  type="number"
+                  placeholder="40"
+                  min="1"
+                  value={projectData.totalHours || ''}
+                  onChange={(e) => setProjectData({ ...projectData, totalHours: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="numberOfPhases">Aantal Fases *</Label>
+                <Select 
+                  value={projectData.numberOfPhases.toString()} 
+                  onValueChange={(value) => setProjectData({ ...projectData, numberOfPhases: parseInt(value) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[...Array(10)].map((_, i) => (
+                      <SelectItem key={i + 1} value={(i + 1).toString()}>
+                        {i + 1} fase{i > 0 ? 's' : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button
+                  onClick={() => {
+                    initializePhases();
+                    setCurrentStep(2);
+                  }}
+                  disabled={!isStep1Valid()}
+                  className="gap-2"
+                >
+                  Volgende Stap
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Step 2: Interactive Phases & Deliverables Builder */}
+        {currentStep === 2 && (
+          <div className="space-y-6">
+            {/* Budget Tracking */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex gap-4 mb-4">
+                  <Badge variant="outline" className="gap-2">
+                    <Clock className="h-4 w-4" />
+                    Totaal: {budgetStats.totalHours}h
+                  </Badge>
+                  <Badge variant="outline" className="gap-2">
+                    <User className="h-4 w-4" />
+                    Toegewezen: {budgetStats.assignedHours.toFixed(1)}h
+                  </Badge>
+                  <Badge 
+                    variant={budgetStats.remainingHours < 0 ? "destructive" : "outline"} 
+                    className="gap-2"
+                  >
+                    Resterend: {budgetStats.remainingHours.toFixed(1)}h
+                  </Badge>
+                </div>
+                <Progress value={Math.min(budgetStats.percentage, 100)} />
+                <p className="text-sm text-muted-foreground mt-2">
+                  {budgetStats.percentage.toFixed(1)}% van budget toegewezen
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Phases */}
+            <div className="space-y-6">
+              {phases.map((phase) => (
+                <Card key={phase.id} className="border-2">
+                  <CardHeader>
+                    <CardTitle className="text-xl">{phase.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {phase.deliverables.map((deliverable) => (
+                      <div key={deliverable.id} className="border rounded-lg p-4 bg-card">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="flex-1 space-y-2">
+                            <Label>Deliverable Naam *</Label>
+                            <Input
+                              placeholder="Bijv. Homepage Design"
+                              value={deliverable.name}
+                              onChange={(e) => updateDeliverable(phase.id, deliverable.id, 'name', e.target.value)}
+                            />
+                          </div>
+                          <div className="w-32 space-y-2">
+                            <Label>Uren *</Label>
+                            <Input
+                              type="number"
+                              placeholder="20"
+                              value={deliverable.hours}
+                              onChange={(e) => updateDeliverable(phase.id, deliverable.id, 'hours', e.target.value)}
+                            />
+                          </div>
+                          {phase.deliverables.length > 1 && (
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => removeDeliverable(phase.id, deliverable.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+
+                        {/* Tasks */}
+                        <div className="space-y-3">
+                          <Label className="text-sm font-medium">Taken</Label>
+                          {deliverable.tasks.map((task, taskIndex) => (
+                            <div key={task.id} className="flex items-center gap-3 bg-background rounded-md p-3">
+                              <GripVertical className="h-4 w-4 text-muted-foreground" />
+                              <div className="flex-1 space-y-2">
+                                <Input
+                                  placeholder="Taak naam *"
+                                  value={task.name}
+                                  onChange={(e) => updateTask(phase.id, deliverable.id, task.id, 'name', e.target.value)}
+                                />
+                              </div>
+                              <div className="w-32 space-y-2">
+                                <Select
+                                  value={task.assignedTo}
+                                  onValueChange={(value) => updateTask(phase.id, deliverable.id, task.id, 'assignedTo', value)}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Toegewezen aan *" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Tijn">Tijn</SelectItem>
+                                    <SelectItem value="Twan">Twan</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="w-24 space-y-2">
+                                <Input
+                                  type="number"
+                                  placeholder="Uren"
+                                  value={task.estimatedHours}
+                                  onChange={(e) => updateTask(phase.id, deliverable.id, task.id, 'estimatedHours', e.target.value)}
+                                />
+                              </div>
+                              {deliverable.tasks.length > 1 && (
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => removeTask(phase.id, deliverable.id, task.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addTask(phase.id, deliverable.id)}
+                            className="gap-2"
+                          >
+                            <Plus className="h-4 w-4" />
+                            Taak Toevoegen
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    <Button
+                      variant="outline"
+                      onClick={() => addDeliverable(phase.id)}
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Deliverable Toevoegen
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="flex justify-between pt-4">
+              <Button variant="outline" onClick={() => setCurrentStep(1)} className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Vorige Stap
+              </Button>
+              <Button
+                onClick={() => setCurrentStep(3)}
+                disabled={!isStep2Valid()}
+                className="gap-2"
+              >
+                Volgende Stap
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Project Overview & Confirmation */}
+        {currentStep === 3 && (
+          <div className="space-y-6">
+            {/* Project Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Project Samenvatting</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Project Naam</p>
+                    <p className="font-medium">{projectData.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Klant</p>
+                    <p className="font-medium">{projectData.client}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Totaal Uren</p>
+                    <p className="font-medium">{projectData.totalHours}h</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Toegewezen Uren</p>
+                    <p className="font-medium">{budgetStats.assignedHours.toFixed(1)}h</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Aantal Fases</p>
+                    <p className="font-medium">{projectData.numberOfPhases}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Totaal Taken</p>
+                    <p className="font-medium">{getAllTasks().length}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Task List */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Chronologische Takenlijst</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {phases.map((phase) => (
+                    <div key={phase.id}>
+                      <h4 className="font-semibold text-lg mb-2">{phase.name}</h4>
+                      {phase.deliverables.map((deliverable) => (
+                        <div key={deliverable.id} className="ml-4 mb-3">
+                          <h5 className="font-medium text-muted-foreground mb-2">📋 {deliverable.name} ({deliverable.hours}h)</h5>
+                          {deliverable.tasks.map((task) => (
+                            <div key={task.id} className="ml-4 flex items-center gap-3 py-1">
+                              <span className="text-sm">✓</span>
+                              <span className="flex-1">{task.name}</span>
+                              <Badge variant="outline">{task.assignedTo}</Badge>
+                              {task.estimatedHours && (
+                                <span className="text-sm text-muted-foreground">{task.estimatedHours}h</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex justify-between pt-4">
+              <Button variant="outline" onClick={() => setCurrentStep(2)} className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Vorige Stap
+              </Button>
+              <Button
+                onClick={handleCreateProject}
+                disabled={isCreating}
+                className="gap-2"
+                size="lg"
+              >
+                {isCreating ? "Project Aanmaken..." : "Project Aanmaken"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </main>
+    </Layout>
+  );
+}
