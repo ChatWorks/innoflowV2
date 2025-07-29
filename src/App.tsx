@@ -10,6 +10,8 @@ import FloatingTimer from "@/components/FloatingTimer";
 import Index from "./pages/Index";
 import ProjectDetail from "./pages/ProjectDetail";
 import ProjectSetupWizard from "./components/ProjectSetupWizard";
+import Leads from "./pages/Leads";
+import LeadDetail from "./pages/LeadDetail";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -38,6 +40,16 @@ const App = () => (
               <Route path="/project/:id" element={
                 <ProtectedRoute>
                   <ProjectDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/leads" element={
+                <ProtectedRoute>
+                  <Leads />
+                </ProtectedRoute>
+              } />
+              <Route path="/leads/:id" element={
+                <ProtectedRoute>
+                  <LeadDetail />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -67,6 +67,96 @@ export type Database = {
           },
         ]
       }
+      lead_activities: {
+        Row: {
+          activity_date: string
+          activity_type: string
+          created_at: string
+          description: string | null
+          id: string
+          lead_id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          activity_date?: string
+          activity_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          lead_id: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          lead_id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          company_name: string
+          contact_person: string | null
+          converted_to_project_id: string | null
+          created_at: string
+          email: string | null
+          estimated_budget: number | null
+          estimated_value: number | null
+          expected_close_date: string | null
+          id: string
+          notes: string | null
+          phone: string | null
+          probability: number | null
+          source: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          contact_person?: string | null
+          converted_to_project_id?: string | null
+          created_at?: string
+          email?: string | null
+          estimated_budget?: number | null
+          estimated_value?: number | null
+          expected_close_date?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          probability?: number | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          contact_person?: string | null
+          converted_to_project_id?: string | null
+          created_at?: string
+          email?: string | null
+          estimated_budget?: number | null
+          estimated_value?: number | null
+          expected_close_date?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          probability?: number | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       phases: {
         Row: {
           created_at: string
