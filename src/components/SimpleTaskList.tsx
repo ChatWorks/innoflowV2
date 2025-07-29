@@ -31,6 +31,7 @@ interface TaskRowProps {
 
 function TaskRow({ task, isTopTask, onToggle, deliverableId, projectId }: TaskRowProps) {
   const [taskTimeSpent, setTaskTimeSpent] = useState<number>(0);
+  const [isToggling, setIsToggling] = useState(false);
 
   useEffect(() => {
     fetchTaskTime();
@@ -71,7 +72,16 @@ function TaskRow({ task, isTopTask, onToggle, deliverableId, projectId }: TaskRo
     }`}>
       <Checkbox
         checked={task.completed}
-        onCheckedChange={onToggle}
+        onCheckedChange={async (checked) => {
+          if (isToggling) {
+            console.log('Toggle already in progress, ignoring...');
+            return;
+          }
+          setIsToggling(true);
+          await onToggle();
+          setIsToggling(false);
+        }}
+        disabled={isToggling}
       />
       
       <div className="flex-1">
