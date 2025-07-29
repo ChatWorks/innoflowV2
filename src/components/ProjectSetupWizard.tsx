@@ -283,6 +283,7 @@ export default function ProjectSetupWizard() {
               phase_id: phaseData.id,
               title: deliverable.name,
               target_date: deliverable.targetDate || null,
+              declarable_hours: parseFloat(deliverable.hours) || 0,
               status: 'Pending'
             }])
             .select()
