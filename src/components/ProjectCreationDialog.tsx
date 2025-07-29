@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Plus, Euro, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProjectCreationDialogProps {
@@ -23,6 +24,7 @@ export default function ProjectCreationDialog({ onProjectCreated }: ProjectCreat
     total_hours: ''
   });
   const [isCreating, setIsCreating] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,6 +45,7 @@ export default function ProjectCreationDialog({ onProjectCreated }: ProjectCreat
       const { error } = await supabase
         .from('projects')
         .insert([{
+          user_id: user?.id,
           name: formData.name,
           client: formData.client,
           description: formData.description || null,

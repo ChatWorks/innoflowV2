@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Phase } from '@/types/project';
 
@@ -31,6 +32,7 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
   const [phases, setPhases] = useState<Phase[]>([]);
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [isCreating, setIsCreating] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -77,6 +79,7 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
       const { error } = await supabase
         .from('deliverables')
         .insert([{
+          user_id: user?.id,
           project_id: projectId,
           phase_id: formData.phase_id,
           title: formData.title,

@@ -4,32 +4,50 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { TimerProvider } from "@/contexts/TimerContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import FloatingTimer from "@/components/FloatingTimer";
 import Index from "./pages/Index";
 import ProjectDetail from "./pages/ProjectDetail";
 import ProjectSetupWizard from "./components/ProjectSetupWizard";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TimerProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/project/new" element={<ProjectSetupWizard />} />
-            <Route path="/project/:id" element={<ProjectDetail />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-        <FloatingTimer />
-      </TooltipProvider>
-    </TimerProvider>
+    <AuthProvider>
+      <TimerProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/project/new" element={
+                <ProtectedRoute>
+                  <ProjectSetupWizard />
+                </ProtectedRoute>
+              } />
+              <Route path="/project/:id" element={
+                <ProtectedRoute>
+                  <ProjectDetail />
+                </ProtectedRoute>
+              } />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+          <FloatingTimer />
+        </TooltipProvider>
+      </TimerProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

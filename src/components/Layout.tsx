@@ -1,6 +1,8 @@
 import { ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { LogOut, User } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,6 +10,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -34,9 +37,16 @@ export default function Layout({ children }: LayoutProps) {
               </nav>
             </div>
             
-            <Button variant="ghost" size="sm" className="text-gray-600">
-              info
-            </Button>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <User className="h-4 w-4" />
+                {user?.email}
+              </div>
+              <Button variant="ghost" size="sm" onClick={signOut} className="text-gray-600 hover:text-red-600 gap-2">
+                <LogOut className="h-4 w-4" />
+                Uitloggen
+              </Button>
+            </div>
           </div>
         </div>
       </div>

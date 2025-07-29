@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface PhaseCreationDialogProps {
@@ -24,6 +25,7 @@ export default function PhaseCreationDialog({ projectId, onPhaseCreated }: Phase
   });
   const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
   const [isCreating, setIsCreating] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,6 +46,7 @@ export default function PhaseCreationDialog({ projectId, onPhaseCreated }: Phase
       const { error } = await supabase
         .from('phases')
         .insert([{
+          user_id: user?.id,
           project_id: projectId,
           name: formData.name,
           target_date: targetDate?.toISOString().split('T')[0] || null

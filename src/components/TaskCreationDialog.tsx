@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, User, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface TaskCreationDialogProps {
@@ -22,6 +23,7 @@ export default function TaskCreationDialog({ deliverableId, onTaskCreated }: Tas
     assigned_to: ''
   });
   const [isCreating, setIsCreating] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,6 +44,7 @@ export default function TaskCreationDialog({ deliverableId, onTaskCreated }: Tas
       const { error } = await supabase
         .from('tasks')
         .insert([{
+          user_id: user?.id,
           deliverable_id: deliverableId,
           title: formData.title,
           description: formData.description || null,

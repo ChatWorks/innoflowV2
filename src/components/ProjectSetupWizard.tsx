@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, ArrowRight, Plus, Trash2, GripVertical, User, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout';
 
@@ -45,6 +46,7 @@ export default function ProjectSetupWizard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   // Step 1 data
@@ -248,6 +250,7 @@ export default function ProjectSetupWizard() {
       const { data: project, error: projectError } = await supabase
         .from('projects')
         .insert([{
+          user_id: user?.id,
           name: projectData.name,
           client: projectData.client,
           total_hours: projectData.totalHours,
@@ -265,6 +268,7 @@ export default function ProjectSetupWizard() {
         const { data: phaseData, error: phaseError } = await supabase
           .from('phases')
           .insert([{
+            user_id: user?.id,
             project_id: project.id,
             name: phase.name,
             target_date: phase.targetDate || null
@@ -279,6 +283,7 @@ export default function ProjectSetupWizard() {
           const { data: deliverableData, error: deliverableError } = await supabase
             .from('deliverables')
             .insert([{
+              user_id: user?.id,
               project_id: project.id,
               phase_id: phaseData.id,
               title: deliverable.name,
@@ -296,6 +301,7 @@ export default function ProjectSetupWizard() {
             const { error: taskError } = await supabase
               .from('tasks')
               .insert([{
+                user_id: user?.id,
                 deliverable_id: deliverableData.id,
                 title: task.name,
                 assigned_to: task.assignedTo
