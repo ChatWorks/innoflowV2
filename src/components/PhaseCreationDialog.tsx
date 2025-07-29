@@ -43,10 +43,10 @@ export default function PhaseCreationDialog({ projectId, onPhaseCreated }: Phase
     setIsCreating(true);
     
     try {
+      // No need to manually set user_id - database trigger handles this automatically
       const { error } = await supabase
         .from('phases')
         .insert([{
-          user_id: user?.id,
           project_id: projectId,
           name: formData.name,
           target_date: targetDate?.toISOString().split('T')[0] || null

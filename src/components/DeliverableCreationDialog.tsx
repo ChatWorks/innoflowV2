@@ -76,10 +76,10 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
     setIsCreating(true);
     
     try {
+      // No need to manually set user_id - database trigger handles this automatically
       const { error } = await supabase
         .from('deliverables')
         .insert([{
-          user_id: user?.id,
           project_id: projectId,
           phase_id: formData.phase_id,
           title: formData.title,

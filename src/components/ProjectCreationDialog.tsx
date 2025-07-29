@@ -42,10 +42,10 @@ export default function ProjectCreationDialog({ onProjectCreated }: ProjectCreat
     setIsCreating(true);
     
     try {
+      // No need to manually set user_id - database trigger handles this automatically
       const { error } = await supabase
         .from('projects')
         .insert([{
-          user_id: user?.id,
           name: formData.name,
           client: formData.client,
           description: formData.description || null,

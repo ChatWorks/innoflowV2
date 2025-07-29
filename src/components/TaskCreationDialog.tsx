@@ -41,10 +41,10 @@ export default function TaskCreationDialog({ deliverableId, onTaskCreated }: Tas
     setIsCreating(true);
     
     try {
+      // No need to manually set user_id - database trigger handles this automatically
       const { error } = await supabase
         .from('tasks')
         .insert([{
-          user_id: user?.id,
           deliverable_id: deliverableId,
           title: formData.title,
           description: formData.description || null,
