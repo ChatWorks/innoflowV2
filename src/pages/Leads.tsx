@@ -116,15 +116,8 @@ export default function Leads() {
   if (loading) {
     return (
       <Layout>
-        <div className="p-6">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-            <div className="grid grid-cols-4 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </div>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
       </Layout>
     );
@@ -132,75 +125,88 @@ export default function Leads() {
 
   return (
     <Layout>
-      <div className="p-6 space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Lead Management</h1>
-              <p className="text-muted-foreground">Beheer je sales pipeline en converteer leads naar projecten</p>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Lead Hero Section */}
+        <div className="mb-8">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary-hover to-primary p-8 text-white">
+            <div className="relative z-10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-4xl font-bold mb-2">
+                    Lead Management
+                  </h1>
+                  <p className="text-primary-foreground/80 text-lg mb-4">
+                    Beheer je sales pipeline en converteer leads naar projecten
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsSettingsDialogOpen(true)}
+                    className="text-white hover:bg-white/10 h-10 w-10"
+                  >
+                    <Settings className="h-5 w-5" />
+                  </Button>
+                  <Button 
+                    className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+                    onClick={() => setIsCreationDialogOpen(true)}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nieuwe Lead
+                  </Button>
+                </div>
+              </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsSettingsDialogOpen(true)}
-              className="h-8 w-8"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
           </div>
-          <Button onClick={() => setIsCreationDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nieuwe Lead
-          </Button>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
+        {/* Enhanced Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-card rounded-lg p-6 border">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
                 <Euro className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Pipeline Waarde</p>
-                  <p className="text-xl font-bold">€{stats.totalValue.toLocaleString()}</p>
-                </div>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
+              <div>
+                <div className="text-3xl font-bold text-foreground">€{stats.totalValue.toLocaleString()}</div>
+                <div className="text-sm text-muted-foreground">Pipeline Waarde</div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card rounded-lg p-6 border">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
                 <Users className="h-5 w-5 text-blue-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Actieve Leads</p>
-                  <p className="text-xl font-bold">{stats.activeLeads}</p>
-                </div>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
+              <div>
+                <div className="text-3xl font-bold text-foreground">{stats.activeLeads}</div>
+                <div className="text-sm text-muted-foreground">Actieve Leads</div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card rounded-lg p-6 border">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
                 <Target className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Gewonnen</p>
-                  <p className="text-xl font-bold">{stats.wonLeads}</p>
-                </div>
               </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-2">
+              <div>
+                <div className="text-3xl font-bold text-green-600">{stats.wonLeads}</div>
+                <div className="text-sm text-muted-foreground">Gewonnen</div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card rounded-lg p-6 border">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
                 <TrendingUp className="h-5 w-5 text-purple-600" />
-                <div>
-                  <p className="text-sm text-muted-foreground">Win Rate</p>
-                  <p className="text-xl font-bold">{stats.winRate}%</p>
-                </div>
               </div>
-            </CardContent>
-          </Card>
+              <div>
+                <div className="text-3xl font-bold text-foreground">{stats.winRate}%</div>
+                <div className="text-sm text-muted-foreground">Win Rate</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Kanban Board */}
@@ -300,7 +306,7 @@ export default function Leads() {
           isOpen={isSettingsDialogOpen}
           onClose={() => setIsSettingsDialogOpen(false)}
         />
-      </div>
+      </main>
     </Layout>
   );
 }
