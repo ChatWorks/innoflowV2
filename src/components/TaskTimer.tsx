@@ -136,13 +136,14 @@ export default function TaskTimer({
     if (!activeTimerId || !currentSessionStart) return;
 
     try {
-      const endTime = new Date().toISOString();
-      const durationSeconds = Math.floor(elapsedTime);
+      const endTime = new Date();
+      const startTime = currentSessionStart;
+      const durationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
 
       const { error } = await supabase
         .from('time_entries')
         .update({
-          end_time: endTime,
+          end_time: endTime.toISOString(),
           duration_seconds: durationSeconds,
           is_active: false
         })
