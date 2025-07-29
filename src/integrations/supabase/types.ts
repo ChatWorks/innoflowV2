@@ -100,6 +100,42 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_settings: {
+        Row: {
+          created_at: string
+          enable_follow_up_reminders: boolean
+          enable_stale_detector: boolean
+          id: string
+          notify_by_email: boolean
+          notify_in_app: boolean
+          stale_lead_days: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enable_follow_up_reminders?: boolean
+          enable_stale_detector?: boolean
+          id?: string
+          notify_by_email?: boolean
+          notify_in_app?: boolean
+          stale_lead_days?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enable_follow_up_reminders?: boolean
+          enable_stale_detector?: boolean
+          id?: string
+          notify_by_email?: boolean
+          notify_in_app?: boolean
+          stale_lead_days?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       leads: {
         Row: {
           company_name: string

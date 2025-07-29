@@ -6,14 +6,16 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Euro, TrendingUp, Users, Target } from 'lucide-react';
+import { Plus, Euro, TrendingUp, Users, Target, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { LeadCreationDialog } from '@/components/LeadCreationDialog';
+import { SmartAssistantSettingsDialog } from '@/components/SmartAssistantSettingsDialog';
 
 export default function Leads() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreationDialogOpen, setIsCreationDialogOpen] = useState(false);
+  const [isSettingsDialogOpen, setIsSettingsDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -132,9 +134,19 @@ export default function Leads() {
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Lead Management</h1>
-            <p className="text-muted-foreground">Beheer je sales pipeline en converteer leads naar projecten</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Lead Management</h1>
+              <p className="text-muted-foreground">Beheer je sales pipeline en converteer leads naar projecten</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsSettingsDialogOpen(true)}
+              className="h-8 w-8"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
           </div>
           <Button onClick={() => setIsCreationDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
@@ -254,6 +266,11 @@ export default function Leads() {
           isOpen={isCreationDialogOpen}
           onClose={() => setIsCreationDialogOpen(false)}
           onLeadCreated={fetchLeads}
+        />
+
+        <SmartAssistantSettingsDialog
+          isOpen={isSettingsDialogOpen}
+          onClose={() => setIsSettingsDialogOpen(false)}
         />
       </div>
     </Layout>
