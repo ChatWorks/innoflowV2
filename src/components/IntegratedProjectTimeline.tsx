@@ -494,60 +494,59 @@ export default function IntegratedProjectTimeline({
                                                  <div key={task.id} className={`flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors ${
                                                    index === 0 ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''
                                                  }`}>
-                                                <Checkbox
-                                                  checked={task.completed}
-                                                  onCheckedChange={() => toggleTaskCompletion(task)}
-                                                />
-                                                
-                                                <div className="flex-1">
-                                                  <div className="flex items-center gap-2 mb-1">
-                                                    <span className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
-                                                      {task.title}
-                                                    </span>
-                                                    {index === 0 && (
-                                                      <Badge variant="default" className="text-xs bg-primary">
-                                                        Top Taak
-                                                      </Badge>
-                                                    )}
-                                                    {task.assigned_to && (
-                                                      <Badge variant="outline" className="text-xs">
-                                                        <User className="h-3 w-3 mr-1" />
-                                                        {task.assigned_to}
-                                                      </Badge>
-                                                    )}
-                                                     <Badge variant="secondary" className="text-xs">
-                                                       <Clock className="h-3 w-3 mr-1" />
-                                                       {task.billable_hours}h
-                                                     </Badge>
+                                                   <Checkbox
+                                                     checked={task.completed}
+                                                     onCheckedChange={() => toggleTaskCompletion(task)}
+                                                   />
+                                                   
+                                                   <div className="flex-1">
+                                                     <div className="flex items-center gap-2 mb-1">
+                                                       <span className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                                         {task.title}
+                                                       </span>
+                                                       {index === 0 && (
+                                                         <Badge variant="default" className="text-xs bg-primary">
+                                                           Top Taak
+                                                         </Badge>
+                                                       )}
+                                                       {task.assigned_to && (
+                                                         <Badge variant="outline" className="text-xs">
+                                                           <User className="h-3 w-3 mr-1" />
+                                                           {task.assigned_to}
+                                                         </Badge>
+                                                       )}
+                                                       <Badge variant="secondary" className="text-xs">
+                                                         <Clock className="h-3 w-3 mr-1" />
+                                                         {task.billable_hours}h
+                                                       </Badge>
+                                                     </div>
+                                                     {/* Task progress bar */}
+                                                     <div className="flex items-center gap-2 mt-1">
+                                                       <Progress 
+                                                         value={getTaskProgress(task, taskTimeSpent[task.id] || 0)} 
+                                                         className={`h-2 w-16 ${getProgressColor(getActualTaskProgress(task, taskTimeSpent[task.id] || 0))}`}
+                                                       />
+                                                       <span className="text-xs text-muted-foreground">
+                                                         {formatTime(taskTimeSpent[task.id] || 0)} / {task.billable_hours}h
+                                                       </span>
+                                                     </div>
+                                                     {task.description && (
+                                                       <p className={`text-sm text-muted-foreground ${task.completed ? 'line-through' : ''}`}>
+                                                         {task.description}
+                                                       </p>
+                                                     )}
                                                    </div>
-                                                   {/* Task progress bar */}
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                      <Progress 
-                                                        value={getTaskProgress(task, taskTimeSpent[task.id] || 0)} 
-                                                        className={`h-2 w-16 ${getProgressColor(getActualTaskProgress(task, taskTimeSpent[task.id] || 0))}`}
-                                                      />
-                                                      <span className="text-xs text-muted-foreground">
-                                                        {formatTime(taskTimeSpent[task.id] || 0)} / {task.billable_hours}h
-                                                      </span>
-                                                    </div>
-                                                  </div>
-                                                  {task.description && (
-                                                    <p className={`text-sm text-muted-foreground ${task.completed ? 'line-through' : ''}`}>
-                                                      {task.description}
-                                                    </p>
-                                                  )}
-                                                </div>
-                                                
-                                                <TaskTimer 
-                                                  taskId={task.id}
-                                                  taskTitle={task.title}
-                                                  deliverableId={deliverable.id}
-                                                  projectId={project.id}
-                                                  onTimerChange={onRefresh}
-                                                />
-                                              </div>
-                                            ))}
-                                          </div>
+                                                   
+                                                   <TaskTimer 
+                                                     taskId={task.id}
+                                                     taskTitle={task.title}
+                                                     deliverableId={deliverable.id}
+                                                     projectId={project.id}
+                                                     onTimerChange={onRefresh}
+                                                   />
+                                                 </div>
+                                               ))}
+                                           </div>
                                         )
                                       )}
                                     </div>
