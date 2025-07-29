@@ -15,7 +15,7 @@ import {
   Circle,
   PlayCircle
 } from 'lucide-react';
-import { Project, Deliverable, TimeEntry, Task } from '@/types/project';
+import { Project, Deliverable, TimeEntry, Task, Phase } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,6 +27,7 @@ export default function ProjectDetail() {
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
+  const [phases, setPhases] = useState<Phase[]>([]);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,12 +53,22 @@ export default function ProjectDetail() {
       if (projectError) throw projectError;
       setProject(projectData as Project);
 
+      // Fetch phases
+      const { data: phasesData, error: phasesError } = await supabase
+        .from('phases')
+        .select('*')
+        .eq('project_id', id)
+        .order('target_date', { ascending: true });
+
+      if (phasesError) throw phasesError;
+      setPhases((phasesData || []) as Phase[]);
+
       // Fetch deliverables
       const { data: deliverablesData, error: deliverablesError } = await supabase
         .from('deliverables')
         .select('*')
         .eq('project_id', id)
-        .order('created_at', { ascending: false });
+        .order('target_date', { ascending: true });
 
       if (deliverablesError) throw deliverablesError;
       setDeliverables((deliverablesData || []) as Deliverable[]);
@@ -184,17 +195,21 @@ export default function ProjectDetail() {
                   <p className="text-primary-foreground/80 text-lg mb-4">
                     Real-time overzicht van je project voortgang en taken
                   </p>
-                  <div className="flex items-center gap-6 text-primary-foreground/80">
+                    <div className="flex items-center gap-6 text-primary-foreground/80">
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4" />
                       <span>{project.client}</span>
                     </div>
-                    {project.budget && (
+                    {project.project_value && (
                       <div className="flex items-center gap-2">
                         <Euro className="h-4 w-4" />
-                        <span>€ {project.budget.toLocaleString()}</span>
+                        <span>{formatCurrency(project.project_value)}</span>
                       </div>
                     )}
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      <span>{project.total_hours}h</span>
+                    </div>
                   </div>
                 </div>
                 <Badge className="bg-white/20 text-white border-white/30 px-3 py-1">
@@ -203,6 +218,110 @@ export default function ProjectDetail() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Project Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Totaal Uren</p>
+                  <p className="text-2xl font-bold">{project.total_hours}h</p>
+                </div>
+                <Clock className="h-8 w-8 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Project Waarde</p>
+                  <p className="text-2xl font-bold">
+                    {project.project_value ? formatCurrency(project.project_value) : '€0'}
+                  </p>
+                </div>
+                <Euro className="h-8 w-8 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Verdiende Uren</p>
+                  <p className="text-2xl font-bold">{earnedBillableHours}h</p>
+                </div>
+                <CheckCircle className="h-8 w-8 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Voortgang</p>
+                  <p className="text-2xl font-bold">
+                    {totalBillableHours > 0 ? Math.round((earnedBillableHours / totalBillableHours) * 100) : 0}%
+                  </p>
+                </div>
+                <PlayCircle className="h-8 w-8 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Timeline Section */}
+        <div className="mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Timeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {phases.length > 0 ? (
+                  phases.map((phase) => (
+                    <div key={phase.id} className="border-l-4 border-primary pl-4 pb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold">{phase.name}</h3>
+                        {phase.target_date && (
+                          <Badge variant="outline" className="gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {new Date(phase.target_date).toLocaleDateString('nl-NL')}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="ml-4 space-y-2">
+                        {deliverables
+                          .filter(d => d.phase_id === phase.id)
+                          .map((deliverable) => (
+                            <div key={deliverable.id} className="flex items-center justify-between p-2 bg-muted rounded">
+                              <span className="text-sm">{deliverable.title}</span>
+                              <div className="flex items-center gap-2">
+                                <Badge variant={deliverable.status === 'Completed' ? 'default' : 'secondary'}>
+                                  {deliverable.status}
+                                </Badge>
+                                {deliverable.target_date && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {new Date(deliverable.target_date).toLocaleDateString('nl-NL')}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground">Geen phases gevonden</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Deliverables Section */}
