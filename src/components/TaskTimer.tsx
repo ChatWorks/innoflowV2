@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Square } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useTimer } from '@/contexts/TimerContext';
 
@@ -26,6 +27,7 @@ export default function TaskTimer({
 }: TaskTimerProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false); // Prevent race conditions
+  const { user } = useAuth();
   const { toast } = useToast();
   const { activeTimer, setActiveTimer, setFloatingVisible, refreshTimerData } = useTimer();
 
@@ -95,6 +97,7 @@ export default function TaskTimer({
       const { data: newTimer, error } = await supabase
         .from('time_entries')
         .insert([{
+          user_id: user?.id,
           project_id: projectId,
           deliverable_id: deliverableId,
           task_id: taskId,
