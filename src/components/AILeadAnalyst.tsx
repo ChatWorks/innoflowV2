@@ -138,10 +138,10 @@ Wat wil je weten over je leads?`,
                   <div className="text-sm markdown-content">
                     <ReactMarkdown 
                       components={{
-                        strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                        strong: ({ children }) => <strong className={`font-semibold ${message.type === 'user' ? 'text-primary-foreground' : 'text-foreground'}`}>{children}</strong>,
                         ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2">{children}</ul>,
-                        li: ({ children }) => <li className="text-foreground">{children}</li>,
-                        p: ({ children }) => <p className="text-foreground mb-2">{children}</p>
+                        li: ({ children }) => <li className={message.type === 'user' ? 'text-primary-foreground' : 'text-foreground'}>{children}</li>,
+                        p: ({ children }) => <p className={`${message.type === 'user' ? 'text-primary-foreground' : 'text-foreground'} mb-2`}>{children}</p>
                       }}
                     >
                       {message.content}
