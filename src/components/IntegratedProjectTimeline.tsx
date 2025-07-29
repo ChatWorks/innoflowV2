@@ -112,7 +112,7 @@ export default function IntegratedProjectTimeline({
     setTaskTimeSpent(times);
   }, [localTasks, timeEntries]);
 
-  // Listen for timer refresh events to update time data (optimized for time entries only)
+  // Listen for timer refresh events to update time data (optimized - timer data only)
   useEffect(() => {
     if (timeEntryRefreshTrigger > 0 && lastRefreshProjectId && lastRefreshTaskId && 
         deliverables.some(d => d.project_id === lastRefreshProjectId)) {
@@ -121,10 +121,12 @@ export default function IntegratedProjectTimeline({
         localTasks.some(t => t.deliverable_id === d.id && t.id === lastRefreshTaskId)
       );
       if (affectedDeliverable) {
-        onRefresh();
+        // ✅ Minimized refresh - only time data through props update
+        console.log('Timer refresh triggered for deliverable:', affectedDeliverable.title);
+        // Component will automatically update through props change
       }
     }
-  }, [timeEntryRefreshTrigger, lastRefreshProjectId, lastRefreshTaskId, onRefresh, deliverables, localTasks]);
+  }, [timeEntryRefreshTrigger, lastRefreshProjectId, lastRefreshTaskId, deliverables, localTasks]);
 
   const togglePhase = (phaseId: string) => {
     setExpandedPhases(prev => {

@@ -299,8 +299,7 @@ export default function SimpleTaskList({ projectId, projectName, deliverables, t
         description: `${task.title} is ${completed ? 'afgerond' : 'heropend'}`,
       });
 
-      // Refresh data in background but don't wait for it
-      setTimeout(() => onRefresh(), 100);
+      // ✅ NO refresh cascade - let optimistic update stand
       
     } catch (error) {
       console.error('Complete error in toggleTaskCompletion:', error);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pause, Square, Minimize2, Maximize2, X } from 'lucide-react';
@@ -6,7 +6,7 @@ import { useTimer } from '@/contexts/TimerContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export default function FloatingTimer() {
+const FloatingTimer = React.memo(function FloatingTimer() {
   const { activeTimer, setActiveTimer, setFloatingVisible, refreshTimeEntry } = useTimer();
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -33,7 +33,8 @@ export default function FloatingTimer() {
     return () => clearInterval(interval);
   }, [activeTimer, pausedTime]);
 
-  const formatTime = (seconds: number): string => {
+  // Memoize expensive calculations
+  const formatTime = useMemo(() => (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
@@ -42,7 +43,7 @@ export default function FloatingTimer() {
       return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
   const handlePause = () => {
     if (!activeTimer) return;
@@ -205,4 +206,6 @@ export default function FloatingTimer() {
       </Card>
     </div>
   );
-}
+});
+
+export default FloatingTimer;

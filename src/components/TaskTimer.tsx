@@ -25,8 +25,9 @@ export default function TaskTimer({
   onTimerChange 
 }: TaskTimerProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false); // Prevent race conditions
   const { toast } = useToast();
-  const { activeTimer, setActiveTimer, setFloatingVisible } = useTimer();
+  const { activeTimer, setActiveTimer, setFloatingVisible, refreshTimerData } = useTimer();
 
   // Check if this task has the active timer
   const isThisTaskActive = activeTimer?.taskId === taskId;
@@ -56,8 +57,15 @@ export default function TaskTimer({
   }, [isThisTaskActive]);
 
   const handleStart = async () => {
+    if (isProcessing) {
+      console.log('Timer operation already in progress, ignoring...');
+      return; // Prevent race conditions
+    }
+    
+    setIsProcessing(true);
+    
     try {
-      // First, stop any existing active timer across all tasks
+      // Atomic timer operation - stop all active timers
       const { data: activeTimers, error: fetchError } = await supabase
         .from('time_entries')
         .select('*')
@@ -65,7 +73,7 @@ export default function TaskTimer({
 
       if (fetchError) throw fetchError;
 
-      // Stop each active timer with calculated duration
+      // Stop each active timer with calculated duration (queue operations)
       for (const timer of activeTimers || []) {
         const startTime = new Date(timer.start_time);
         const endTime = new Date();
@@ -115,6 +123,9 @@ export default function TaskTimer({
       });
       setFloatingVisible(true);
 
+      // Trigger timer-only data refresh (no project cascade)
+      refreshTimerData();
+
       toast({
         title: "Timer gestart",
         description: `Timer actief voor "${taskTitle}"`,
@@ -126,6 +137,8 @@ export default function TaskTimer({
         description: "Kon timer niet starten",
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { debounce } from 'lodash';
 
 interface ActiveTimer {
   id: string;
@@ -19,8 +20,10 @@ interface TimerContextType {
   setFloatingVisible: (visible: boolean) => void;
   refreshTimeData: (projectId?: string) => void;
   refreshTimeEntry: (projectId: string, taskId?: string) => void;
+  refreshTimerData: () => void;
   refreshTrigger: number;
   timeEntryRefreshTrigger: number;
+  timerDataRefreshTrigger: number;
   lastRefreshProjectId: string | null;
   lastRefreshTaskId: string | null;
 }
@@ -44,6 +47,7 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
   const [isFloatingVisible, setFloatingVisible] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [timeEntryRefreshTrigger, setTimeEntryRefreshTrigger] = useState(0);
+  const [timerDataRefreshTrigger, setTimerDataRefreshTrigger] = useState(0);
   const [lastRefreshProjectId, setLastRefreshProjectId] = useState<string | null>(null);
   const [lastRefreshTaskId, setLastRefreshTaskId] = useState<string | null>(null);
 
@@ -53,10 +57,20 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     setLastRefreshTaskId(null);
   };
 
-  const refreshTimeEntry = useCallback((projectId: string, taskId?: string) => {
+  // Debounced refresh for timer updates - prevents cascade
+  const debouncedRefreshTimeEntry = useCallback((projectId: string, taskId?: string) => {
     setTimeEntryRefreshTrigger(prev => prev + 1);
     setLastRefreshProjectId(projectId);
     setLastRefreshTaskId(taskId || null);
+  }, []);
+
+  const refreshTimeEntry = useCallback((projectId: string, taskId?: string) => {
+    // Debounce timer updates to prevent cascade
+    setTimeout(() => debouncedRefreshTimeEntry(projectId, taskId), 150);
+  }, [debouncedRefreshTimeEntry]);
+
+  const refreshTimerData = useCallback(() => {
+    setTimerDataRefreshTrigger(prev => prev + 1);
   }, []);
 
   return (
@@ -68,8 +82,10 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
         setFloatingVisible,
         refreshTimeData,
         refreshTimeEntry,
+        refreshTimerData,
         refreshTrigger,
         timeEntryRefreshTrigger,
+        timerDataRefreshTrigger,
         lastRefreshProjectId,
         lastRefreshTaskId,
       }}

@@ -52,10 +52,11 @@ export default function ProjectDetail() {
     }
   }, [id]);
 
-  // Optimized timer refresh logic - only time entries, prevent cascade
+  // Optimized timer refresh logic - only for specific timer data updates
   useEffect(() => {
     if (id && timeEntryRefreshTrigger > 0) {
       console.log('Timer refresh triggered for project:', id);
+      // ✅ Only fetchTimeData - NO fetchProjectData cascade
       fetchTimeData();
     }
   }, [timeEntryRefreshTrigger, id]);
