@@ -23,7 +23,7 @@ interface TaskManagementProps {
 
 export default function TaskManagement({ projectId, deliverables, tasks, timeEntries, onRefresh }: TaskManagementProps) {
   const [newDeliverable, setNewDeliverable] = useState({ title: '', description: '' });
-  const [newTask, setNewTask] = useState({ deliverable_id: '', title: '', description: '', billable_hours: 0 });
+  const [newTask, setNewTask] = useState({ deliverable_id: '', title: '', description: '' });
   const [showDeliverableDialog, setShowDeliverableDialog] = useState(false);
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const { toast } = useToast();
@@ -69,13 +69,12 @@ export default function TaskManagement({ projectId, deliverables, tasks, timeEnt
         .insert([{
           deliverable_id: newTask.deliverable_id,
           title: newTask.title,
-          description: newTask.description || null,
-          billable_hours: newTask.billable_hours
+          description: newTask.description || null
         }]);
 
       if (error) throw error;
 
-      setNewTask({ deliverable_id: '', title: '', description: '', billable_hours: 0 });
+      setNewTask({ deliverable_id: '', title: '', description: '' });
       setShowTaskDialog(false);
       onRefresh();
 
@@ -109,8 +108,8 @@ export default function TaskManagement({ projectId, deliverables, tasks, timeEnt
       toast({
         title: completed ? "Taak voltooid" : "Taak heropend",
         description: completed 
-          ? `${task.billable_hours} declarabele uren verdiend`
-          : `${task.billable_hours} declarabele uren teruggedraaid`,
+          ? `Taak voltooid`
+          : `Taak heropend`,
       });
     } catch (error) {
       toast({
@@ -128,16 +127,15 @@ export default function TaskManagement({ projectId, deliverables, tasks, timeEnt
     return Math.round((completedTasks.length / deliverableTasks.length) * 100);
   };
 
-  const getTotalBillableHours = (deliverableId: string) => {
-    return tasks
-      .filter(t => t.deliverable_id === deliverableId)
-      .reduce((sum, task) => sum + task.billable_hours, 0);
+  const getTotalDeclarableHours = (deliverableId: string) => {
+    const deliverable = deliverables.find(d => d.id === deliverableId);
+    return deliverable?.declarable_hours || 0;
   };
 
-  const getEarnedBillableHours = (deliverableId: string) => {
+  const getCompletedTasksCount = (deliverableId: string) => {
     return tasks
       .filter(t => t.deliverable_id === deliverableId && t.completed)
-      .reduce((sum, task) => sum + task.billable_hours, 0);
+      .length;
   };
 
   return (
@@ -207,14 +205,6 @@ export default function TaskManagement({ projectId, deliverables, tasks, timeEnt
                 value={newTask.description}
                 onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
               />
-              <Input
-                type="number"
-                placeholder="Declarabele uren"
-                value={newTask.billable_hours}
-                onChange={(e) => setNewTask({ ...newTask, billable_hours: parseFloat(e.target.value) || 0 })}
-                step="0.5"
-                min="0"
-              />
               <Button onClick={createTask} className="w-full">
                 Aanmaken
               </Button>
@@ -236,8 +226,8 @@ export default function TaskManagement({ projectId, deliverables, tasks, timeEnt
           deliverables.map((deliverable) => {
             const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
             const progress = getDeliverableProgress(deliverable.id);
-            const totalBillable = getTotalBillableHours(deliverable.id);
-            const earnedBillable = getEarnedBillableHours(deliverable.id);
+            const totalDeclarable = getTotalDeclarableHours(deliverable.id);
+            const completedTasks = getCompletedTasksCount(deliverable.id);
 
             return (
               <Card key={deliverable.id}>
@@ -262,10 +252,10 @@ export default function TaskManagement({ projectId, deliverables, tasks, timeEnt
                     <Progress value={progress} className="h-2" />
                     
                     <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Declarabel: {earnedBillable}h / {totalBillable}h</span>
+                      <span>Declarabel: {totalDeclarable}h</span>
                       <span className="flex items-center gap-1">
                         <Euro className="h-3 w-3" />
-                        {((earnedBillable / totalBillable) * 100 || 0).toFixed(0)}%
+                        {completedTasks} van {deliverableTasks.length} taken
                       </span>
                     </div>
                   </div>

@@ -59,8 +59,8 @@ export default function SimpleTaskManagement({ projectId, deliverables, tasks, o
       toast({
         title: completed ? "Taak voltooid" : "Taak heropend",
         description: completed 
-          ? `${task.billable_hours}h declarabel door ${task.assigned_to}`
-          : `${task.billable_hours}h teruggedraaid voor ${task.assigned_to}`,
+          ? `Taak voltooid door ${task.assigned_to}`
+          : `Taak heropend voor ${task.assigned_to}`,
       });
     } catch (error) {
       toast({
@@ -101,16 +101,15 @@ export default function SimpleTaskManagement({ projectId, deliverables, tasks, o
     return Math.round((completedTasks.length / deliverableTasks.length) * 100);
   };
 
-  const getTotalBillableHours = (deliverableId: string) => {
-    return tasks
-      .filter(t => t.deliverable_id === deliverableId)
-      .reduce((sum, task) => sum + task.billable_hours, 0);
+  const getTotalDeclarableHours = (deliverableId: string) => {
+    const deliverable = deliverables.find(d => d.id === deliverableId);
+    return deliverable?.declarable_hours || 0;
   };
 
-  const getEarnedBillableHours = (deliverableId: string) => {
+  const getCompletedTasksCount = (deliverableId: string) => {
     return tasks
       .filter(t => t.deliverable_id === deliverableId && t.completed)
-      .reduce((sum, task) => sum + task.billable_hours, 0);
+      .length;
   };
 
   return (
@@ -138,8 +137,8 @@ export default function SimpleTaskManagement({ projectId, deliverables, tasks, o
           deliverables.map((deliverable) => {
             const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
             const progress = getDeliverableProgress(deliverable.id);
-            const totalBillable = getTotalBillableHours(deliverable.id);
-            const earnedBillable = getEarnedBillableHours(deliverable.id);
+            const totalDeclarable = getTotalDeclarableHours(deliverable.id);
+            const completedTasks = getCompletedTasksCount(deliverable.id);
             const isExpanded = expandedDeliverables.has(deliverable.id);
 
             return (
@@ -179,10 +178,10 @@ export default function SimpleTaskManagement({ projectId, deliverables, tasks, o
                             <Circle className="h-4 w-4" />
                             {deliverableTasks.filter(t => t.completed).length}/{deliverableTasks.length} taken
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Euro className="h-4 w-4" />
-                            {earnedBillable}h / {totalBillable}h
-                          </div>
+                           <div className="flex items-center gap-1">
+                             <Euro className="h-4 w-4" />
+                             {totalDeclarable}h declarabel
+                           </div>
                         </div>
                         
                         <div className="space-y-2">
@@ -242,7 +241,7 @@ export default function SimpleTaskManagement({ projectId, deliverables, tasks, o
                                   )}
                                   <Badge variant="secondary" className="text-xs">
                                     <Clock className="h-3 w-3 mr-1" />
-                                    {task.billable_hours}h
+                                    Timer
                                   </Badge>
                                 </div>
                                 {task.description && (
