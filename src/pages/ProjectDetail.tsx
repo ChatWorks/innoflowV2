@@ -289,24 +289,7 @@ export default function ProjectDetail() {
             <Card>
               <CardContent className="p-4">
                 <div className="text-sm text-muted-foreground mb-3">Project Efficiency</div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="text-2xl font-bold">{Math.round(projectEfficiency)}%</div>
-                  <EfficiencyDots 
-                    value={projectEfficiency} 
-                    size="sm"
-                    showLabel={false}
-                    showPercentage={false}
-                    compact={true}
-                    entityName={project.name}
-                    statsData={{
-                      budgetHours: totalDeclarableHours,
-                      actualHours: formatTimeToHours(totalProjectTimeSpent),
-                      timeRemaining: Math.max(0, totalDeclarableHours - formatTimeToHours(totalProjectTimeSpent)),
-                      progressPercentage: projectProgress,
-                      estimatedCompletion: project.end_date ? new Date(project.end_date).toLocaleDateString('nl-NL') : undefined
-                    }}
-                  />
-                </div>
+                <div className="text-2xl font-bold mb-2">{Math.round(projectEfficiency)}%</div>
                 <EfficiencyDots 
                   value={projectEfficiency} 
                   size="lg"
