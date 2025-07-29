@@ -304,6 +304,22 @@ export default function IntegratedProjectTimeline({
     });
   };
 
+  const updateDeliverableHours = async (deliverableId: string, newHours: string) => {
+    const hoursValue = parseFloat(newHours) || 0;
+    const { error } = await supabase
+      .from('deliverables')
+      .update({ declarable_hours: hoursValue })
+      .eq('id', deliverableId);
+    
+    if (error) throw error;
+    
+    onDeliverableUpdate(deliverableId, { declarable_hours: hoursValue });
+    toast({
+      title: "Deliverable uren bijgewerkt",
+      description: `Nieuwe uren: ${hoursValue}h`,
+    });
+  };
+
   const updatePhaseName = async (phaseId: string, newName: string) => {
     const { error } = await supabase
       .from('phases')
@@ -497,10 +513,17 @@ export default function IntegratedProjectTimeline({
                                           {Math.round(getDeliverableEfficiency(deliverable, localTasks, timeEntries))}% eff
                                         </Badge>
                                         
-                                        {/* UREN */}
-                                        <span className="text-sm text-muted-foreground">
-                                          {formatTime(getDeliverableTimerTime(deliverable, localTasks, timeEntries))} / {deliverable.declarable_hours || 0}h
-                                        </span>
+                                         {/* UREN */}
+                                         <span className="text-sm text-muted-foreground">
+                                           {formatTime(getDeliverableTimerTime(deliverable, localTasks, timeEntries))} / 
+                                           <InlineEditField
+                                             value={`${deliverable.declarable_hours || 0}h`}
+                                             onSave={(newHours) => updateDeliverableHours(deliverable.id, newHours.replace('h', ''))}
+                                             placeholder="0h"
+                                             className="text-sm text-muted-foreground inline"
+                                             type="text"
+                                           />
+                                         </span>
                                         
                                         <InlineDateEdit
                                           value={deliverable.target_date || undefined}

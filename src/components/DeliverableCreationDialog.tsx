@@ -25,7 +25,7 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    billable_hours: '',
+    declarable_hours: '',
     phase_id: ''
   });
   const [phases, setPhases] = useState<Phase[]>([]);
@@ -72,6 +72,7 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
           title: formData.title,
           description: formData.description || null,
           target_date: dueDate?.toISOString().split('T')[0] || null,
+          declarable_hours: formData.declarable_hours ? parseFloat(formData.declarable_hours) : 0,
           status: 'Pending'
         }]);
 
@@ -85,7 +86,7 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
       setFormData({
         title: '',
         description: '',
-        billable_hours: '',
+        declarable_hours: '',
         phase_id: ''
       });
       setDueDate(undefined);
@@ -158,6 +159,23 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="min-h-[80px]"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="declarable_hours" className="text-sm font-medium flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                Uren *
+              </Label>
+              <Input
+                id="declarable_hours"
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder="0"
+                value={formData.declarable_hours}
+                onChange={(e) => setFormData({ ...formData, declarable_hours: e.target.value })}
+                className="h-11"
               />
             </div>
 

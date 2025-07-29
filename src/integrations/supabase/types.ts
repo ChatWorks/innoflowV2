@@ -17,6 +17,7 @@ export type Database = {
       deliverables: {
         Row: {
           created_at: string
+          declarable_hours: number | null
           description: string | null
           due_date: string | null
           id: string
@@ -29,6 +30,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          declarable_hours?: number | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -41,6 +43,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          declarable_hours?: number | null
           description?: string | null
           due_date?: string | null
           id?: string
