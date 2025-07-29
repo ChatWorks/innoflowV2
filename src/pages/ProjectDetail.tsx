@@ -280,8 +280,8 @@ export default function ProjectDetail() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card>
             <CardContent className="p-4">
+              <div className="text-sm text-muted-foreground mb-3">Project Voortgang</div>
               <div className="text-2xl font-bold">{projectProgress}%</div>
-              <div className="text-sm text-muted-foreground">Project Voortgang</div>
               <Progress value={projectProgress} className="mt-2" />
             </CardContent>
           </Card>
@@ -308,15 +308,15 @@ export default function ProjectDetail() {
           
           <Card>
             <CardContent className="p-4">
+              <div className="text-sm text-muted-foreground mb-3">Totaal Declarabel</div>
               <div className="text-2xl font-bold">{getTotalProjectDeclarable(deliverables)}h</div>
-              <div className="text-sm text-muted-foreground">Totaal Declarabel</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardContent className="p-4">
+              <div className="text-sm text-muted-foreground mb-3">Werkelijk Besteed</div>
               <div className="text-2xl font-bold">{formatTimeToHours(totalProjectTimeSpent)}h</div>
-              <div className="text-sm text-muted-foreground">Werkelijk Besteed</div>
             </CardContent>
           </Card>
         </div>

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Clock, Target, TrendingUp, Calendar } from 'lucide-react';
+import { Clock, Target, TrendingUp, Calendar, BarChart3 } from 'lucide-react';
 
 interface EfficiencyDotsProps {
   value: number; // Efficiency percentage
@@ -68,21 +68,11 @@ const getTextColor = (color: string) => {
   }
 };
 
-// Mooi lamp SVG component
-const LampIcon = ({ className }: { className?: string }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="1.5"
-    className={cn("transition-all duration-200 hover:scale-110", className)}
-  >
-    <path d="M9 18h6"/>
-    <path d="M10 22h4"/>
-    <path d="m12 8-4 4h8l-4-4Z"/>
-    <path d="M12 2v6"/>
-    <circle cx="12" cy="12" r="3" fill="currentColor" fillOpacity="0.2"/>
-  </svg>
+// Clean dashboard analytics icon
+const AnalyticsIcon = ({ className }: { className?: string }) => (
+  <BarChart3 
+    className={cn("transition-all duration-200 hover:scale-110 text-blue-600", className)}
+  />
 );
 
 export function EfficiencyDots({ 
@@ -175,20 +165,19 @@ export function EfficiencyDots({
         </div>
       )}
 
-      {/* Lamp icoontje voor stats popup */}
+      {/* Analytics icon for stats popup */}
       <Dialog>
         <DialogTrigger asChild>
           <button className={cn(
-            "text-muted-foreground hover:text-blue-600 transition-colors duration-200 ml-1",
-            "hover:bg-blue-50 rounded-full p-1 -m-1"
+            "hover:bg-blue-50 rounded-full p-1 -m-1 transition-colors duration-200 ml-1"
           )}>
-            <LampIcon className={lampSizeClasses[size]} />
+            <AnalyticsIcon className={lampSizeClasses[size]} />
           </button>
         </DialogTrigger>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <LampIcon className="w-5 h-5 text-blue-600" />
+              <AnalyticsIcon className="w-5 h-5" />
               {entityName} Stats
             </DialogTitle>
           </DialogHeader>
