@@ -97,14 +97,24 @@ export default function InlineEditField({
   return (
     <div className={`group inline-flex items-center gap-2 ${className}`}>
       <span>{prefix}{value}</span>
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={handleEdit}
-        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+      <span
+        role="button"
+        tabIndex={0}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleEdit();
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            handleEdit();
+          }
+        }}
+        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded hover:bg-muted flex items-center justify-center"
       >
         <Pencil className="h-3 w-3" />
-      </Button>
+      </span>
     </div>
   );
 }
