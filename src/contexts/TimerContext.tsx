@@ -9,6 +9,7 @@ interface ActiveTimer {
   projectId: string;
   projectName: string;
   startTime: Date;
+  isPaused?: boolean;
 }
 
 interface TimerContextType {

@@ -10,10 +10,16 @@ export default function FloatingTimer() {
   const { activeTimer, setActiveTimer, setFloatingVisible } = useTimer();
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [pausedTime, setPausedTime] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
     if (!activeTimer) return;
+
+    if (activeTimer.isPaused) {
+      setElapsedTime(pausedTime);
+      return;
+    }
 
     const updateElapsedTime = () => {
       const now = new Date();
@@ -25,7 +31,7 @@ export default function FloatingTimer() {
     const interval = setInterval(updateElapsedTime, 1000);
 
     return () => clearInterval(interval);
-  }, [activeTimer]);
+  }, [activeTimer, pausedTime]);
 
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
@@ -38,18 +44,47 @@ export default function FloatingTimer() {
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handlePause = async () => {
+  const handlePause = () => {
+    if (!activeTimer) return;
+
+    if (activeTimer.isPaused) {
+      // Resume timer
+      const newStartTime = new Date();
+      setActiveTimer({
+        ...activeTimer,
+        isPaused: false,
+        startTime: newStartTime
+      });
+      toast({
+        title: "Timer hervat",
+        description: `Timer hervat voor "${activeTimer.taskTitle}"`,
+      });
+    } else {
+      // Pause timer
+      setPausedTime(elapsedTime);
+      setActiveTimer({
+        ...activeTimer,
+        isPaused: true
+      });
+      toast({
+        title: "Timer gepauzeerd",
+        description: `Timer gepauzeerd voor "${activeTimer.taskTitle}"`,
+      });
+    }
+  };
+
+  const handleStop = async () => {
     if (!activeTimer) return;
 
     try {
+      const totalSeconds = pausedTime || elapsedTime;
       const endTime = new Date();
-      const durationSeconds = Math.floor((endTime.getTime() - activeTimer.startTime.getTime()) / 1000);
 
       const { error } = await supabase
         .from('time_entries')
         .update({
           end_time: endTime.toISOString(),
-          duration_seconds: durationSeconds,
+          duration_seconds: totalSeconds,
           is_active: false
         })
         .eq('id', activeTimer.id);
@@ -58,26 +93,23 @@ export default function FloatingTimer() {
 
       setActiveTimer(null);
       setFloatingVisible(false);
+      setPausedTime(0);
 
-      const minutes = Math.floor(durationSeconds / 60);
-      const seconds = durationSeconds % 60;
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
 
       toast({
-        title: "Timer gepauzeerd",
+        title: "Timer gestopt",
         description: `${minutes}m ${seconds}s opgeslagen voor "${activeTimer.taskTitle}"`,
       });
     } catch (error) {
-      console.error('Error pausing timer:', error);
+      console.error('Error stopping timer:', error);
       toast({
         title: "Error",
-        description: "Kon timer niet pauzeren",
+        description: "Kon timer niet stoppen",
         variant: "destructive",
       });
     }
-  };
-
-  const handleStop = async () => {
-    await handlePause();
   };
 
   const handleClose = () => {
@@ -92,8 +124,18 @@ export default function FloatingTimer() {
         <CardContent className={`transition-all duration-300 ${isMinimized ? 'p-2' : 'p-4'}`}>
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs font-medium text-green-600">ACTIEF</span>
+              <div className={`w-2 h-2 rounded-full ${
+                activeTimer.isPaused 
+                  ? 'bg-orange-500' 
+                  : 'bg-green-500 animate-pulse'
+              }`}></div>
+              <span className={`text-xs font-medium ${
+                activeTimer.isPaused 
+                  ? 'text-orange-600' 
+                  : 'text-green-600'
+              }`}>
+                {activeTimer.isPaused ? 'GEPAUZEERD' : 'ACTIEF'}
+              </span>
             </div>
             <div className="flex gap-1">
               <Button
@@ -142,7 +184,7 @@ export default function FloatingTimer() {
                 className="flex-1"
               >
                 <Pause className="h-3 w-3 mr-1" />
-                Pauzeren
+                {activeTimer.isPaused ? 'Hervatten' : 'Pauzeren'}
               </Button>
               <Button
                 size="sm"
