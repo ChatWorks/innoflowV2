@@ -24,7 +24,6 @@ interface Task {
   id: string;
   name: string;
   assignedTo: string;
-  estimatedHours: string;
 }
 
 interface Deliverable {
@@ -76,8 +75,7 @@ export default function ProjectSetupWizard() {
           tasks: [{
             id: `task-${i}-1-1`,
             name: '',
-            assignedTo: '',
-            estimatedHours: ''
+            assignedTo: ''
           }]
         }]
       });
@@ -132,8 +130,7 @@ export default function ProjectSetupWizard() {
           tasks: [{
             id: `task-${Date.now()}`,
             name: '',
-            assignedTo: '',
-            estimatedHours: ''
+            assignedTo: ''
           }]
         };
         return { ...phase, deliverables: [...phase.deliverables, newDeliverable] };
@@ -166,8 +163,7 @@ export default function ProjectSetupWizard() {
               const newTask: Task = {
                 id: `task-${Date.now()}`,
                 name: '',
-                assignedTo: '',
-                estimatedHours: ''
+                assignedTo: ''
               };
               return { ...deliverable, tasks: [...deliverable.tasks, newTask] };
             }
@@ -301,8 +297,7 @@ export default function ProjectSetupWizard() {
               .insert([{
                 deliverable_id: deliverableData.id,
                 title: task.name,
-                assigned_to: task.assignedTo,
-                billable_hours: parseFloat(task.estimatedHours) || 0
+                assigned_to: task.assignedTo
               }]);
             
             if (taskError) throw taskError;
@@ -576,14 +571,6 @@ export default function ProjectSetupWizard() {
                                   </SelectContent>
                                 </Select>
                               </div>
-                              <div className="w-24 space-y-2">
-                                <Input
-                                  type="number"
-                                  placeholder="Uren"
-                                  value={task.estimatedHours}
-                                  onChange={(e) => updateTask(phase.id, deliverable.id, task.id, 'estimatedHours', e.target.value)}
-                                />
-                              </div>
                               {deliverable.tasks.length > 1 && (
                                 <Button
                                   variant="outline"
@@ -698,9 +685,6 @@ export default function ProjectSetupWizard() {
                               <span className="text-sm">✓</span>
                               <span className="flex-1">{task.name}</span>
                               <Badge variant="outline">{task.assignedTo}</Badge>
-                              {task.estimatedHours && (
-                                <span className="text-sm text-muted-foreground">{task.estimatedHours}h</span>
-                              )}
                             </div>
                           ))}
                         </div>
