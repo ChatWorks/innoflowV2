@@ -289,7 +289,7 @@ export default function ProjectDetail() {
             <Card>
               <CardContent className="p-4">
                 <div className="text-sm text-muted-foreground mb-3">Project Efficiency</div>
-                <div className="text-2xl font-bold mb-2">{Math.round(projectEfficiency)}%</div>
+                <div className="text-2xl font-bold mb-2">{projectEfficiency.toFixed(2)}%</div>
                 <EfficiencyDots 
                   value={projectEfficiency} 
                   size="lg"
