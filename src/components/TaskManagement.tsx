@@ -8,18 +8,20 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, CheckCircle, Circle, Edit, Trash2, Euro } from 'lucide-react';
-import { Deliverable, Task } from '@/types/project';
+import { Deliverable, Task, TimeEntry } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { formatTime, getTaskTimeSpent } from '@/utils/progressCalculations';
 
 interface TaskManagementProps {
   projectId: string;
   deliverables: Deliverable[];
   tasks: Task[];
+  timeEntries: TimeEntry[];
   onRefresh: () => void;
 }
 
-export default function TaskManagement({ projectId, deliverables, tasks, onRefresh }: TaskManagementProps) {
+export default function TaskManagement({ projectId, deliverables, tasks, timeEntries, onRefresh }: TaskManagementProps) {
   const [newDeliverable, setNewDeliverable] = useState({ title: '', description: '' });
   const [newTask, setNewTask] = useState({ deliverable_id: '', title: '', description: '', billable_hours: 0 });
   const [showDeliverableDialog, setShowDeliverableDialog] = useState(false);
@@ -291,9 +293,9 @@ export default function TaskManagement({ projectId, deliverables, tasks, onRefre
                               <h4 className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
                                 {task.title}
                               </h4>
-                              <Badge variant="secondary" className="text-xs">
-                                {task.billable_hours}h
-                              </Badge>
+            <Badge variant="secondary" className="text-xs">
+              {formatTime(getTaskTimeSpent(task.id, timeEntries))}
+            </Badge>
                             </div>
                             {task.description && (
                               <p className={`text-sm text-muted-foreground mt-1 ${task.completed ? 'line-through' : ''}`}>
