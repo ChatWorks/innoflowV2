@@ -52,10 +52,20 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.trim() || !formData.phase_id) {
+    if (!formData.title.trim() || !formData.phase_id || !formData.declarable_hours.trim()) {
       toast({
         title: "Verplichte velden",
-        description: "Titel en fase zijn verplicht",
+        description: "Titel, fase en uren zijn verplicht",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const hoursValue = parseFloat(formData.declarable_hours);
+    if (isNaN(hoursValue) || hoursValue <= 0) {
+      toast({
+        title: "Ongeldige uren",
+        description: "Voer een geldig aantal uren in (groter dan 0)",
         variant: "destructive",
       });
       return;
@@ -72,7 +82,7 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
           title: formData.title,
           description: formData.description || null,
           target_date: dueDate?.toISOString().split('T')[0] || null,
-          declarable_hours: formData.declarable_hours ? parseFloat(formData.declarable_hours) : 0,
+          declarable_hours: hoursValue,
           status: 'Pending'
         }]);
 
