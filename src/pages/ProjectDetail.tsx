@@ -44,7 +44,7 @@ export default function ProjectDetail() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { refreshTrigger } = useTimer();
+  const { refreshTrigger, lastRefreshProjectId } = useTimer();
 
   useEffect(() => {
     if (id) {
@@ -54,10 +54,10 @@ export default function ProjectDetail() {
 
   // Listen for timer refresh events to update time data
   useEffect(() => {
-    if (id && refreshTrigger > 0) {
+    if (id && refreshTrigger > 0 && (!lastRefreshProjectId || lastRefreshProjectId === id)) {
       fetchTimeData();
     }
-  }, [refreshTrigger, id]);
+  }, [refreshTrigger, lastRefreshProjectId, id]);
 
   const fetchProjectData = async () => {
     if (!id) return;

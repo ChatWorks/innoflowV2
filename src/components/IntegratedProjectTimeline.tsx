@@ -85,7 +85,7 @@ export default function IntegratedProjectTimeline({
   const [taskTimeSpent, setTaskTimeSpent] = useState<Record<string, number>>({});
   const [statsMode, setStatsMode] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
-  const { refreshTrigger } = useTimer();
+  const { refreshTrigger, lastRefreshProjectId } = useTimer();
 
   // Initialize expanded phases (all open by default)
   useEffect(() => {
@@ -114,10 +114,11 @@ export default function IntegratedProjectTimeline({
 
   // Listen for timer refresh events to update time data
   useEffect(() => {
-    if (refreshTrigger > 0) {
+    if (refreshTrigger > 0 && (!lastRefreshProjectId || 
+        deliverables.some(d => d.project_id === lastRefreshProjectId))) {
       onRefresh();
     }
-  }, [refreshTrigger, onRefresh]);
+  }, [refreshTrigger, lastRefreshProjectId, onRefresh, deliverables]);
 
   const togglePhase = (phaseId: string) => {
     setExpandedPhases(prev => {

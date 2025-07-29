@@ -95,8 +95,8 @@ export default function FloatingTimer() {
       setFloatingVisible(false);
       setPausedTime(0);
       
-      // Refresh time data across all components
-      refreshTimeData();
+      // Refresh time data across all components for this specific project
+      refreshTimeData(activeTimer.projectId);
 
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;
