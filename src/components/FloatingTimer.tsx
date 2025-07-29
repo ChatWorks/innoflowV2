@@ -48,8 +48,8 @@ export default function FloatingTimer() {
     if (!activeTimer) return;
 
     if (activeTimer.isPaused) {
-      // Resume timer
-      const newStartTime = new Date();
+      // Resume timer - create new start time accounting for paused time
+      const newStartTime = new Date(Date.now() - (pausedTime * 1000));
       setActiveTimer({
         ...activeTimer,
         isPaused: false,
@@ -60,7 +60,7 @@ export default function FloatingTimer() {
         description: `Timer hervat voor "${activeTimer.taskTitle}"`,
       });
     } else {
-      // Pause timer
+      // Pause timer - save current elapsed time
       setPausedTime(elapsedTime);
       setActiveTimer({
         ...activeTimer,

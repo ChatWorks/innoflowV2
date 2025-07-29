@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, Square } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,67 +24,36 @@ export default function TaskTimer({
   projectName,
   onTimerChange 
 }: TaskTimerProps) {
-  const [isRunning, setIsRunning] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [currentSessionStart, setCurrentSessionStart] = useState<Date | null>(null);
-  const [activeTimerId, setActiveTimerId] = useState<string | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
-  const { setActiveTimer, setFloatingVisible } = useTimer();
+  const { activeTimer, setActiveTimer, setFloatingVisible } = useTimer();
 
-  // Live timer updates
+  // Check if this task has the active timer
+  const isThisTaskActive = activeTimer?.taskId === taskId;
+  const isPaused = activeTimer?.isPaused || false;
+
+  // Live timer updates for this specific task
   useEffect(() => {
-    if (isRunning && currentSessionStart) {
-      const interval = setInterval(() => {
+    if (isThisTaskActive && !isPaused && activeTimer) {
+      const updateElapsedTime = () => {
         const now = new Date();
-        const elapsed = Math.floor((now.getTime() - currentSessionStart.getTime()) / 1000);
+        const elapsed = Math.floor((now.getTime() - activeTimer.startTime.getTime()) / 1000);
         setElapsedTime(elapsed);
-      }, 1000);
+      };
+
+      updateElapsedTime();
+      const interval = setInterval(updateElapsedTime, 1000);
 
       return () => clearInterval(interval);
     }
-  }, [isRunning, currentSessionStart]);
+  }, [isThisTaskActive, isPaused, activeTimer]);
 
+  // Reset elapsed time when this task is no longer active
   useEffect(() => {
-    checkActiveTimer();
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [taskId]);
-
-  const checkActiveTimer = async () => {
-    try {
-      const { data: activeTimer, error } = await supabase
-        .from('time_entries')
-        .select('*')
-        .eq('task_id', taskId)
-        .eq('is_active', true)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (activeTimer) {
-        setIsRunning(true);
-        setActiveTimerId(activeTimer.id);
-        setCurrentSessionStart(new Date(activeTimer.start_time));
-        startTimer();
-      }
-    } catch (error) {
-      console.error('Error checking active timer:', error);
+    if (!isThisTaskActive) {
+      setElapsedTime(0);
     }
-  };
-
-  const startTimer = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    
-    intervalRef.current = setInterval(() => {
-      if (currentSessionStart) {
-        const now = new Date();
-        const elapsed = Math.floor((now.getTime() - currentSessionStart.getTime()) / 1000);
-        setElapsedTime(elapsed);
-      }
-    }, 1000);
-  };
+  }, [isThisTaskActive]);
 
   const handleStart = async () => {
     try {
@@ -113,7 +82,7 @@ export default function TaskTimer({
       }
 
       // Start new timer for this task
-      const now = new Date().toISOString();
+      const now = new Date();
       
       const { data: newTimer, error } = await supabase
         .from('time_entries')
@@ -121,7 +90,7 @@ export default function TaskTimer({
           project_id: projectId,
           deliverable_id: deliverableId,
           task_id: taskId,
-          start_time: now,
+          start_time: now.toISOString(),
           is_active: true,
           description: `Timer voor ${taskTitle}`
         }])
@@ -130,11 +99,6 @@ export default function TaskTimer({
 
       if (error) throw error;
 
-      setIsRunning(true);
-      setActiveTimerId(newTimer.id);
-      setCurrentSessionStart(new Date(now));
-      setElapsedTime(0);
-      startTimer();
       onTimerChange?.(true);
 
       // Update global timer context
@@ -146,7 +110,8 @@ export default function TaskTimer({
         deliverableTitle,
         projectId,
         projectName,
-        startTime: new Date(now)
+        startTime: now,
+        isPaused: false
       });
       setFloatingVisible(true);
 
@@ -164,57 +129,6 @@ export default function TaskTimer({
     }
   };
 
-  const handlePause = async () => {
-    if (!activeTimerId || !currentSessionStart) return;
-
-    try {
-      const endTime = new Date();
-      const startTime = currentSessionStart;
-      const durationSeconds = Math.floor((endTime.getTime() - startTime.getTime()) / 1000);
-
-      const { error } = await supabase
-        .from('time_entries')
-        .update({
-          end_time: endTime.toISOString(),
-          duration_seconds: durationSeconds,
-          is_active: false
-        })
-        .eq('id', activeTimerId);
-
-      if (error) throw error;
-
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      setIsRunning(false);
-      setActiveTimerId(null);
-      setCurrentSessionStart(null);
-      onTimerChange?.(false);
-
-      // Update global timer context
-      setActiveTimer(null);
-      setFloatingVisible(false);
-
-      const minutes = Math.floor(durationSeconds / 60);
-      const seconds = durationSeconds % 60;
-
-      toast({
-        title: "Timer gepauzeerd",
-        description: `${minutes}m ${seconds}s opgeslagen voor "${taskTitle}"`,
-      });
-    } catch (error) {
-      console.error('Error pausing timer:', error);
-      toast({
-        title: "Error",
-        description: "Kon timer niet pauzeren",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleStop = async () => {
-    await handlePause();
-    setElapsedTime(0);
-  };
-
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -228,13 +142,15 @@ export default function TaskTimer({
 
   return (
     <div className="flex items-center gap-2">
-      {isRunning && (
-        <div className="text-sm font-mono font-medium text-green-600">
+      {isThisTaskActive && (
+        <div className={`text-sm font-mono font-medium ${
+          isPaused ? 'text-orange-600' : 'text-green-600'
+        }`}>
           {formatTime(elapsedTime)}
         </div>
       )}
       
-      {!isRunning ? (
+      {!isThisTaskActive ? (
         <Button
           size="sm"
           variant="outline"
@@ -244,29 +160,18 @@ export default function TaskTimer({
           <Play className="h-3 w-3" />
         </Button>
       ) : (
-        <div className="flex gap-1">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handlePause}
-            className="h-8 w-8 p-0"
-          >
-            <Pause className="h-3 w-3" />
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleStop}
-            className="h-8 w-8 p-0"
-          >
-            <Square className="h-3 w-3" />
-          </Button>
+        <div className="text-xs text-muted-foreground">
+          Gebruik floating timer
         </div>
       )}
       
-      {isRunning && (
+      {isThisTaskActive && (
         <div className="flex items-center gap-1">
-          <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
+          <div className={`w-2 h-2 rounded-full ${
+            isPaused 
+              ? 'bg-orange-500' 
+              : 'bg-green-600 animate-pulse'
+          }`}></div>
         </div>
       )}
     </div>
