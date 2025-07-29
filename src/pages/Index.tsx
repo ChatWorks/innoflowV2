@@ -105,19 +105,11 @@ export default function Index() {
         {/* Project Hero Section */}
         <div className="mb-8">
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary-hover to-primary p-8 text-white">
-            {/* Animated Background Elements */}
-            <div className="absolute inset-0 opacity-20">
+            {/* Clean Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
               <div className="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-overlay animate-pulse"></div>
               <div className="absolute top-0 -right-4 w-72 h-72 bg-white rounded-full mix-blend-overlay animate-pulse [animation-delay:1s]"></div>
               <div className="absolute -bottom-8 left-1/2 w-96 h-96 bg-white rounded-full mix-blend-overlay animate-pulse [animation-delay:2s] transform -translate-x-1/2"></div>
-            </div>
-            
-            {/* Floating Particles */}
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/40 rounded-full animate-[float_6s_ease-in-out_infinite]"></div>
-              <div className="absolute top-3/4 left-3/4 w-1 h-1 bg-white/60 rounded-full animate-[float_4s_ease-in-out_infinite] [animation-delay:1s]"></div>
-              <div className="absolute top-1/2 right-1/4 w-1.5 h-1.5 bg-white/50 rounded-full animate-[float_5s_ease-in-out_infinite] [animation-delay:2s]"></div>
-              <div className="absolute bottom-1/4 left-1/3 w-2.5 h-2.5 bg-white/30 rounded-full animate-[float_7s_ease-in-out_infinite] [animation-delay:3s]"></div>
             </div>
             
             {/* Gradient Overlay Animation */}
