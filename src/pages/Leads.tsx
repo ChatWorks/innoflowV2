@@ -92,13 +92,13 @@ export default function Leads() {
 
   const getStatusColor = (status: Lead['status']) => {
     switch (status) {
-      case 'Nieuw': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'Gekwalificeerd': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Voorstel': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'Onderhandeling': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'Gewonnen': return 'bg-green-100 text-green-800 border-green-200';
-      case 'Verloren': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'Nieuw': return 'text-blue-600';
+      case 'Gekwalificeerd': return 'text-yellow-600';
+      case 'Voorstel': return 'text-purple-600';
+      case 'Onderhandeling': return 'text-orange-600';
+      case 'Gewonnen': return 'text-green-600';
+      case 'Verloren': return 'text-red-600';
+      default: return 'text-gray-600';
     }
   };
 
@@ -190,62 +190,54 @@ export default function Leads() {
           </Card>
         </div>
 
-        {/* Kanban Board */}
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-6">
           {LEAD_STATUSES.map((status) => {
             const statusLeads = leads.filter(lead => lead.status === status);
             return (
-              <Card 
+              <div 
                 key={status}
-                className="min-h-[500px]"
+                className="min-h-[500px] bg-gray-50 rounded-lg p-4"
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, status)}
               >
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium flex items-center justify-between">
-                    <span>{status}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {statusLeads.length}
-                    </Badge>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-medium text-gray-700">{status}</h3>
+                  <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded">
+                    {statusLeads.length}
+                  </span>
+                </div>
+                <div className="space-y-3">
                   {statusLeads.map((lead) => (
-                    <Card 
+                    <div 
                       key={lead.id}
-                      className={`cursor-pointer hover:shadow-md transition-all border-l-4 ${getStatusColor(lead.status)}`}
+                      className="bg-white rounded-lg p-4 border border-gray-200 cursor-pointer hover:shadow-sm transition-shadow"
                       draggable
                       onDragStart={(e) => handleDragStart(e, lead.id)}
                       onClick={() => navigate(`/leads/${lead.id}`)}
                     >
-                      <CardContent className="p-3 space-y-2">
-                        <h3 className="font-medium text-sm leading-tight">{lead.company_name}</h3>
-                        {lead.contact_person && (
-                          <p className="text-xs text-muted-foreground">{lead.contact_person}</p>
+                      <h4 className="font-medium text-sm text-gray-900">{lead.company_name}</h4>
+                      {lead.contact_person && (
+                        <p className="text-xs text-gray-500">{lead.contact_person}</p>
+                      )}
+                      {lead.estimated_value && (
+                        <p className="text-xs font-medium text-gray-700">
+                          €{lead.estimated_value.toLocaleString()}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between pt-2">
+                        <span className={`text-xs font-medium ${getStatusColor(lead.status)}`}>
+                          {lead.probability}%
+                        </span>
+                        {lead.expected_close_date && (
+                          <span className="text-xs text-gray-400">
+                            {new Date(lead.expected_close_date).toLocaleDateString('nl-NL')}
+                          </span>
                         )}
-                        {lead.estimated_value && (
-                          <p className="text-xs font-medium text-green-600">
-                            €{lead.estimated_value.toLocaleString()}
-                          </p>
-                        )}
-                        <div className="flex items-center justify-between">
-                          <Badge 
-                            variant="outline" 
-                            className="text-xs"
-                          >
-                            {lead.probability}%
-                          </Badge>
-                          {lead.expected_close_date && (
-                            <span className="text-xs text-muted-foreground">
-                              {new Date(lead.expected_close_date).toLocaleDateString('nl-NL')}
-                            </span>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   ))}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>
