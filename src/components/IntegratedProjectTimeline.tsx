@@ -640,13 +640,15 @@ export default function IntegratedProjectTimeline({
                                                      )}
                                                    </div>
                                                    
-                                                   <TaskTimer 
-                                                     taskId={task.id}
-                                                     taskTitle={task.title}
-                                                     deliverableId={deliverable.id}
-                                                     projectId={project.id}
-                                                     onTimerChange={onRefresh}
-                                                   />
+                                                    <TaskTimer 
+                                                      taskId={task.id}
+                                                      taskTitle={task.title}
+                                                      deliverableId={deliverable.id}
+                                                      deliverableTitle={deliverable.title}
+                                                      projectId={project.id}
+                                                      projectName={project.name}
+                                                      onTimerChange={onRefresh}
+                                                    />
                                                  </div>
                                                ))}
                                            </div>

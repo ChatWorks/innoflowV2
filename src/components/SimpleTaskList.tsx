@@ -16,6 +16,7 @@ import TaskTimer from './TaskTimer';
 
 interface SimpleTaskListProps {
   projectId: string;
+  projectName: string;
   deliverables: Deliverable[];
   tasks: Task[];
   onRefresh: () => void;
@@ -26,10 +27,12 @@ interface TaskRowProps {
   isTopTask: boolean;
   onToggle: () => void;
   deliverableId: string;
+  deliverableTitle: string;
   projectId: string;
+  projectName: string;
 }
 
-function TaskRow({ task, isTopTask, onToggle, deliverableId, projectId }: TaskRowProps) {
+function TaskRow({ task, isTopTask, onToggle, deliverableId, deliverableTitle, projectId, projectName }: TaskRowProps) {
   const [taskTimeSpent, setTaskTimeSpent] = useState<number>(0);
   const [isToggling, setIsToggling] = useState(false);
 
@@ -122,14 +125,16 @@ function TaskRow({ task, isTopTask, onToggle, deliverableId, projectId }: TaskRo
         taskId={task.id}
         taskTitle={task.title}
         deliverableId={deliverableId}
+        deliverableTitle={deliverableTitle}
         projectId={projectId}
+        projectName={projectName}
         onTimerChange={() => fetchTaskTime()}
       />
     </div>
   );
 }
 
-export default function SimpleTaskList({ projectId, deliverables, tasks, onRefresh }: SimpleTaskListProps) {
+export default function SimpleTaskList({ projectId, projectName, deliverables, tasks, onRefresh }: SimpleTaskListProps) {
   const [statsMode, setStatsMode] = useState<Record<string, boolean>>({});
   const [deliverableStats, setDeliverableStats] = useState<Record<string, any>>({});
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
@@ -460,7 +465,9 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
                             isTopTask={index === 0}
                             onToggle={() => toggleTaskCompletion(task)}
                             deliverableId={deliverable.id}
+                            deliverableTitle={deliverable.title}
                             projectId={projectId}
+                            projectName={projectName}
                           />
                         ))}
                       </div>

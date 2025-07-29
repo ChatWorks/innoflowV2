@@ -3,12 +3,15 @@ import { Button } from '@/components/ui/button';
 import { Play, Pause, Square } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTimer } from '@/contexts/TimerContext';
 
 interface TaskTimerProps {
   taskId: string;
   taskTitle: string;
   deliverableId: string;
+  deliverableTitle: string;
   projectId: string;
+  projectName: string;
   onTimerChange?: (isActive: boolean) => void;
 }
 
@@ -16,7 +19,9 @@ export default function TaskTimer({
   taskId, 
   taskTitle, 
   deliverableId, 
+  deliverableTitle,
   projectId, 
+  projectName,
   onTimerChange 
 }: TaskTimerProps) {
   const [isRunning, setIsRunning] = useState(false);
@@ -25,6 +30,20 @@ export default function TaskTimer({
   const [activeTimerId, setActiveTimerId] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+  const { setActiveTimer, setFloatingVisible } = useTimer();
+
+  // Live timer updates
+  useEffect(() => {
+    if (isRunning && currentSessionStart) {
+      const interval = setInterval(() => {
+        const now = new Date();
+        const elapsed = Math.floor((now.getTime() - currentSessionStart.getTime()) / 1000);
+        setElapsedTime(elapsed);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [isRunning, currentSessionStart]);
 
   useEffect(() => {
     checkActiveTimer();
@@ -118,6 +137,19 @@ export default function TaskTimer({
       startTimer();
       onTimerChange?.(true);
 
+      // Update global timer context
+      setActiveTimer({
+        id: newTimer.id,
+        taskId,
+        taskTitle,
+        deliverableId,
+        deliverableTitle,
+        projectId,
+        projectName,
+        startTime: new Date(now)
+      });
+      setFloatingVisible(true);
+
       toast({
         title: "Timer gestart",
         description: `Timer actief voor "${taskTitle}"`,
@@ -156,6 +188,10 @@ export default function TaskTimer({
       setActiveTimerId(null);
       setCurrentSessionStart(null);
       onTimerChange?.(false);
+
+      // Update global timer context
+      setActiveTimer(null);
+      setFloatingVisible(false);
 
       const minutes = Math.floor(durationSeconds / 60);
       const seconds = durationSeconds % 60;
