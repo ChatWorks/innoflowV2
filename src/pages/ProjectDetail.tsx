@@ -23,6 +23,13 @@ import Layout from '@/components/Layout';
 import InlineEditField from '@/components/InlineEditField';
 import InlineDateEdit from '@/components/InlineDateEdit';
 import IntegratedProjectTimeline from '@/components/IntegratedProjectTimeline';
+import {
+  getProjectProgress,
+  getTotalProjectTimeSpent,
+  formatTimeToHours,
+  getProjectEfficiency,
+  getEfficiencyColor
+} from '@/utils/progressCalculations';
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -128,14 +135,11 @@ export default function ProjectDetail() {
     return `${hours}h ${mins}m`;
   };
 
-  const totalTimeLogged = timeEntries
-    .filter(entry => entry.duration_minutes)
-    .reduce((sum, entry) => sum + (entry.duration_minutes || 0), 0);
-
+  // Time-based calculations
+  const totalProjectTimeSpent = getTotalProjectTimeSpent(timeEntries);
+  const projectProgress = getProjectProgress(project, phases, deliverables, tasks, timeEntries);
+  const projectEfficiency = getProjectEfficiency(tasks, timeEntries);
   const totalBillableHours = tasks.reduce((sum, task) => sum + task.billable_hours, 0);
-  const earnedBillableHours = tasks
-    .filter(task => task.completed)
-    .reduce((sum, task) => sum + task.billable_hours, 0);
 
   // Inline editing functions
   const updateProjectValue = async (newValue: string) => {
@@ -238,7 +242,7 @@ export default function ProjectDetail() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Totaal Uren</p>
+                  <p className="text-sm font-medium text-muted-foreground">Totaal Geschat</p>
                   <p className="text-2xl font-bold">{project.total_hours}h</p>
                 </div>
                 <Clock className="h-8 w-8 text-muted-foreground" />
@@ -250,22 +254,8 @@ export default function ProjectDetail() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Project Waarde</p>
-                  <p className="text-2xl font-bold">
-                    {project.project_value ? formatCurrency(project.project_value) : '€0'}
-                  </p>
-                </div>
-                <Euro className="h-8 w-8 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Verdiende Uren</p>
-                  <p className="text-2xl font-bold">{earnedBillableHours}h</p>
+                  <p className="text-sm font-medium text-muted-foreground">Totaal Besteed</p>
+                  <p className="text-2xl font-bold">{formatTimeToHours(totalProjectTimeSpent)}h</p>
                 </div>
                 <CheckCircle className="h-8 w-8 text-muted-foreground" />
               </div>
@@ -276,12 +266,25 @@ export default function ProjectDetail() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Voortgang</p>
-                  <p className="text-2xl font-bold">
-                    {totalBillableHours > 0 ? Math.round((earnedBillableHours / totalBillableHours) * 100) : 0}%
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Tijd Voortgang</p>
+                  <p className="text-2xl font-bold">{Math.round(projectProgress)}%</p>
+                  <Progress value={projectProgress} className="mt-2" />
                 </div>
                 <PlayCircle className="h-8 w-8 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Efficiency</p>
+                  <p className={`text-2xl font-bold ${getEfficiencyColor(projectEfficiency)}`}>
+                    {Math.round(projectEfficiency)}%
+                  </p>
+                </div>
+                <Euro className="h-8 w-8 text-muted-foreground" />
               </div>
             </CardContent>
           </Card>
@@ -293,6 +296,7 @@ export default function ProjectDetail() {
           phases={phases}
           deliverables={deliverables}
           tasks={tasks}
+          timeEntries={timeEntries}
           onRefresh={fetchProjectData}
           onPhaseUpdate={(phaseId, data) => {
             setPhases(prev => prev.map(phase => 

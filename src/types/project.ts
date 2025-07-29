@@ -17,10 +17,14 @@ export interface Project {
 export interface TimeEntry {
   id: string;
   project_id: string;
+  task_id?: string;
+  deliverable_id?: string;
   description?: string;
   start_time: string;
   end_time?: string;
   duration_minutes?: number;
+  duration_seconds?: number;
+  is_active?: boolean;
   created_at: string;
 }
 

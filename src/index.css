@@ -80,6 +80,11 @@ All colors MUST be HSL for proper theming.
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 228 100% 18%;
+
+    /* Progress colors for time-based system */
+    --progress-normal: 122 39% 49%;
+    --progress-warning: 38 92% 50%;
+    --progress-danger: 0 84% 60%;
   }
 
   .dark {
@@ -128,5 +133,19 @@ All colors MUST be HSL for proper theming.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .progress-normal .bg-primary {
+    @apply bg-[hsl(var(--progress-normal))];
+  }
+  
+  .progress-warning .bg-primary {
+    @apply bg-[hsl(var(--progress-warning))];
+  }
+  
+  .progress-danger .bg-primary {
+    @apply bg-[hsl(var(--progress-danger))];
   }
 }

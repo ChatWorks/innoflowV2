@@ -21,7 +21,7 @@ import {
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
-import { Project, Deliverable, Task, Phase } from '@/types/project';
+import { Project, Deliverable, Task, Phase, TimeEntry } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import DeliverableCreationDialog from './DeliverableCreationDialog';
@@ -30,12 +30,27 @@ import TaskTimer from './TaskTimer';
 import InlineDateEdit from './InlineDateEdit';
 import InlineEditField from './InlineEditField';
 import PhaseCreationDialog from './PhaseCreationDialog';
+import { 
+  getTaskProgress, 
+  getDeliverableProgress, 
+  getPhaseProgress, 
+  formatTime, 
+  formatTimeToHours, 
+  getTaskTimeSpent,
+  getTotalDeliverableTime,
+  getTotalDeliverableEstimate,
+  getTotalPhaseTime,
+  getTotalPhaseEstimate,
+  getProgressColor,
+  getActualTaskProgress 
+} from '@/utils/progressCalculations';
 
 interface IntegratedProjectTimelineProps {
   project: Project;
   phases: Phase[];
   deliverables: Deliverable[];
   tasks: Task[];
+  timeEntries: TimeEntry[];
   onRefresh: () => void;
   onPhaseUpdate: (phaseId: string, data: Partial<Phase>) => void;
   onDeliverableUpdate: (deliverableId: string, data: Partial<Deliverable>) => void;
@@ -46,6 +61,7 @@ export default function IntegratedProjectTimeline({
   phases, 
   deliverables, 
   tasks, 
+  timeEntries,
   onRefresh,
   onPhaseUpdate,
   onDeliverableUpdate
@@ -72,31 +88,16 @@ export default function IntegratedProjectTimeline({
     setLocalDeliverables(deliverables);
   }, [deliverables]);
 
-  // Fetch task time spent
+  // Calculate task time spent from timeEntries prop
   useEffect(() => {
-    fetchAllTaskTimes();
-  }, [localTasks]);
-
-  const fetchAllTaskTimes = async () => {
     const times: Record<string, number> = {};
     
-    for (const task of localTasks) {
-      const { data: timeEntries } = await supabase
-        .from('time_entries')
-        .select('duration_seconds, duration_minutes')
-        .eq('task_id', task.id)
-        .not('duration_seconds', 'is', null);
-      
-      const totalSeconds = timeEntries?.reduce((sum, entry) => {
-        const seconds = entry.duration_seconds || (entry.duration_minutes || 0) * 60;
-        return sum + seconds;
-      }, 0) || 0;
-      
-      times[task.id] = totalSeconds;
-    }
+    localTasks.forEach(task => {
+      times[task.id] = getTaskTimeSpent(task.id, timeEntries);
+    });
     
     setTaskTimeSpent(times);
-  };
+  }, [localTasks, timeEntries]);
 
   const togglePhase = (phaseId: string) => {
     setExpandedPhases(prev => {
@@ -324,9 +325,9 @@ export default function IntegratedProjectTimeline({
             phases.map((phase) => {
               const phaseDeliverables = localDeliverables.filter(d => d.phase_id === phase.id);
               const phaseStatus = getPhaseStatus(phaseDeliverables);
-              const completedDeliverables = phaseDeliverables.filter(d => d.status === 'Completed').length;
-              const phaseProgressPercentage = phaseDeliverables.length > 0 ? 
-                (completedDeliverables / phaseDeliverables.length) * 100 : 0;
+              const phaseProgressPercentage = getPhaseProgress(phase, localDeliverables, localTasks, timeEntries);
+              const totalPhaseTime = getTotalPhaseTime(phase, localDeliverables, localTasks, timeEntries);
+              const totalPhaseEstimate = getTotalPhaseEstimate(phase, localDeliverables, localTasks);
               const isExpanded = expandedPhases.has(phase.id);
 
               return (
@@ -363,7 +364,7 @@ export default function IntegratedProjectTimeline({
                       {/* Phase Progress */}
                       <div className="mt-3 ml-8">
                         <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
-                          <span>{completedDeliverables} van {phaseDeliverables.length} deliverables voltooid</span>
+                          <span>{formatTime(totalPhaseTime)} / {totalPhaseEstimate}h</span>
                           <span>{Math.round(phaseProgressPercentage)}%</span>
                         </div>
                         <Progress value={phaseProgressPercentage} className="h-2" />
@@ -380,7 +381,9 @@ export default function IntegratedProjectTimeline({
                         ) : (
                           phaseDeliverables.map((deliverable) => {
                             const deliverableTasks = localTasks.filter(t => t.deliverable_id === deliverable.id);
-                            const stats = calculateDeliverableStats(deliverable);
+                            const deliverableProgressPercentage = getDeliverableProgress(deliverable, localTasks, timeEntries);
+                            const totalDeliverableTime = getTotalDeliverableTime(deliverable, localTasks, timeEntries);
+                            const totalDeliverableEstimate = getTotalDeliverableEstimate(deliverable, localTasks);
                             const isDeliverableExpanded = expandedDeliverables.has(deliverable.id);
                             const isStatsMode = statsMode[deliverable.id];
 
@@ -417,9 +420,13 @@ export default function IntegratedProjectTimeline({
                                           onSave={(newDate) => updateDeliverableDate(deliverable.id, newDate)}
                                           placeholder="Geen datum"
                                         />
-                                        <span className="text-sm text-muted-foreground">
-                                          {stats.progressPercentage}% ({stats.completedTasks}/{stats.totalTasks})
-                                        </span>
+                                         <div className="flex items-center gap-2">
+                                           <Progress value={deliverableProgressPercentage} className="h-3 w-24" />
+                                           <span className="text-sm">
+                                             {Math.round(deliverableProgressPercentage)}% 
+                                             ({formatTime(totalDeliverableTime)} / {totalDeliverableEstimate}h)
+                                           </span>
+                                         </div>
                                       </div>
                                     </div>
                                   </CollapsibleTrigger>
@@ -466,12 +473,12 @@ export default function IntegratedProjectTimeline({
                                               <Clock className="h-4 w-4 text-green-600" />
                                               <span className="text-sm font-medium text-green-700 dark:text-green-300">Voortgang</span>
                                             </div>
-                                            <div className="text-xl font-bold text-green-600">
-                                              {stats.progressPercentage}%
-                                            </div>
-                                            <div className="text-xs text-green-600/70 mt-1">
-                                              {stats.completedTasks} van {stats.totalTasks} taken
-                                            </div>
+                                             <div className="text-xl font-bold text-green-600">
+                                               {Math.round(deliverableProgressPercentage)}%
+                                             </div>
+                                             <div className="text-xs text-green-600/70 mt-1">
+                                               {formatTime(totalDeliverableTime)} / {totalDeliverableEstimate}h
+                                             </div>
                                           </div>
                                         </div>
                                       ) : (
@@ -483,10 +490,10 @@ export default function IntegratedProjectTimeline({
                                           <div className="space-y-2">
                                             {[...deliverableTasks]
                                               .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                                              .map((task, index) => (
-                                              <div key={task.id} className={`flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors ${
-                                                index === 0 ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''
-                                              }`}>
+                                               .map((task, index) => (
+                                                 <div key={task.id} className={`flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors ${
+                                                   index === 0 ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''
+                                                 }`}>
                                                 <Checkbox
                                                   checked={task.completed}
                                                   onCheckedChange={() => toggleTaskCompletion(task)}
@@ -508,16 +515,21 @@ export default function IntegratedProjectTimeline({
                                                         {task.assigned_to}
                                                       </Badge>
                                                     )}
-                                                    <Badge variant="secondary" className="text-xs">
-                                                      <Clock className="h-3 w-3 mr-1" />
-                                                      {task.billable_hours}h
-                                                    </Badge>
-                                                    {taskTimeSpent[task.id] > 0 && (
-                                                      <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-                                                        <Timer className="h-3 w-3 mr-1" />
-                                                        {formatTime(taskTimeSpent[task.id])}
-                                                      </Badge>
-                                                    )}
+                                                     <Badge variant="secondary" className="text-xs">
+                                                       <Clock className="h-3 w-3 mr-1" />
+                                                       {task.billable_hours}h
+                                                     </Badge>
+                                                   </div>
+                                                   {/* Task progress bar */}
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                      <Progress 
+                                                        value={getTaskProgress(task, taskTimeSpent[task.id] || 0)} 
+                                                        className={`h-2 w-16 ${getProgressColor(getActualTaskProgress(task, taskTimeSpent[task.id] || 0))}`}
+                                                      />
+                                                      <span className="text-xs text-muted-foreground">
+                                                        {formatTime(taskTimeSpent[task.id] || 0)} / {task.billable_hours}h
+                                                      </span>
+                                                    </div>
                                                   </div>
                                                   {task.description && (
                                                     <p className={`text-sm text-muted-foreground ${task.completed ? 'line-through' : ''}`}>
@@ -531,7 +543,7 @@ export default function IntegratedProjectTimeline({
                                                   taskTitle={task.title}
                                                   deliverableId={deliverable.id}
                                                   projectId={project.id}
-                                                  onTimerChange={() => fetchAllTaskTimes()}
+                                                  onTimerChange={onRefresh}
                                                 />
                                               </div>
                                             ))}
