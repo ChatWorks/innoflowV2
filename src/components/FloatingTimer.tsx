@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export default function FloatingTimer() {
-  const { activeTimer, setActiveTimer, setFloatingVisible, refreshTimeData } = useTimer();
+  const { activeTimer, setActiveTimer, setFloatingVisible, refreshTimeEntry } = useTimer();
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isMinimized, setIsMinimized] = useState(false);
   const [pausedTime, setPausedTime] = useState(0);
@@ -95,8 +95,8 @@ export default function FloatingTimer() {
       setFloatingVisible(false);
       setPausedTime(0);
       
-      // Refresh time data across all components for this specific project
-      refreshTimeData(activeTimer.projectId);
+      // Refresh specific time entry data only
+      refreshTimeEntry(activeTimer.projectId, activeTimer.taskId);
 
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;

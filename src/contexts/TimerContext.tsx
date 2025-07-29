@@ -18,8 +18,10 @@ interface TimerContextType {
   isFloatingVisible: boolean;
   setFloatingVisible: (visible: boolean) => void;
   refreshTimeData: (projectId?: string) => void;
+  refreshTimeEntry: (projectId: string, taskId?: string) => void;
   refreshTrigger: number;
   lastRefreshProjectId: string | null;
+  lastRefreshTaskId: string | null;
 }
 
 const TimerContext = createContext<TimerContextType | undefined>(undefined);
@@ -41,10 +43,18 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
   const [isFloatingVisible, setFloatingVisible] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [lastRefreshProjectId, setLastRefreshProjectId] = useState<string | null>(null);
+  const [lastRefreshTaskId, setLastRefreshTaskId] = useState<string | null>(null);
 
   const refreshTimeData = (projectId?: string) => {
     setRefreshTrigger(prev => prev + 1);
     setLastRefreshProjectId(projectId || null);
+    setLastRefreshTaskId(null);
+  };
+
+  const refreshTimeEntry = (projectId: string, taskId?: string) => {
+    setRefreshTrigger(prev => prev + 1);
+    setLastRefreshProjectId(projectId);
+    setLastRefreshTaskId(taskId || null);
   };
 
   return (
@@ -55,8 +65,10 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
         isFloatingVisible,
         setFloatingVisible,
         refreshTimeData,
+        refreshTimeEntry,
         refreshTrigger,
         lastRefreshProjectId,
+        lastRefreshTaskId,
       }}
     >
       {children}

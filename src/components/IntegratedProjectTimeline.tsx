@@ -85,7 +85,7 @@ export default function IntegratedProjectTimeline({
   const [taskTimeSpent, setTaskTimeSpent] = useState<Record<string, number>>({});
   const [statsMode, setStatsMode] = useState<Record<string, boolean>>({});
   const { toast } = useToast();
-  const { refreshTrigger, lastRefreshProjectId } = useTimer();
+  const { refreshTrigger, lastRefreshProjectId, lastRefreshTaskId } = useTimer();
 
   // Initialize expanded phases (all open by default)
   useEffect(() => {
@@ -112,13 +112,19 @@ export default function IntegratedProjectTimeline({
     setTaskTimeSpent(times);
   }, [localTasks, timeEntries]);
 
-  // Listen for timer refresh events to update time data
+  // Listen for timer refresh events to update time data (only for specific task updates)
   useEffect(() => {
-    if (refreshTrigger > 0 && (!lastRefreshProjectId || 
-        deliverables.some(d => d.project_id === lastRefreshProjectId))) {
-      onRefresh();
+    if (refreshTrigger > 0 && lastRefreshProjectId && lastRefreshTaskId && 
+        deliverables.some(d => d.project_id === lastRefreshProjectId)) {
+      // Only refresh if the task belongs to one of our deliverables
+      const affectedDeliverable = deliverables.find(d => 
+        localTasks.some(t => t.deliverable_id === d.id && t.id === lastRefreshTaskId)
+      );
+      if (affectedDeliverable) {
+        onRefresh();
+      }
     }
-  }, [refreshTrigger, lastRefreshProjectId, onRefresh, deliverables]);
+  }, [refreshTrigger, lastRefreshProjectId, lastRefreshTaskId, onRefresh, deliverables, localTasks]);
 
   const togglePhase = (phaseId: string) => {
     setExpandedPhases(prev => {
