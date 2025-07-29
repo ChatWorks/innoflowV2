@@ -132,10 +132,21 @@ function TaskRow({ task, isTopTask, onToggle, deliverableId, projectId }: TaskRo
 export default function SimpleTaskList({ projectId, deliverables, tasks, onRefresh }: SimpleTaskListProps) {
   const [statsMode, setStatsMode] = useState<Record<string, boolean>>({});
   const [deliverableStats, setDeliverableStats] = useState<Record<string, any>>({});
+  const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
+  const [localDeliverables, setLocalDeliverables] = useState<Deliverable[]>(deliverables);
   const { toast } = useToast();
 
+  // Update local state when props change
+  useEffect(() => {
+    setLocalTasks(tasks);
+  }, [tasks]);
+
+  useEffect(() => {
+    setLocalDeliverables(deliverables);
+  }, [deliverables]);
+
   // Sort deliverables by due date (earliest first)
-  const sortedDeliverables = [...deliverables].sort((a, b) => {
+  const sortedDeliverables = [...localDeliverables].sort((a, b) => {
     if (!a.due_date && !b.due_date) return 0;
     if (!a.due_date) return 1;
     if (!b.due_date) return -1;
@@ -144,12 +155,12 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
 
   useEffect(() => {
     fetchDeliverableStats();
-  }, [deliverables, tasks]);
+  }, [localDeliverables, localTasks]);
 
   const fetchDeliverableStats = async () => {
     const stats: Record<string, any> = {};
 
-    for (const deliverable of deliverables) {
+    for (const deliverable of localDeliverables) {
       // Get time entries for this deliverable using duration_seconds for precision
       const { data: timeEntries } = await supabase
         .from('time_entries')
@@ -164,7 +175,7 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
       }, 0) || 0;
       
       // Get tasks for this deliverable
-      const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
+      const deliverableTasks = localTasks.filter(t => t.deliverable_id === deliverable.id);
       const billableHours = deliverableTasks.reduce((sum, task) => sum + task.billable_hours, 0);
       const earnedHours = deliverableTasks.filter(t => t.completed).reduce((sum, task) => sum + task.billable_hours, 0);
       const completionRate = deliverableTasks.length > 0 ? (deliverableTasks.filter(t => t.completed).length / deliverableTasks.length) * 100 : 0;
@@ -219,8 +230,8 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
     }, 0) || 0;
   };
 
-  const updateDeliverableStatus = async (deliverableId: string) => {
-    const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverableId);
+  const updateDeliverableStatus = async (deliverableId: string, updatedTasks: Task[]) => {
+    const deliverableTasks = updatedTasks.filter(t => t.deliverable_id === deliverableId);
     const completedTasks = deliverableTasks.filter(t => t.completed);
     
     let newStatus = 'Pending';
@@ -230,6 +241,12 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
       newStatus = 'Completed';
     }
     
+    // Update local state immediately
+    setLocalDeliverables(prev => prev.map(d => 
+      d.id === deliverableId ? { ...d, status: newStatus as any } : d
+    ));
+    
+    // Update database
     await supabase
       .from('deliverables')
       .update({ status: newStatus })
@@ -241,6 +258,15 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
       const completed = !task.completed;
       console.log('Toggle task completion:', { taskId: task.id, currentState: task.completed, newState: completed });
       
+      // Optimistic update - update local state immediately
+      const updatedTasks = localTasks.map(t => 
+        t.id === task.id 
+          ? { ...t, completed, completed_at: completed ? new Date().toISOString() : null }
+          : t
+      );
+      setLocalTasks(updatedTasks);
+
+      // Update database
       const { error } = await supabase
         .from('tasks')
         .update({
@@ -251,21 +277,26 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
 
       if (error) {
         console.error('Error updating task:', error);
+        // Revert optimistic update on error
+        setLocalTasks(localTasks);
         throw error;
       }
       
       console.log('Task updated successfully, now updating deliverable status...');
       
-      // Update deliverable status after task completion
-      await updateDeliverableStatus(task.deliverable_id);
+      // Update deliverable status with the updated tasks
+      await updateDeliverableStatus(task.deliverable_id, updatedTasks);
       
-      console.log('Deliverable status updated, refreshing data...');
-      onRefresh();
+      console.log('Deliverable status updated');
 
       toast({
         title: completed ? "Taak voltooid" : "Taak heropend",
         description: `${task.title} is ${completed ? 'afgerond' : 'heropend'}`,
       });
+
+      // Refresh data in background but don't wait for it
+      setTimeout(() => onRefresh(), 100);
+      
     } catch (error) {
       console.error('Complete error in toggleTaskCompletion:', error);
       toast({
@@ -295,7 +326,7 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
           </Card>
         ) : (
           sortedDeliverables.map((deliverable) => {
-            const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
+            const deliverableTasks = localTasks.filter(t => t.deliverable_id === deliverable.id);
             const stats = deliverableStats[deliverable.id];
             const isStatsMode = statsMode[deliverable.id];
             
