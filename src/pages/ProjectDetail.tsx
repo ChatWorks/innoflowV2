@@ -52,9 +52,10 @@ export default function ProjectDetail() {
     }
   }, [id]);
 
-  // Optimized timer refresh logic - only time entries
+  // Optimized timer refresh logic - only time entries, prevent cascade
   useEffect(() => {
     if (id && timeEntryRefreshTrigger > 0) {
+      console.log('Timer refresh triggered for project:', id);
       fetchTimeData();
     }
   }, [timeEntryRefreshTrigger, id]);
@@ -140,8 +141,9 @@ export default function ProjectDetail() {
   const fetchTimeData = async () => {
     if (!id) return;
 
+    console.log('Fetching time data for project:', id);
     try {
-      // Fetch only time entries for refresh
+      // Fetch only time entries for refresh - prevent cascade
       const { data: timeData, error: timeError } = await supabase
         .from('time_entries')
         .select('*')
@@ -150,6 +152,7 @@ export default function ProjectDetail() {
 
       if (timeError) throw timeError;
       setTimeEntries((timeData || []) as TimeEntry[]);
+      console.log('Time data updated:', timeData?.length || 0, 'entries');
     } catch (error) {
       console.error('Error fetching time data:', error);
     }

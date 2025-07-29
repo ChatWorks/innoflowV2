@@ -53,10 +53,10 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     setLastRefreshTaskId(null);
   };
 
-  const refreshTimeEntry = useCallback((projectId: string, taskId: string) => {
+  const refreshTimeEntry = useCallback((projectId: string, taskId?: string) => {
     setTimeEntryRefreshTrigger(prev => prev + 1);
     setLastRefreshProjectId(projectId);
-    setLastRefreshTaskId(taskId);
+    setLastRefreshTaskId(taskId || null);
   }, []);
 
   return (
