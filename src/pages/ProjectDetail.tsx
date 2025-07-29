@@ -28,7 +28,9 @@ import {
   getTotalProjectTimeSpent,
   formatTimeToHours,
   getProjectEfficiency,
-  getEfficiencyColor
+  getEfficiencyColor,
+  getEfficiencyLabel,
+  getTotalProjectDeclarable
 } from '@/utils/progressCalculations';
 
 export default function ProjectDetail() {
@@ -236,56 +238,39 @@ export default function ProjectDetail() {
           </div>
         </div>
 
-        {/* Project Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* Project Statistics - GESCHEIDEN Voortgang en Efficiency */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Totaal Geschat</p>
-                  <p className="text-2xl font-bold">{project.total_hours}h</p>
-                </div>
-                <Clock className="h-8 w-8 text-muted-foreground" />
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold">{projectProgress}%</div>
+              <div className="text-sm text-muted-foreground">Project Voortgang</div>
+              <Progress value={projectProgress} className="mt-2" />
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <div className={`text-2xl font-bold ${getEfficiencyColor(projectEfficiency)}`}>
+                {Math.round(projectEfficiency)}%
+              </div>
+              <div className="text-sm text-muted-foreground">Project Efficiency</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {getEfficiencyLabel(projectEfficiency)}
               </div>
             </CardContent>
           </Card>
-
+          
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Totaal Besteed</p>
-                  <p className="text-2xl font-bold">{formatTimeToHours(totalProjectTimeSpent)}h</p>
-                </div>
-                <CheckCircle className="h-8 w-8 text-muted-foreground" />
-              </div>
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold">{getTotalProjectDeclarable(deliverables)}h</div>
+              <div className="text-sm text-muted-foreground">Totaal Declarabel</div>
             </CardContent>
           </Card>
-
+          
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Tijd Voortgang</p>
-                  <p className="text-2xl font-bold">{Math.round(projectProgress)}%</p>
-                  <Progress value={projectProgress} className="mt-2" />
-                </div>
-                <PlayCircle className="h-8 w-8 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Efficiency</p>
-                  <p className={`text-2xl font-bold ${getEfficiencyColor(projectEfficiency)}`}>
-                    {Math.round(projectEfficiency)}%
-                  </p>
-                </div>
-                <Euro className="h-8 w-8 text-muted-foreground" />
-              </div>
+            <CardContent className="p-4">
+              <div className="text-2xl font-bold">{formatTimeToHours(totalProjectTimeSpent)}h</div>
+              <div className="text-sm text-muted-foreground">Werkelijk Besteed</div>
             </CardContent>
           </Card>
         </div>

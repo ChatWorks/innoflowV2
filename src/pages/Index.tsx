@@ -125,18 +125,18 @@ export default function Index() {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Enhanced Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-card rounded-lg p-6 border">
             <div className="text-3xl font-bold text-foreground">{projects.length}</div>
             <div className="text-sm text-muted-foreground">Totaal Projecten</div>
           </div>
           <div className="bg-card rounded-lg p-6 border">
-            <div className="text-3xl font-bold text-foreground">{inProgressProjects}</div>
+            <div className="text-3xl font-bold text-yellow-600">{inProgressProjects}</div>
             <div className="text-sm text-muted-foreground">Actieve Projecten</div>
           </div>
           <div className="bg-card rounded-lg p-6 border">
-            <div className="text-3xl font-bold text-foreground">{completedProjects}</div>
+            <div className="text-3xl font-bold text-green-600">{completedProjects}</div>
             <div className="text-sm text-muted-foreground">Voltooid</div>
           </div>
           <div className="bg-card rounded-lg p-6 border">
@@ -147,7 +147,7 @@ export default function Index() {
                 minimumFractionDigits: 0,
               }).format(totalProjectValue)}
             </div>
-            <div className="text-sm text-muted-foreground">Totale Project Waarde</div>
+            <div className="text-sm text-muted-foreground">Portfolio Waarde</div>
           </div>
         </div>
 
