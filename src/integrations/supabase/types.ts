@@ -95,6 +95,7 @@ export type Database = {
           created_at: string
           description: string | null
           end_date: string | null
+          hourly_rate: number | null
           id: string
           name: string
           progress: number | null
@@ -110,6 +111,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_date?: string | null
+          hourly_rate?: number | null
           id?: string
           name: string
           progress?: number | null
@@ -125,6 +127,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_date?: string | null
+          hourly_rate?: number | null
           id?: string
           name?: string
           progress?: number | null
@@ -139,7 +142,6 @@ export type Database = {
       tasks: {
         Row: {
           assigned_to: string | null
-          billable_hours: number
           completed: boolean
           completed_at: string | null
           created_at: string
@@ -151,7 +153,6 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
-          billable_hours?: number
           completed?: boolean
           completed_at?: string | null
           created_at?: string
@@ -163,7 +164,6 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
-          billable_hours?: number
           completed?: boolean
           completed_at?: string | null
           created_at?: string

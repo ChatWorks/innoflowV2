@@ -8,6 +8,7 @@ export interface Project {
   budget?: number;
   project_value?: number;
   total_hours?: number;
+  hourly_rate?: number; // Added for contract value calculation
   start_date?: string;
   end_date?: string;
   created_at: string;
@@ -37,6 +38,7 @@ export interface Deliverable {
   status: 'Pending' | 'In Progress' | 'Completed';
   due_date?: string;
   target_date?: string;
+  declarable_hours?: number; // Declarable hours for client billing
   created_at: string;
   updated_at: string;
 }
@@ -55,7 +57,6 @@ export interface Task {
   deliverable_id: string;
   title: string;
   description?: string;
-  billable_hours: number;
   completed: boolean;
   completed_at?: string;
   assigned_to?: string;

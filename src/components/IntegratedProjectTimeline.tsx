@@ -515,10 +515,10 @@ export default function IntegratedProjectTimeline({
                                                            {task.assigned_to}
                                                          </Badge>
                                                        )}
-                                                       <Badge variant="secondary" className="text-xs">
-                                                         <Clock className="h-3 w-3 mr-1" />
-                                                         {task.billable_hours}h
-                                                       </Badge>
+                                                        <Badge variant="secondary" className="text-xs">
+                                                          <Clock className="h-3 w-3 mr-1" />
+                                                          {formatTime(taskTimeSpent[task.id] || 0)}
+                                                        </Badge>
                                                      </div>
                                                      {/* Task progress bar */}
                                                      <div className="flex items-center gap-2 mt-1">
@@ -526,9 +526,9 @@ export default function IntegratedProjectTimeline({
                                                          value={getTaskProgress(task, taskTimeSpent[task.id] || 0)} 
                                                          className={`h-2 w-16 ${getProgressColor(getActualTaskProgress(task, taskTimeSpent[task.id] || 0))}`}
                                                        />
-                                                       <span className="text-xs text-muted-foreground">
-                                                         {formatTime(taskTimeSpent[task.id] || 0)} / {task.billable_hours}h
-                                                       </span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                          {formatTime(taskTimeSpent[task.id] || 0)} besteed
+                                                        </span>
                                                      </div>
                                                      {task.description && (
                                                        <p className={`text-sm text-muted-foreground ${task.completed ? 'line-through' : ''}`}>

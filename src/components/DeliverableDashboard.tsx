@@ -19,8 +19,8 @@ interface DeliverableDashboardProps {
 interface DeliverableStats {
   totalTimeSeconds: number;
   totalTimeMinutes: number;
-  billableHours: number;
-  earnedHours: number;
+  declarableHours: number;
+  completedTasks: number;
   completionRate: number;
 }
 
@@ -87,15 +87,15 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
       
       // Get tasks for this deliverable
       const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
-      const billableHours = deliverableTasks.reduce((sum, task) => sum + task.billable_hours, 0);
-      const earnedHours = deliverableTasks.filter(t => t.completed).reduce((sum, task) => sum + task.billable_hours, 0);
+      const declarableHours = deliverable.declarable_hours || 0;
+      const completedTasks = deliverableTasks.filter(t => t.completed).length;
       const completionRate = deliverableTasks.length > 0 ? (deliverableTasks.filter(t => t.completed).length / deliverableTasks.length) * 100 : 0;
 
       stats[deliverable.id] = {
         totalTimeSeconds,
         totalTimeMinutes: Math.floor(totalTimeSeconds / 60), // Keep for compatibility
-        billableHours,
-        earnedHours,
+        declarableHours,
+        completedTasks,
         completionRate
       };
     }
@@ -169,7 +169,7 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {deliverables.map((deliverable) => {
-            const stats = deliverableStats[deliverable.id] || { totalTimeSeconds: 0, totalTimeMinutes: 0, billableHours: 0, earnedHours: 0, completionRate: 0 };
+            const stats = deliverableStats[deliverable.id] || { totalTimeSeconds: 0, totalTimeMinutes: 0, declarableHours: 0, completedTasks: 0, completionRate: 0 };
             
             return (
               <Card key={deliverable.id} className="overflow-hidden">
@@ -220,10 +220,10 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
                       </div>
                       <div className="text-right">
                         <div className="text-xl font-bold text-primary">
-                          {formatCurrency(stats.earnedHours)}
+                          {formatCurrency(stats.declarableHours)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {stats.billableHours > 0 ? Math.round((stats.earnedHours / stats.billableHours) * 100) : 0}% van {formatCurrency(stats.billableHours)}
+                          {stats.declarableHours}h declarabel voor klant
                         </div>
                       </div>
                     </div>

@@ -19,7 +19,6 @@ export default function TaskCreationDialog({ deliverableId, onTaskCreated }: Tas
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    billable_hours: '',
     assigned_to: ''
   });
   const [isCreating, setIsCreating] = useState(false);
@@ -46,7 +45,6 @@ export default function TaskCreationDialog({ deliverableId, onTaskCreated }: Tas
           deliverable_id: deliverableId,
           title: formData.title,
           description: formData.description || null,
-          billable_hours: formData.billable_hours ? parseFloat(formData.billable_hours) : 0,
           assigned_to: formData.assigned_to,
           completed: false
         }]);
@@ -61,7 +59,6 @@ export default function TaskCreationDialog({ deliverableId, onTaskCreated }: Tas
       setFormData({
         title: '',
         description: '',
-        billable_hours: '',
         assigned_to: ''
       });
       setIsOpen(false);
@@ -118,39 +115,20 @@ export default function TaskCreationDialog({ deliverableId, onTaskCreated }: Tas
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium flex items-center gap-1">
-                  <User className="h-4 w-4" />
-                  Toegewezen aan *
-                </Label>
-                <Select value={formData.assigned_to} onValueChange={(value) => setFormData({ ...formData, assigned_to: value })}>
-                  <SelectTrigger className="h-11">
-                    <SelectValue placeholder="Kies persoon" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Tijn">Tijn</SelectItem>
-                    <SelectItem value="Twan">Twan</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="billable_hours" className="text-sm font-medium flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  Declarabele Uren
-                </Label>
-                <Input
-                  id="billable_hours"
-                  type="number"
-                  placeholder="2.5"
-                  value={formData.billable_hours}
-                  onChange={(e) => setFormData({ ...formData, billable_hours: e.target.value })}
-                  className="h-11"
-                  step="0.5"
-                  min="0"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-1">
+                <User className="h-4 w-4" />
+                Toegewezen aan *
+              </Label>
+              <Select value={formData.assigned_to} onValueChange={(value) => setFormData({ ...formData, assigned_to: value })}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Kies persoon" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Tijn">Tijn</SelectItem>
+                  <SelectItem value="Twan">Twan</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

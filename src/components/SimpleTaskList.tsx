@@ -102,7 +102,7 @@ function TaskRow({ task, isTopTask, onToggle, deliverableId, projectId }: TaskRo
           )}
           <Badge variant="secondary" className="text-xs">
             <Clock className="h-3 w-3 mr-1" />
-            {task.billable_hours}h
+            {formatTime(taskTimeSpent)}
           </Badge>
           {taskTimeSpent > 0 && (
             <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
@@ -176,8 +176,8 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
       
       // Get tasks for this deliverable
       const deliverableTasks = localTasks.filter(t => t.deliverable_id === deliverable.id);
-      const billableHours = deliverableTasks.reduce((sum, task) => sum + task.billable_hours, 0);
-      const earnedHours = deliverableTasks.filter(t => t.completed).reduce((sum, task) => sum + task.billable_hours, 0);
+      const declarableHours = deliverable.declarable_hours || 0;
+      const completedTasks = deliverableTasks.filter(t => t.completed).length;
       const completionRate = deliverableTasks.length > 0 ? (deliverableTasks.filter(t => t.completed).length / deliverableTasks.length) * 100 : 0;
       
       // Calculate days until deadline
@@ -186,8 +186,8 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
       stats[deliverable.id] = {
         totalTimeSeconds,
         totalTimeMinutes: Math.floor(totalTimeSeconds / 60), // Keep for compatibility
-        billableHours,
-        earnedHours,
+        declarableHours,
+        completedTasks,
         completionRate,
         daysUntilDeadline
       };
@@ -401,10 +401,10 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
                           <span className="text-sm font-medium text-primary dark:text-primary">Declarabel</span>
                         </div>
                         <div className="text-2xl font-bold text-primary">
-                          € {(stats.earnedHours * 75).toLocaleString()}
+                          € {(stats.declarableHours * 75).toLocaleString()}
                         </div>
                         <div className="text-xs text-primary/70 mt-1">
-                          {stats.billableHours > 0 ? Math.round((stats.earnedHours / stats.billableHours) * 100) : 0}% van €{(stats.billableHours * 75).toLocaleString()}
+                          {stats.declarableHours}h declarabel voor klant
                         </div>
                       </div>
 
