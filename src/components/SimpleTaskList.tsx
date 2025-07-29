@@ -229,6 +229,8 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
   const toggleTaskCompletion = async (task: Task) => {
     try {
       const completed = !task.completed;
+      console.log('Toggle task completion:', { taskId: task.id, currentState: task.completed, newState: completed });
+      
       const { error } = await supabase
         .from('tasks')
         .update({
@@ -237,10 +239,17 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
         })
         .eq('id', task.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating task:', error);
+        throw error;
+      }
+      
+      console.log('Task updated successfully, now updating deliverable status...');
       
       // Update deliverable status after task completion
       await updateDeliverableStatus(task.deliverable_id);
+      
+      console.log('Deliverable status updated, refreshing data...');
       onRefresh();
 
       toast({
@@ -248,6 +257,7 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
         description: `${task.title} is ${completed ? 'afgerond' : 'heropend'}`,
       });
     } catch (error) {
+      console.error('Complete error in toggleTaskCompletion:', error);
       toast({
         title: "Error",
         description: "Kon taak status niet bijwerken",
