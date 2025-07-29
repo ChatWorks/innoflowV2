@@ -33,7 +33,7 @@ import {
   getTotalProjectDeclarable,
   updateProjectStatusIfNeeded
 } from '@/utils/progressCalculations';
-import EfficiencyIndicator from '@/components/ui/EfficiencyIndicator';
+import EfficiencyDots from '@/components/ui/EfficiencyDots';
 
 interface ProjectCardProps {
   project: Project;
@@ -277,22 +277,25 @@ export function ProjectCard({ project, onClick, onUpdate }: ProjectCardProps) {
                 <Progress value={projectProgress} className="h-2" />
               </div>
 
-              {/* SYSTEEM 2: EFFICIENCY (Ring indicator) */}
+              {/* SYSTEEM 2: EFFICIENCY (Dots indicator) */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">Efficiency</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <EfficiencyIndicator 
-                    value={projectEfficiency} 
-                    variant="ring"
-                    showTooltip={true}
-                  />
-                  <span className="text-xs font-medium">
-                    {Math.round(projectEfficiency)}%
-                  </span>
-                </div>
+                <EfficiencyDots 
+                  value={projectEfficiency} 
+                  size="sm"
+                  showLabel={false}
+                  showPercentage={true}
+                  compact={true}
+                  entityName={project.name}
+                  statsData={{
+                    budgetHours: totalDeclarable,
+                    actualHours: formatTimeToHours(totalTimeSpent),
+                    progressPercentage: projectProgress
+                  }}
+                />
               </div>
 
               {/* Tijd Statistics */}

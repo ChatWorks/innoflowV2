@@ -56,7 +56,7 @@ import {
   getProjectProgress,
   updateProjectStatusIfNeeded
 } from '@/utils/progressCalculations';
-import EfficiencyIndicator from '@/components/ui/EfficiencyIndicator';
+import EfficiencyDots from '@/components/ui/EfficiencyDots';
 
 interface IntegratedProjectTimelineProps {
   project: Project;
@@ -455,17 +455,22 @@ export default function IntegratedProjectTimeline({
                             </span>
                           </div>
                           
-                          {/* EFFICIENCY BAR - Medium efficiency bar */}
+                          {/* EFFICIENCY DOTS - Fase level */}
                           <div className="flex items-center gap-2">
                             <span className="text-sm text-muted-foreground">Efficiency:</span>
-                            <EfficiencyIndicator 
+                            <EfficiencyDots 
                               value={getPhaseEfficiency(phase, localDeliverables, localTasks, timeEntries)}
-                              variant="bar"
-                              showTooltip={true}
+                              size="md"
+                              showLabel={true}
+                              showPercentage={true}
+                              entityName={`Fase: ${phase.name}`}
+                              statsData={{
+                                budgetHours: getPhaseDeclarableHours(phase, localDeliverables),
+                                actualHours: formatTimeToHours(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries)),
+                                progressPercentage: phaseProgressPercentage,
+                                timeRemaining: Math.max(0, getPhaseDeclarableHours(phase, localDeliverables) - formatTimeToHours(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries)))
+                              }}
                             />
-                            <span className="text-xs text-muted-foreground">
-                              {Math.round(getPhaseEfficiency(phase, localDeliverables, localTasks, timeEntries))}%
-                            </span>
                           </div>
                           
                           {/* UREN DISPLAY - Declarabel vs timer */}
@@ -533,16 +538,19 @@ export default function IntegratedProjectTimeline({
                                         </div>
                                         
                                         {/* EFFICIENCY DOTS - Deliverable level */}
-                                        <div className="flex items-center gap-2">
-                                          <EfficiencyIndicator 
-                                            value={getDeliverableEfficiency(deliverable, localTasks, timeEntries)}
-                                            variant="dots"
-                                            showTooltip={true}
-                                          />
-                                          <span className="text-xs text-muted-foreground">
-                                            {Math.round(getDeliverableEfficiency(deliverable, localTasks, timeEntries))}%
-                                          </span>
-                                        </div>
+                                        <EfficiencyDots 
+                                          value={getDeliverableEfficiency(deliverable, localTasks, timeEntries)}
+                                          size="sm"
+                                          showLabel={false}
+                                          showPercentage={true}
+                                          compact={true}
+                                          entityName={deliverable.title}
+                                          statsData={{
+                                            budgetHours: deliverable.declarable_hours || 0,
+                                            actualHours: formatTimeToHours(getDeliverableTimerTime(deliverable, localTasks, timeEntries)),
+                                            progressPercentage: Math.round(getDeliverableProgress(deliverable, localTasks))
+                                          }}
+                                        />
                                         
                                          {/* UREN */}
                                          <span className="text-sm text-muted-foreground">

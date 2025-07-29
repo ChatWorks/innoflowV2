@@ -33,7 +33,7 @@ import {
   getEfficiencyLabel,
   getTotalProjectDeclarable
 } from '@/utils/progressCalculations';
-import EfficiencyIndicator from '@/components/ui/EfficiencyIndicator';
+import EfficiencyDots from '@/components/ui/EfficiencyDots';
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -289,10 +289,19 @@ export default function ProjectDetail() {
           <Card>
             <CardContent className="p-4">
               <div className="text-sm text-muted-foreground mb-3">Project Efficiency</div>
-              <EfficiencyIndicator 
+              <EfficiencyDots 
                 value={projectEfficiency} 
-                variant="full"
-                showTooltip={true}
+                size="lg"
+                showLabel={true}
+                showPercentage={true}
+                entityName={project.name}
+                statsData={{
+                  budgetHours: totalDeclarableHours,
+                  actualHours: formatTimeToHours(totalProjectTimeSpent),
+                  timeRemaining: Math.max(0, totalDeclarableHours - formatTimeToHours(totalProjectTimeSpent)),
+                  progressPercentage: projectProgress,
+                  estimatedCompletion: project.end_date ? new Date(project.end_date).toLocaleDateString('nl-NL') : undefined
+                }}
               />
             </CardContent>
           </Card>

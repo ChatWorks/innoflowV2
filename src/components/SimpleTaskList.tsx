@@ -14,7 +14,7 @@ import DeliverableCreationDialog from './DeliverableCreationDialog';
 import TaskCreationDialog from './TaskCreationDialog';
 import TaskTimer from './TaskTimer';
 import { getTaskEfficiency } from '@/utils/progressCalculations';
-import EfficiencyIndicator from '@/components/ui/EfficiencyIndicator';
+import EfficiencyDots from '@/components/ui/EfficiencyDots';
 
 interface SimpleTaskListProps {
   projectId: string;
@@ -74,14 +74,12 @@ function TaskRow({ task, isTopTask, onToggle, deliverableId, deliverableTitle, p
   };
 
   return (
-    <EfficiencyIndicator 
-      value={getTaskEfficiency(task, timeEntries)} 
-      variant="accent"
-    >
-      <div className={`flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors ${
-        isTopTask ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''
-      }`}>
-        <Checkbox
+    <div className={`flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors ${
+      isTopTask ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''
+    } ${getTaskEfficiency(task, timeEntries) > 100 ? 'border-l-4 border-l-orange-500' : 
+        getTaskEfficiency(task, timeEntries) > 0 ? 'border-l-4 border-l-green-500' : 
+        'border-l-4 border-l-gray-300'}`}>
+      <Checkbox
         checked={task.completed}
         onCheckedChange={async (checked) => {
           if (isToggling) {
@@ -138,8 +136,7 @@ function TaskRow({ task, isTopTask, onToggle, deliverableId, deliverableTitle, p
         projectName={projectName}
         onTimerChange={() => fetchTaskTime()}
       />
-      </div>
-    </EfficiencyIndicator>
+    </div>
   );
 }
 
