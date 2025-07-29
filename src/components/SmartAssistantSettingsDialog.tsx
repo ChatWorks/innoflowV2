@@ -100,7 +100,7 @@ export function SmartAssistantSettingsDialog({ isOpen, onClose }: SmartAssistant
         // Create new settings - user_id will be set by the trigger
         const result = await supabase
           .from('lead_settings')
-          .insert({ ...updateData, user_id: '' }); // Will be overridden by trigger
+          .insert(updateData as any);
         error = result.error;
       }
 
