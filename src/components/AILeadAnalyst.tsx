@@ -32,6 +32,7 @@ export function AILeadAnalyst({ leads }: AILeadAnalystProps) {
       id: '1',
       type: 'ai',
       content: `Hallo! Ik ben je AI Lead Analyst. Ik heb toegang tot alle ${leads.length} leads in je pipeline en kan je helpen met analyses, voorspellingen en strategische adviezen. 
+
       
 Wat wil je weten over je leads?`,
       timestamp: new Date()
