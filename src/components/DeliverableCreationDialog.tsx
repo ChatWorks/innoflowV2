@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,12 +6,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Phase } from '@/types/project';
 
 interface DeliverableCreationDialogProps {
   projectId: string;
@@ -23,19 +25,37 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    billable_hours: ''
+    billable_hours: '',
+    phase_id: ''
   });
+  const [phases, setPhases] = useState<Phase[]>([]);
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    fetchPhases();
+  }, [projectId]);
+
+  const fetchPhases = async () => {
+    const { data, error } = await supabase
+      .from('phases')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('target_date', { ascending: true });
+    
+    if (!error && data) {
+      setPhases(data as Phase[]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.trim()) {
+    if (!formData.title.trim() || !formData.phase_id) {
       toast({
         title: "Verplichte velden",
-        description: "Titel is verplicht",
+        description: "Titel en fase zijn verplicht",
         variant: "destructive",
       });
       return;
@@ -48,9 +68,10 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
         .from('deliverables')
         .insert([{
           project_id: projectId,
+          phase_id: formData.phase_id,
           title: formData.title,
           description: formData.description || null,
-          due_date: dueDate?.toISOString().split('T')[0] || null,
+          target_date: dueDate?.toISOString().split('T')[0] || null,
           status: 'Pending'
         }]);
 
@@ -64,7 +85,8 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
       setFormData({
         title: '',
         description: '',
-        billable_hours: ''
+        billable_hours: '',
+        phase_id: ''
       });
       setDueDate(undefined);
       setIsOpen(false);
@@ -96,6 +118,24 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="phase" className="text-sm font-medium">
+                Koppel aan Fase *
+              </Label>
+              <Select value={formData.phase_id} onValueChange={(value) => setFormData({...formData, phase_id: value})}>
+                <SelectTrigger className="h-11">
+                  <SelectValue placeholder="Selecteer fase" />
+                </SelectTrigger>
+                <SelectContent>
+                  {phases.map(phase => (
+                    <SelectItem key={phase.id} value={phase.id}>
+                      {phase.name} {phase.target_date ? `(${format(new Date(phase.target_date), 'dd MMM', { locale: nl })})` : '(Geen datum)'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="title" className="text-sm font-medium">
                 Deliverable Titel *
               </Label>
@@ -124,7 +164,7 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-1">
                 <CalendarIcon className="h-4 w-4" />
-                Deadline
+                Target Datum
               </Label>
               <Popover>
                 <PopoverTrigger asChild>

@@ -21,6 +21,8 @@ import { useToast } from '@/hooks/use-toast';
 
 import SimpleTaskList from '@/components/SimpleTaskList';
 import Layout from '@/components/Layout';
+import InlineEditField from '@/components/InlineEditField';
+import InlineDateEdit from '@/components/InlineDateEdit';
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -135,6 +137,48 @@ export default function ProjectDetail() {
     .filter(task => task.completed)
     .reduce((sum, task) => sum + task.billable_hours, 0);
 
+  // Status management functions
+  const updateDeliverableStatus = async (deliverableId: string) => {
+    const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverableId);
+    const completedTasks = deliverableTasks.filter(t => t.completed);
+    
+    let newStatus = 'Pending';
+    if (completedTasks.length > 0 && completedTasks.length < deliverableTasks.length) {
+      newStatus = 'In Progress';
+    } else if (completedTasks.length === deliverableTasks.length && deliverableTasks.length > 0) {
+      newStatus = 'Completed';
+    }
+    
+    await supabase
+      .from('deliverables')
+      .update({ status: newStatus })
+      .eq('id', deliverableId);
+  };
+
+  const getPhaseStatus = (phaseDeliverables: Deliverable[]) => {
+    if (phaseDeliverables.length === 0) return 'pending';
+    
+    const completedCount = phaseDeliverables.filter(d => d.status === 'Completed').length;
+    const inProgressCount = phaseDeliverables.filter(d => d.status === 'In Progress').length;
+    
+    if (completedCount === phaseDeliverables.length) {
+      return 'completed';
+    } else if (inProgressCount > 0 || completedCount > 0) {
+      return 'in-progress';
+    } else {
+      return 'pending';
+    }
+  };
+
+  const getPhaseStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 border-green-400 text-green-800';
+      case 'in-progress': return 'bg-yellow-100 border-yellow-400 text-yellow-800';
+      case 'pending': return 'bg-gray-100 border-gray-300 text-gray-600';
+      default: return 'bg-gray-100 border-gray-300 text-gray-600';
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Nieuw': return 'bg-primary/10 text-primary';
@@ -145,6 +189,77 @@ export default function ProjectDetail() {
       case 'Pending': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  // Inline editing functions
+  const updateProjectValue = async (newValue: string) => {
+    const numericValue = parseFloat(newValue) || 0;
+    const { error } = await supabase
+      .from('projects')
+      .update({ project_value: numericValue })
+      .eq('id', id);
+    
+    if (error) throw error;
+    
+    setProject(prev => prev ? { ...prev, project_value: numericValue } : null);
+    toast({
+      title: "Project waarde bijgewerkt",
+      description: `Nieuwe waarde: €${numericValue.toLocaleString()}`,
+    });
+  };
+
+  const updatePhaseDate = async (phaseId: string, newDate: string | null) => {
+    const { error } = await supabase
+      .from('phases')
+      .update({ target_date: newDate })
+      .eq('id', phaseId);
+    
+    if (error) throw error;
+    
+    setPhases(prev => prev.map(phase => 
+      phase.id === phaseId ? { ...phase, target_date: newDate } : phase
+    ));
+    
+    toast({
+      title: "Fase datum bijgewerkt",
+      description: newDate ? `Nieuwe datum: ${new Date(newDate).toLocaleDateString('nl-NL')}` : "Datum verwijderd",
+    });
+  };
+
+  const updateDeliverableDate = async (deliverableId: string, newDate: string | null) => {
+    const { error } = await supabase
+      .from('deliverables')
+      .update({ target_date: newDate })
+      .eq('id', deliverableId);
+    
+    if (error) throw error;
+    
+    setDeliverables(prev => prev.map(deliverable => 
+      deliverable.id === deliverableId ? { ...deliverable, target_date: newDate } : deliverable
+    ));
+    
+    toast({
+      title: "Deliverable datum bijgewerkt",
+      description: newDate ? `Nieuwe datum: ${new Date(newDate).toLocaleDateString('nl-NL')}` : "Datum verwijderd",
+    });
+  };
+
+  const updatePhaseName = async (phaseId: string, newName: string) => {
+    const { error } = await supabase
+      .from('phases')
+      .update({ name: newName })
+      .eq('id', phaseId);
+    
+    if (error) throw error;
+    
+    setPhases(prev => prev.map(phase => 
+      phase.id === phaseId ? { ...phase, name: newName } : phase
+    ));
+    
+    toast({
+      title: "Fase naam bijgewerkt",
+      description: `Nieuwe naam: ${newName}`,
+    });
   };
 
   if (loading) {
@@ -195,17 +310,22 @@ export default function ProjectDetail() {
                   <p className="text-primary-foreground/80 text-lg mb-4">
                     Real-time overzicht van je project voortgang en taken
                   </p>
-                    <div className="flex items-center gap-6 text-primary-foreground/80">
+                   <div className="flex items-center gap-6 text-primary-foreground/80">
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4" />
                       <span>{project.client}</span>
                     </div>
-                    {project.project_value && (
-                      <div className="flex items-center gap-2">
-                        <Euro className="h-4 w-4" />
-                        <span>{formatCurrency(project.project_value)}</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <Euro className="h-4 w-4" />
+                      <InlineEditField
+                        value={project.project_value ? formatCurrency(project.project_value) : "€0"}
+                        onSave={(newValue) => updateProjectValue(newValue.replace(/[€.,\s]/g, ''))}
+                        placeholder="€0"
+                        className="text-primary-foreground/80"
+                        type="number"
+                        prefix="€"
+                      />
+                    </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4" />
                       <span>{project.total_hours}h</span>
@@ -284,38 +404,67 @@ export default function ProjectDetail() {
             <CardContent>
               <div className="space-y-4">
                 {phases.length > 0 ? (
-                  phases.map((phase) => (
-                    <div key={phase.id} className="border-l-4 border-primary pl-4 pb-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-semibold">{phase.name}</h3>
-                        {phase.target_date && (
-                          <Badge variant="outline" className="gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {new Date(phase.target_date).toLocaleDateString('nl-NL')}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="ml-4 space-y-2">
-                        {deliverables
-                          .filter(d => d.phase_id === phase.id)
-                          .map((deliverable) => (
-                            <div key={deliverable.id} className="flex items-center justify-between p-2 bg-muted rounded">
-                              <span className="text-sm">{deliverable.title}</span>
+                  phases.map((phase) => {
+                    const phaseDeliverables = deliverables.filter(d => d.phase_id === phase.id);
+                    const phaseStatus = getPhaseStatus(phaseDeliverables);
+                    const completedDeliverables = phaseDeliverables.filter(d => d.status === 'Completed').length;
+                    const progressPercentage = phaseDeliverables.length > 0 ? 
+                      (completedDeliverables / phaseDeliverables.length) * 100 : 0;
+                    
+                    return (
+                      <div key={phase.id} className={`border-l-4 pl-4 pb-4 rounded-r-lg p-3 ${getPhaseStatusColor(phaseStatus)}`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <InlineEditField
+                            value={phase.name}
+                            onSave={(newName) => updatePhaseName(phase.id, newName)}
+                            placeholder="Fase naam"
+                            className="font-semibold"
+                          />
+                          <div className="flex items-center gap-2">
+                            <InlineDateEdit
+                              value={phase.target_date || undefined}
+                              onSave={(newDate) => updatePhaseDate(phase.id, newDate)}
+                              placeholder="Geen datum"
+                            />
+                          </div>
+                        </div>
+                        
+                        {/* Phase Progress */}
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span>{completedDeliverables} van {phaseDeliverables.length} deliverables voltooid</span>
+                            <span>{Math.round(progressPercentage)}%</span>
+                          </div>
+                          <Progress value={progressPercentage} className="h-2" />
+                        </div>
+                        
+                        <div className="ml-4 space-y-2">
+                          {phaseDeliverables.map((deliverable) => (
+                            <div key={deliverable.id} className="flex items-center justify-between p-2 bg-background/50 rounded border">
+                              <span className="text-sm font-medium">{deliverable.title}</span>
                               <div className="flex items-center gap-2">
-                                <Badge variant={deliverable.status === 'Completed' ? 'default' : 'secondary'}>
+                                <Badge variant={deliverable.status === 'Completed' ? 'default' : 
+                                  deliverable.status === 'In Progress' ? 'secondary' : 'outline'} 
+                                  className={deliverable.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                                    deliverable.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' : 
+                                    'bg-gray-100 text-gray-600'}>
+                                  {deliverable.status === 'Completed' ? <CheckCircle className="h-3 w-3 mr-1" /> :
+                                   deliverable.status === 'In Progress' ? <Clock className="h-3 w-3 mr-1" /> :
+                                   <Circle className="h-3 w-3 mr-1" />}
                                   {deliverable.status}
                                 </Badge>
-                                {deliverable.target_date && (
-                                  <Badge variant="outline" className="text-xs">
-                                    {new Date(deliverable.target_date).toLocaleDateString('nl-NL')}
-                                  </Badge>
-                                )}
+                                <InlineDateEdit
+                                  value={deliverable.target_date || undefined}
+                                  onSave={(newDate) => updateDeliverableDate(deliverable.id, newDate)}
+                                  placeholder="Geen datum"
+                                />
                               </div>
                             </div>
                           ))}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <p className="text-muted-foreground">Geen phases gevonden</p>
                 )}

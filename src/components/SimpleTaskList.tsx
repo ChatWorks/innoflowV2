@@ -209,6 +209,23 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
     }, 0) || 0;
   };
 
+  const updateDeliverableStatus = async (deliverableId: string) => {
+    const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverableId);
+    const completedTasks = deliverableTasks.filter(t => t.completed);
+    
+    let newStatus = 'Pending';
+    if (completedTasks.length > 0 && completedTasks.length < deliverableTasks.length) {
+      newStatus = 'In Progress';
+    } else if (completedTasks.length === deliverableTasks.length && deliverableTasks.length > 0) {
+      newStatus = 'Completed';
+    }
+    
+    await supabase
+      .from('deliverables')
+      .update({ status: newStatus })
+      .eq('id', deliverableId);
+  };
+
   const toggleTaskCompletion = async (task: Task) => {
     try {
       const completed = !task.completed;
@@ -221,11 +238,14 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
         .eq('id', task.id);
 
       if (error) throw error;
+      
+      // Update deliverable status after task completion
+      await updateDeliverableStatus(task.deliverable_id);
       onRefresh();
 
       toast({
         title: completed ? "Taak voltooid" : "Taak heropend",
-        description: `${task.title} door ${task.assigned_to}`,
+        description: `${task.title} is ${completed ? 'afgerond' : 'heropend'}`,
       });
     } catch (error) {
       toast({
