@@ -141,8 +141,17 @@ Wat wil je weten over je leads?`,
                       <span className="text-xs font-medium text-blue-500">AI Analyst</span>
                     </div>
                   )}
-                  <div className="text-sm prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-li:text-foreground prose-code:text-foreground">
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  <div className="text-sm markdown-content">
+                    <ReactMarkdown 
+                      components={{
+                        strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                        ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2">{children}</ul>,
+                        li: ({ children }) => <li className="text-foreground">{children}</li>,
+                        p: ({ children }) => <p className="text-foreground mb-2">{children}</p>
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
                   </div>
                   <span className="text-xs opacity-70 mt-1 block">
                     {message.timestamp.toLocaleTimeString('nl-NL', { 
