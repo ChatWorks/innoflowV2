@@ -44,7 +44,7 @@ export default function ProjectDetail() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const { refreshTrigger, lastRefreshProjectId, lastRefreshTaskId } = useTimer();
+  const { timeEntryRefreshTrigger } = useTimer();
 
   useEffect(() => {
     if (id) {
@@ -52,39 +52,41 @@ export default function ProjectDetail() {
     }
   }, [id]);
 
-  // Listen for timer refresh events to update time data (only for specific task updates)
+  // Optimized timer refresh logic - only time entries
   useEffect(() => {
-    if (id && refreshTrigger > 0 && lastRefreshProjectId === id && lastRefreshTaskId) {
-      // Only fetch time data for specific task updates, not general project refreshes
+    if (id && timeEntryRefreshTrigger > 0) {
       fetchTimeData();
     }
-  }, [refreshTrigger, lastRefreshProjectId, lastRefreshTaskId, id]);
+  }, [timeEntryRefreshTrigger, id]);
+
+  // Real-time subscription for optimal performance
+  useEffect(() => {
+    if (!id) return;
+
+    const channel = supabase
+      .channel(`project-${id}-changes`)
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'time_entries', 
+        filter: `project_id=eq.${id}` 
+      }, () => {
+        fetchTimeData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
 
   const fetchProjectData = async () => {
     if (!id) return;
 
     try {
-      // Fetch project details
-      const { data: projectData, error: projectError } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('id', id)
-        .single();
+      setLoading(true);
 
-      if (projectError) throw projectError;
-      setProject(projectData as Project);
-
-      // Fetch phases
-      const { data: phasesData, error: phasesError } = await supabase
-        .from('phases')
-        .select('*')
-        .eq('project_id', id)
-        .order('target_date', { ascending: true });
-
-      if (phasesError) throw phasesError;
-      setPhases((phasesData || []) as Phase[]);
-
-      // Fetch deliverables
+      // First, get deliverable IDs for this project
       const { data: deliverablesData, error: deliverablesError } = await supabase
         .from('deliverables')
         .select('*')
@@ -94,37 +96,36 @@ export default function ProjectDetail() {
       if (deliverablesError) throw deliverablesError;
       setDeliverables((deliverablesData || []) as Deliverable[]);
 
-      // Fetch time entries
-      const { data: timeData, error: timeError } = await supabase
-        .from('time_entries')
-        .select('*')
-        .eq('project_id', id)
-        .order('start_time', { ascending: false });
+      // Now fetch remaining data in parallel using deliverable IDs
+      const deliverableIds = (deliverablesData || []).map(d => d.id);
+      
+      const [
+        { data: projectData, error: projectError },
+        { data: phasesData, error: phasesError },
+        { data: timeData, error: timeError },
+        { data: tasksData, error: tasksError }
+      ] = await Promise.all([
+        supabase.from('projects').select('*').eq('id', id).single(),
+        supabase.from('phases').select('*').eq('project_id', id).order('target_date', { ascending: true }),
+        supabase.from('time_entries').select('*').eq('project_id', id).order('start_time', { ascending: false }),
+        deliverableIds.length > 0 
+          ? supabase.from('tasks').select('*').in('deliverable_id', deliverableIds).order('created_at', { ascending: false })
+          : Promise.resolve({ data: [], error: null })
+      ]);
 
+      if (projectError) throw projectError;
+      if (phasesError) throw phasesError;
       if (timeError) throw timeError;
+      if (tasksError) throw tasksError;
+
+      // Set all data with proper typing
+      setProject(projectData as Project);
+      setPhases((phasesData || []) as Phase[]);
       setTimeEntries((timeData || []) as TimeEntry[]);
-
-      // Fetch tasks
-      let tasksData = [];
-      if (deliverablesData && deliverablesData.length > 0) {
-        const { data, error: tasksError } = await supabase
-          .from('tasks')
-          .select(`
-            *,
-            deliverables:deliverable_id (
-              id,
-              title
-            )
-          `)
-          .in('deliverable_id', deliverablesData.map(d => d.id))
-          .order('created_at', { ascending: false });
-
-        if (tasksError) throw tasksError;
-        tasksData = data || [];
-      }
-      setTasks(tasksData as Task[]);
+      setTasks((tasksData || []) as Task[]);
 
     } catch (error) {
+      console.error('Error fetching project data:', error);
       toast({
         title: "Error",
         description: "Failed to fetch project details",
