@@ -68,17 +68,20 @@ const getTextColor = (color: string) => {
   }
 };
 
-// Dikke lamp SVG component
+// Mooi lamp SVG component
 const LampIcon = ({ className }: { className?: string }) => (
   <svg 
     viewBox="0 0 24 24" 
-    fill="currentColor" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="1.5"
     className={cn("transition-all duration-200 hover:scale-110", className)}
   >
-    <path d="M9 20h6a1 1 0 0 1 0 2H9a1 1 0 0 1 0-2z"/>
-    <path d="M10 18h4a1 1 0 0 1 0 2h-4a1 1 0 0 1 0-2z"/>
-    <path d="M12 2a6 6 0 0 1 6 6c0 2.5-1.5 4.5-3 5.5V16a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-2.5C7.5 12.5 6 10.5 6 8a6 6 0 0 1 6-6z"/>
-    <circle cx="12" cy="8" r="2" fill="white" fillOpacity="0.3"/>
+    <path d="M9 18h6"/>
+    <path d="M10 22h4"/>
+    <path d="m12 8-4 4h8l-4-4Z"/>
+    <path d="M12 2v6"/>
+    <circle cx="12" cy="12" r="3" fill="currentColor" fillOpacity="0.2"/>
   </svg>
 );
 
@@ -182,35 +185,28 @@ export function EfficiencyDots({
             <LampIcon className={lampSizeClasses[size]} />
           </button>
         </DialogTrigger>
-        <DialogContent className="max-w-md bg-background/95 backdrop-blur-xl border border-white/20">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-lg">
-              <div className="p-2 rounded-lg bg-blue-500/10 backdrop-blur-sm border border-blue-500/20">
-                <LampIcon className="w-5 h-5 text-blue-600" />
-              </div>
+            <DialogTitle className="flex items-center gap-2">
+              <LampIcon className="w-5 h-5 text-blue-600" />
               {entityName} Stats
             </DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             {/* Main Efficiency Display */}
-            <Card className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md border border-white/20 shadow-xl">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-medium text-muted-foreground">Efficiency Status</span>
-                  <Badge 
-                    variant={zone.color === 'green' ? 'default' : zone.color === 'blue' ? 'secondary' : 'destructive'}
-                    className="backdrop-blur-sm bg-opacity-90"
-                  >
+                  <Badge variant={zone.color === 'green' ? 'default' : zone.color === 'blue' ? 'secondary' : 'destructive'}>
                     {zone.label}
                   </Badge>
                 </div>
                 
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-lg bg-white/10 backdrop-blur-sm">
-                    {dots}
-                  </div>
-                  <div className="text-3xl font-bold bg-gradient-to-r from-current to-current/70 bg-clip-text" style={{color: `rgb(${zone.color === 'green' ? '34 197 94' : zone.color === 'blue' ? '59 130 246' : zone.color === 'orange' ? '249 115 22' : '239 68 68'})`}}>
+                <div className="flex items-center gap-3">
+                  {dots}
+                  <div className="text-2xl font-bold" style={{color: `rgb(${zone.color === 'green' ? '34 197 94' : zone.color === 'blue' ? '59 130 246' : zone.color === 'orange' ? '249 115 22' : '239 68 68'})`}}>
                     {formatEfficiency(value)}
                   </div>
                 </div>
@@ -221,12 +217,10 @@ export function EfficiencyDots({
             {statsData && (
               <div className="grid grid-cols-2 gap-3">
                 {statsData.budgetHours && (
-                  <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 backdrop-blur-sm border border-blue-500/20">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="p-1 rounded bg-blue-500/20">
-                          <Target className="w-4 h-4 text-blue-600" />
-                        </div>
+                  <Card>
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Target className="w-4 h-4 text-blue-600" />
                         <span className="text-xs font-medium text-muted-foreground">Budget</span>
                       </div>
                       <div className="text-lg font-semibold">{statsData.budgetHours}h</div>
@@ -235,12 +229,10 @@ export function EfficiencyDots({
                 )}
 
                 {statsData.actualHours && (
-                  <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 backdrop-blur-sm border border-orange-500/20">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="p-1 rounded bg-orange-500/20">
-                          <Clock className="w-4 h-4 text-orange-600" />
-                        </div>
+                  <Card>
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Clock className="w-4 h-4 text-orange-600" />
                         <span className="text-xs font-medium text-muted-foreground">Besteed</span>
                       </div>
                       <div className="text-lg font-semibold">{statsData.actualHours}h</div>
@@ -249,12 +241,10 @@ export function EfficiencyDots({
                 )}
 
                 {statsData.progressPercentage !== undefined && (
-                  <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 backdrop-blur-sm border border-green-500/20">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="p-1 rounded bg-green-500/20">
-                          <TrendingUp className="w-4 h-4 text-green-600" />
-                        </div>
+                  <Card>
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <TrendingUp className="w-4 h-4 text-green-600" />
                         <span className="text-xs font-medium text-muted-foreground">Voortgang</span>
                       </div>
                       <div className="text-lg font-semibold">{Math.round(statsData.progressPercentage)}%</div>
@@ -263,12 +253,10 @@ export function EfficiencyDots({
                 )}
 
                 {statsData.timeRemaining && (
-                  <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 backdrop-blur-sm border border-purple-500/20">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="p-1 rounded bg-purple-500/20">
-                          <Calendar className="w-4 h-4 text-purple-600" />
-                        </div>
+                  <Card>
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Calendar className="w-4 w-4 text-purple-600" />
                         <span className="text-xs font-medium text-muted-foreground">Resterend</span>
                       </div>
                       <div className="text-lg font-semibold">{statsData.timeRemaining}h</div>
@@ -279,7 +267,7 @@ export function EfficiencyDots({
             )}
 
             {/* Efficiency Guide */}
-            <Card className="bg-gradient-to-br from-muted/50 to-muted/30 backdrop-blur-sm border border-white/10">
+            <Card className="bg-muted/50">
               <CardContent className="p-3">
                 <div className="text-xs font-medium mb-2">Efficiency Guide</div>
                 <div className="space-y-1 text-xs text-muted-foreground">
