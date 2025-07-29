@@ -15,7 +15,6 @@ import { useToast } from '@/hooks/use-toast';
 
 import DeliverableCreationDialog from './DeliverableCreationDialog';
 import TaskCreationDialog from './TaskCreationDialog';
-import DeliverableTimer from './DeliverableTimer';
 
 interface SimpleTaskManagementProps {
   projectId: string;
@@ -196,11 +195,6 @@ export default function SimpleTaskManagement({ projectId, deliverables, tasks, o
                       </div>
                       
                       <div className="flex flex-col items-end gap-3 ml-4">
-                        <DeliverableTimer 
-                          deliverableId={deliverable.id}
-                          deliverableTitle={deliverable.title}
-                          projectId={projectId}
-                        />
                         {deliverable.status !== 'Completed' && progress === 100 && (
                           <Button size="sm" onClick={() => completeDeliverable(deliverable)}>
                             <CheckCircle className="h-4 w-4 mr-1" />

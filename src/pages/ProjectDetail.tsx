@@ -18,7 +18,7 @@ import {
 import { Project, Deliverable, TimeEntry, Task } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import ProjectTimer from '@/components/ProjectTimer';
+
 import SimpleTaskList from '@/components/SimpleTaskList';
 import Layout from '@/components/Layout';
 

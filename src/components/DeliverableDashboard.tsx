@@ -8,7 +8,6 @@ import { nl } from 'date-fns/locale';
 import { Deliverable, Task } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import DeliverableCreationDialog from './DeliverableCreationDialog';
-import DeliverableTimer from './DeliverableTimer';
 
 interface DeliverableDashboardProps {
   projectId: string;
@@ -191,12 +190,6 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
                       </div>
                     </div>
                   </div>
-                  
-                  <DeliverableTimer 
-                    deliverableId={deliverable.id}
-                    deliverableTitle={deliverable.title}
-                    projectId={projectId}
-                  />
                 </CardHeader>
                 
                 <CardContent className="space-y-4">

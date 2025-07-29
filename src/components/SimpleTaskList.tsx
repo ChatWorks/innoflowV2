@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import DeliverableCreationDialog from './DeliverableCreationDialog';
 import TaskCreationDialog from './TaskCreationDialog';
-import DeliverableTimer from './DeliverableTimer';
+import TaskTimer from './TaskTimer';
 
 interface SimpleTaskListProps {
   projectId: string;
@@ -25,9 +25,11 @@ interface TaskRowProps {
   task: Task;
   isTopTask: boolean;
   onToggle: () => void;
+  deliverableId: string;
+  projectId: string;
 }
 
-function TaskRow({ task, isTopTask, onToggle }: TaskRowProps) {
+function TaskRow({ task, isTopTask, onToggle, deliverableId, projectId }: TaskRowProps) {
   const [taskTimeSpent, setTaskTimeSpent] = useState<number>(0);
 
   useEffect(() => {
@@ -105,6 +107,14 @@ function TaskRow({ task, isTopTask, onToggle }: TaskRowProps) {
           </p>
         )}
       </div>
+      
+      <TaskTimer 
+        taskId={task.id}
+        taskTitle={task.title}
+        deliverableId={deliverableId}
+        projectId={projectId}
+        onTimerChange={() => fetchTaskTime()}
+      />
     </div>
   );
 }
@@ -287,14 +297,7 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
                         )}
                       </Button>
                       {!isStatsMode && (
-                        <>
-                          <TaskCreationDialog deliverableId={deliverable.id} onTaskCreated={onRefresh} />
-                          <DeliverableTimer 
-                            deliverableId={deliverable.id}
-                            deliverableTitle={deliverable.title}
-                            projectId={projectId}
-                          />
-                        </>
+                        <TaskCreationDialog deliverableId={deliverable.id} onTaskCreated={onRefresh} />
                       )}
                     </div>
                   </div>
@@ -385,6 +388,8 @@ export default function SimpleTaskList({ projectId, deliverables, tasks, onRefre
                             task={task}
                             isTopTask={index === 0}
                             onToggle={() => toggleTaskCompletion(task)}
+                            deliverableId={deliverable.id}
+                            projectId={projectId}
                           />
                         ))}
                       </div>
