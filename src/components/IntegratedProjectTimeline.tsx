@@ -42,7 +42,16 @@ import {
   getTotalPhaseTime,
   getTotalPhaseEstimate,
   getProgressColor,
-  getActualTaskProgress 
+  getActualTaskProgress,
+  getPhaseStatus,
+  getDeliverableEfficiency,
+  getPhaseEfficiency,
+  getPhaseStatusVariant,
+  getDeliverableStatusVariant,
+  getEfficiencyVariant,
+  getPhaseDeclarableHours,
+  getPhaseTimerTime,
+  getDeliverableTimerTime
 } from '@/utils/progressCalculations';
 
 interface IntegratedProjectTimelineProps {
@@ -130,7 +139,7 @@ export default function IntegratedProjectTimeline({
     }));
   };
 
-  const getPhaseStatus = (phaseDeliverables: Deliverable[]) => {
+  const getLocalPhaseStatus = (phaseDeliverables: Deliverable[]) => {
     if (phaseDeliverables.length === 0) return 'pending';
     
     const completedCount = phaseDeliverables.filter(d => d.status === 'Completed').length;
@@ -154,6 +163,7 @@ export default function IntegratedProjectTimeline({
     }
   };
 
+  // Real-time status cascading: Task → Deliverable → Phase
   const updateDeliverableStatus = async (deliverableId: string, updatedTasks: Task[]) => {
     const deliverableTasks = updatedTasks.filter(t => t.deliverable_id === deliverableId);
     const completedTasks = deliverableTasks.filter(t => t.completed);
@@ -175,6 +185,24 @@ export default function IntegratedProjectTimeline({
       .from('deliverables')
       .update({ status: newStatus })
       .eq('id', deliverableId);
+  };
+
+  const updatePhaseStatus = async (phaseId: string) => {
+    const phaseDeliverables = localDeliverables.filter(d => d.phase_id === phaseId);
+    const completedDeliverables = phaseDeliverables.filter(d => d.status === 'Completed');
+    
+    let newStatus = 'Pending';
+    if (completedDeliverables.length === phaseDeliverables.length && phaseDeliverables.length > 0) {
+      newStatus = 'Completed';
+    } else if (phaseDeliverables.some(d => d.status === 'In Progress' || d.status === 'Completed')) {
+      newStatus = 'In Progress';
+    }
+    
+    // Update database - add status column to phases table
+    await supabase
+      .from('phases')
+      .update({ status: newStatus })
+      .eq('id', phaseId);
   };
 
   const toggleTaskCompletion = async (task: Task) => {
@@ -206,6 +234,12 @@ export default function IntegratedProjectTimeline({
       
       // Update deliverable status with the updated tasks
       await updateDeliverableStatus(task.deliverable_id, updatedTasks);
+      
+      // Update phase status cascade
+      const deliverable = localDeliverables.find(d => d.id === task.deliverable_id);
+      if (deliverable?.phase_id) {
+        await updatePhaseStatus(deliverable.phase_id);
+      }
 
       toast({
         title: completed ? "Taak voltooid" : "Taak heropend",
@@ -324,8 +358,8 @@ export default function IntegratedProjectTimeline({
           ) : (
             phases.map((phase) => {
               const phaseDeliverables = localDeliverables.filter(d => d.phase_id === phase.id);
-              const phaseStatus = getPhaseStatus(phaseDeliverables);
-              const phaseProgressPercentage = getPhaseProgress(phase, localDeliverables, localTasks, timeEntries);
+              const phaseStatus = getPhaseStatus(phase, localDeliverables, localTasks);
+              const phaseProgressPercentage = getPhaseProgress(phase, localDeliverables, localTasks);
               const totalPhaseTime = getTotalPhaseTime(phase, localDeliverables, localTasks, timeEntries);
               const totalPhaseEstimate = getTotalPhaseEstimate(phase, localDeliverables, localTasks);
               const isExpanded = expandedPhases.has(phase.id);
@@ -336,8 +370,9 @@ export default function IntegratedProjectTimeline({
                   open={isExpanded}
                   onOpenChange={() => togglePhase(phase.id)}
                 >
-                  <Card className={`border-l-4 ${getPhaseStatusColor(phaseStatus)} transition-all duration-200`}>
+                  <Card className={`border-l-4 ${getPhaseStatusColor(getLocalPhaseStatus(phaseDeliverables))} transition-all duration-200`}>
                     <CollapsibleTrigger className="w-full p-4 text-left hover:bg-muted/50 transition-colors">
+                      {/* Fase Header - GESCHEIDEN progress en efficiency */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           {isExpanded ? (
@@ -351,23 +386,43 @@ export default function IntegratedProjectTimeline({
                             placeholder="Fase naam"
                             className="text-lg font-semibold"
                           />
+                          <Badge variant={getPhaseStatusVariant(phaseStatus)}>
+                            {phaseStatus}
+                          </Badge>
                         </div>
-                        <div className="flex items-center gap-3">
+                        
+                        <div className="flex items-center gap-4">
+                          {/* VOORTGANG BAR - Completion based */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">Voortgang:</span>
+                            <Progress 
+                              value={phaseProgressPercentage} 
+                              className="h-3 w-24" 
+                            />
+                            <span className="text-sm font-medium">
+                              {phaseProgressPercentage}%
+                            </span>
+                          </div>
+                          
+                          {/* EFFICIENCY BADGE - Tijd based */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">Efficiency:</span>
+                            <Badge variant={getEfficiencyVariant(getPhaseEfficiency(phase, localDeliverables, localTasks, timeEntries))}>
+                              {Math.round(getPhaseEfficiency(phase, localDeliverables, localTasks, timeEntries))}%
+                            </Badge>
+                          </div>
+                          
+                          {/* UREN DISPLAY - Declarabel vs timer */}
+                          <div className="text-sm text-muted-foreground">
+                            {formatTime(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries))} / {getPhaseDeclarableHours(phase, localDeliverables)}h
+                          </div>
+                          
                           <InlineDateEdit
                             value={phase.target_date || undefined}
                             onSave={(newDate) => updatePhaseDate(phase.id, newDate)}
                             placeholder="Geen datum"
                           />
                         </div>
-                      </div>
-                      
-                      {/* Phase Progress */}
-                      <div className="mt-3 ml-8">
-                        <div className="flex items-center justify-between text-sm text-muted-foreground mb-1">
-                          <span>{formatTime(totalPhaseTime)} / {totalPhaseEstimate}h</span>
-                          <span>{Math.round(phaseProgressPercentage)}%</span>
-                        </div>
-                        <Progress value={phaseProgressPercentage} className="h-2" />
                       </div>
                     </CollapsibleTrigger>
 
@@ -381,7 +436,7 @@ export default function IntegratedProjectTimeline({
                         ) : (
                           phaseDeliverables.map((deliverable) => {
                             const deliverableTasks = localTasks.filter(t => t.deliverable_id === deliverable.id);
-                            const deliverableProgressPercentage = getDeliverableProgress(deliverable, localTasks, timeEntries);
+                            const deliverableProgressPercentage = getDeliverableProgress(deliverable, localTasks);
                             const totalDeliverableTime = getTotalDeliverableTime(deliverable, localTasks, timeEntries);
                             const totalDeliverableEstimate = getTotalDeliverableEstimate(deliverable, localTasks);
                             const isDeliverableExpanded = expandedDeliverables.has(deliverable.id);
@@ -395,38 +450,47 @@ export default function IntegratedProjectTimeline({
                               >
                                 <Card className="border-l-2 border-primary/30 ml-4">
                                   <CollapsibleTrigger className="w-full p-3 text-left hover:bg-muted/30 transition-colors">
+                                    {/* Deliverable Header - GESCHEIDEN progress en efficiency */}
                                     <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-3">
+                                      <div className="flex items-center gap-2">
                                         {isDeliverableExpanded ? (
                                           <ChevronDown className="h-4 w-4 text-muted-foreground" />
                                         ) : (
                                           <ChevronRight className="h-4 w-4 text-muted-foreground" />
                                         )}
                                         <span className="font-medium">{deliverable.title}</span>
-                                        <Badge variant={deliverable.status === 'Completed' ? 'default' : 
-                                          deliverable.status === 'In Progress' ? 'secondary' : 'outline'} 
-                                          className={deliverable.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                                            deliverable.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' : 
-                                            'bg-gray-100 text-gray-600'}>
-                                          {deliverable.status === 'Completed' ? <CheckCircle className="h-3 w-3 mr-1" /> :
-                                           deliverable.status === 'In Progress' ? <Clock className="h-3 w-3 mr-1" /> :
-                                           <Circle className="h-3 w-3 mr-1" />}
+                                        <Badge variant={getDeliverableStatusVariant(deliverable.status)}>
                                           {deliverable.status}
                                         </Badge>
                                       </div>
-                                      <div className="flex items-center gap-2">
+                                      
+                                      <div className="flex items-center gap-3">
+                                        {/* VOORTGANG - Completion */}
+                                        <div className="flex items-center gap-1">
+                                          <Progress 
+                                            value={deliverableProgressPercentage} 
+                                            className="h-2 w-20" 
+                                          />
+                                          <span className="text-xs">
+                                            {deliverableProgressPercentage}%
+                                          </span>
+                                        </div>
+                                        
+                                        {/* EFFICIENCY */}
+                                        <Badge variant={getEfficiencyVariant(getDeliverableEfficiency(deliverable, localTasks, timeEntries))}>
+                                          {Math.round(getDeliverableEfficiency(deliverable, localTasks, timeEntries))}% eff
+                                        </Badge>
+                                        
+                                        {/* UREN */}
+                                        <span className="text-sm text-muted-foreground">
+                                          {formatTime(getDeliverableTimerTime(deliverable, localTasks, timeEntries))} / {deliverable.declarable_hours || 0}h
+                                        </span>
+                                        
                                         <InlineDateEdit
                                           value={deliverable.target_date || undefined}
                                           onSave={(newDate) => updateDeliverableDate(deliverable.id, newDate)}
                                           placeholder="Geen datum"
                                         />
-                                         <div className="flex items-center gap-2">
-                                           <Progress value={deliverableProgressPercentage} className="h-3 w-24" />
-                                           <span className="text-sm">
-                                             {Math.round(deliverableProgressPercentage)}% 
-                                             ({formatTime(totalDeliverableTime)} / {totalDeliverableEstimate}h)
-                                           </span>
-                                         </div>
                                       </div>
                                     </div>
                                   </CollapsibleTrigger>
