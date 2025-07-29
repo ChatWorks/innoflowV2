@@ -33,6 +33,7 @@ import {
   getEfficiencyLabel,
   getTotalProjectDeclarable
 } from '@/utils/progressCalculations';
+import EfficiencyIndicator from '@/components/ui/EfficiencyIndicator';
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -287,13 +288,12 @@ export default function ProjectDetail() {
           
           <Card>
             <CardContent className="p-4">
-              <div className={`text-2xl font-bold ${getEfficiencyColor(projectEfficiency)}`}>
-                {Math.round(projectEfficiency)}%
-              </div>
-              <div className="text-sm text-muted-foreground">Project Efficiency</div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {getEfficiencyLabel(projectEfficiency)}
-              </div>
+              <div className="text-sm text-muted-foreground mb-3">Project Efficiency</div>
+              <EfficiencyIndicator 
+                value={projectEfficiency} 
+                variant="full"
+                showTooltip={true}
+              />
             </CardContent>
           </Card>
           

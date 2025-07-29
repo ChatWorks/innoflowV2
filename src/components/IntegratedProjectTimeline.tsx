@@ -56,6 +56,7 @@ import {
   getProjectProgress,
   updateProjectStatusIfNeeded
 } from '@/utils/progressCalculations';
+import EfficiencyIndicator from '@/components/ui/EfficiencyIndicator';
 
 interface IntegratedProjectTimelineProps {
   project: Project;
@@ -454,12 +455,17 @@ export default function IntegratedProjectTimeline({
                             </span>
                           </div>
                           
-                          {/* EFFICIENCY BADGE - Tijd based */}
+                          {/* EFFICIENCY BAR - Medium efficiency bar */}
                           <div className="flex items-center gap-2">
                             <span className="text-sm text-muted-foreground">Efficiency:</span>
-                            <Badge variant={getEfficiencyVariant(getPhaseEfficiency(phase, localDeliverables, localTasks, timeEntries))}>
+                            <EfficiencyIndicator 
+                              value={getPhaseEfficiency(phase, localDeliverables, localTasks, timeEntries)}
+                              variant="bar"
+                              showTooltip={true}
+                            />
+                            <span className="text-xs text-muted-foreground">
                               {Math.round(getPhaseEfficiency(phase, localDeliverables, localTasks, timeEntries))}%
-                            </Badge>
+                            </span>
                           </div>
                           
                           {/* UREN DISPLAY - Declarabel vs timer */}
@@ -526,10 +532,17 @@ export default function IntegratedProjectTimeline({
                                           </span>
                                         </div>
                                         
-                                        {/* EFFICIENCY */}
-                                        <Badge variant={getEfficiencyVariant(getDeliverableEfficiency(deliverable, localTasks, timeEntries))}>
-                                          {Math.round(getDeliverableEfficiency(deliverable, localTasks, timeEntries))}% eff
-                                        </Badge>
+                                        {/* EFFICIENCY DOTS - Deliverable level */}
+                                        <div className="flex items-center gap-2">
+                                          <EfficiencyIndicator 
+                                            value={getDeliverableEfficiency(deliverable, localTasks, timeEntries)}
+                                            variant="dots"
+                                            showTooltip={true}
+                                          />
+                                          <span className="text-xs text-muted-foreground">
+                                            {Math.round(getDeliverableEfficiency(deliverable, localTasks, timeEntries))}%
+                                          </span>
+                                        </div>
                                         
                                          {/* UREN */}
                                          <span className="text-sm text-muted-foreground">

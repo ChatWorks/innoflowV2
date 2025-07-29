@@ -13,12 +13,15 @@ import { useToast } from '@/hooks/use-toast';
 import DeliverableCreationDialog from './DeliverableCreationDialog';
 import TaskCreationDialog from './TaskCreationDialog';
 import TaskTimer from './TaskTimer';
+import { getTaskEfficiency } from '@/utils/progressCalculations';
+import EfficiencyIndicator from '@/components/ui/EfficiencyIndicator';
 
 interface SimpleTaskListProps {
   projectId: string;
   projectName: string;
   deliverables: Deliverable[];
   tasks: Task[];
+  timeEntries: any[];
   onRefresh: () => void;
 }
 
@@ -30,9 +33,10 @@ interface TaskRowProps {
   deliverableTitle: string;
   projectId: string;
   projectName: string;
+  timeEntries: any[];
 }
 
-function TaskRow({ task, isTopTask, onToggle, deliverableId, deliverableTitle, projectId, projectName }: TaskRowProps) {
+function TaskRow({ task, isTopTask, onToggle, deliverableId, deliverableTitle, projectId, projectName, timeEntries }: TaskRowProps) {
   const [taskTimeSpent, setTaskTimeSpent] = useState<number>(0);
   const [isToggling, setIsToggling] = useState(false);
 
@@ -70,10 +74,14 @@ function TaskRow({ task, isTopTask, onToggle, deliverableId, deliverableTitle, p
   };
 
   return (
-    <div className={`flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors ${
-      isTopTask ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''
-    }`}>
-      <Checkbox
+    <EfficiencyIndicator 
+      value={getTaskEfficiency(task, timeEntries)} 
+      variant="accent"
+    >
+      <div className={`flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors ${
+        isTopTask ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''
+      }`}>
+        <Checkbox
         checked={task.completed}
         onCheckedChange={async (checked) => {
           if (isToggling) {
@@ -130,11 +138,12 @@ function TaskRow({ task, isTopTask, onToggle, deliverableId, deliverableTitle, p
         projectName={projectName}
         onTimerChange={() => fetchTaskTime()}
       />
-    </div>
+      </div>
+    </EfficiencyIndicator>
   );
 }
 
-export default function SimpleTaskList({ projectId, projectName, deliverables, tasks, onRefresh }: SimpleTaskListProps) {
+export default function SimpleTaskList({ projectId, projectName, deliverables, tasks, timeEntries, onRefresh }: SimpleTaskListProps) {
   const [statsMode, setStatsMode] = useState<Record<string, boolean>>({});
   const [deliverableStats, setDeliverableStats] = useState<Record<string, any>>({});
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
@@ -467,6 +476,7 @@ export default function SimpleTaskList({ projectId, projectName, deliverables, t
                             deliverableTitle={deliverable.title}
                             projectId={projectId}
                             projectName={projectName}
+                            timeEntries={timeEntries}
                           />
                         ))}
                       </div>

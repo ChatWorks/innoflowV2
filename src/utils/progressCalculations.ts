@@ -285,6 +285,18 @@ export const getTotalPhaseEstimate = (phase: Phase, deliverables: Deliverable[],
   return getPhaseDeclarableHours(phase, deliverables);
 };
 
+// Taak efficiency (geschat op basis van tijd vs gemiddelde)
+export const getTaskEfficiency = (task: Task, timeEntries: TimeEntry[]): number => {
+  const taskTimeSpent = getTaskTimeSpent(task.id, timeEntries);
+  
+  // Schatting: gemiddelde taak = 2 uur
+  const estimatedTaskHours = 2;
+  const actualTaskHours = taskTimeSpent / 3600;
+  
+  if (actualTaskHours === 0) return 0;
+  return (actualTaskHours / estimatedTaskHours) * 100;
+};
+
 // ============= AUTOMATISCHE STATUS UPDATES =============
 
 // Bepaal project status gebaseerd op voortgang
