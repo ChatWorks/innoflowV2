@@ -219,6 +219,7 @@ export default function Index() {
                 key={project.id}
                 project={project}
                 onClick={() => navigate(`/project/${project.id}`)}
+                onUpdate={fetchProjects} // Refresh homepage na wijzigingen
               />
             ))}
           </div>

@@ -51,7 +51,9 @@ import {
   getEfficiencyVariant,
   getPhaseDeclarableHours,
   getPhaseTimerTime,
-  getDeliverableTimerTime
+  getDeliverableTimerTime,
+  getProjectProgress,
+  updateProjectStatusIfNeeded
 } from '@/utils/progressCalculations';
 
 interface IntegratedProjectTimelineProps {
@@ -239,6 +241,20 @@ export default function IntegratedProjectTimeline({
       const deliverable = localDeliverables.find(d => d.id === task.deliverable_id);
       if (deliverable?.phase_id) {
         await updatePhaseStatus(deliverable.phase_id);
+      }
+
+      // Check automatische project status update
+      const currentProjectProgress = getProjectProgress(phases, localDeliverables, updatedTasks);
+      try {
+        const statusResult = await updateProjectStatusIfNeeded(project.id, currentProjectProgress, project.status);
+        if (statusResult.updated) {
+          toast({
+            title: "Project Status Automatisch Bijgewerkt",
+            description: `Project is van '${statusResult.previousStatus}' naar '${statusResult.newStatus}' gegaan vanwege voortgang van ${currentProjectProgress}%`,
+          });
+        }
+      } catch (error) {
+        console.error('Error updating project status:', error);
       }
 
       toast({

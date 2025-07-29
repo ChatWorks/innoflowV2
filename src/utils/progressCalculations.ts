@@ -284,3 +284,45 @@ export const getTotalDeliverableEstimate = (deliverable: Deliverable, tasks: Tas
 export const getTotalPhaseEstimate = (phase: Phase, deliverables: Deliverable[], tasks: Task[]): number => {
   return getPhaseDeclarableHours(phase, deliverables);
 };
+
+// ============= AUTOMATISCHE STATUS UPDATES =============
+
+// Bepaal project status gebaseerd op voortgang
+export const getAutomaticProjectStatus = (projectProgress: number, currentStatus: string): string => {
+  if (projectProgress === 100) {
+    return 'Voltooid';
+  } else if (projectProgress > 0 && currentStatus === 'Nieuw') {
+    return 'In Progress';
+  } else if (projectProgress > 75 && currentStatus !== 'Voltooid') {
+    return 'Review';
+  }
+  return currentStatus; // Behoud huidige status als geen automatische update nodig
+};
+
+// Update project status in database gebaseerd op voortgang
+export const updateProjectStatusIfNeeded = async (
+  projectId: string, 
+  currentProgress: number, 
+  currentStatus: string
+) => {
+  const newStatus = getAutomaticProjectStatus(currentProgress, currentStatus);
+  
+  if (newStatus !== currentStatus) {
+    const { supabase } = await import('@/integrations/supabase/client');
+    
+    const { error } = await supabase
+      .from('projects')
+      .update({ 
+        status: newStatus,
+        progress: currentProgress 
+      })
+      .eq('id', projectId);
+    
+    if (!error) {
+      return { updated: true, newStatus, previousStatus: currentStatus };
+    }
+    throw error;
+  }
+  
+  return { updated: false, newStatus: currentStatus, previousStatus: currentStatus };
+};
