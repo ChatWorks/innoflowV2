@@ -76,24 +76,32 @@ export function ProjectCard({ project, onClick, onUpdate }: ProjectCardProps) {
       setLoading(true);
 
       // Fetch all related data in parallel
-      const [phasesResult, deliverablesResult, tasksResult, timeEntriesResult] = await Promise.all([
+      const [phasesResult, deliverablesResult, timeEntriesResult] = await Promise.all([
         supabase.from('phases').select('*').eq('project_id', project.id),
         supabase.from('deliverables').select('*').eq('project_id', project.id),
-        supabase.from('tasks').select('*').in('deliverable_id', 
-          (await supabase.from('deliverables').select('id').eq('project_id', project.id)).data?.map(d => d.id) || []
-        ),
         supabase.from('time_entries').select('*').eq('project_id', project.id)
       ]);
 
       if (phasesResult.error) throw phasesResult.error;
       if (deliverablesResult.error) throw deliverablesResult.error;
-      if (tasksResult.error) throw tasksResult.error;
       if (timeEntriesResult.error) throw timeEntriesResult.error;
 
       setPhases((phasesResult.data || []) as Phase[]);
       setDeliverables((deliverablesResult.data || []) as Deliverable[]);
-      setTasks((tasksResult.data || []) as Task[]);
       setTimeEntries((timeEntriesResult.data || []) as TimeEntry[]);
+
+      // Fetch tasks separately after getting deliverables
+      let tasksData = [];
+      if (deliverablesResult.data && deliverablesResult.data.length > 0) {
+        const tasksResult = await supabase
+          .from('tasks')
+          .select('*')
+          .in('deliverable_id', deliverablesResult.data.map(d => d.id));
+        
+        if (tasksResult.error) throw tasksResult.error;
+        tasksData = tasksResult.data || [];
+      }
+      setTasks(tasksData as Task[]);
 
       // Check voor automatische status updates
       await checkAndUpdateProjectStatus();

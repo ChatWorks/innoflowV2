@@ -104,20 +104,24 @@ export default function ProjectDetail() {
       setTimeEntries((timeData || []) as TimeEntry[]);
 
       // Fetch tasks
-      const { data: tasksData, error: tasksError } = await supabase
-        .from('tasks')
-        .select(`
-          *,
-          deliverables:deliverable_id (
-            id,
-            title
-          )
-        `)
-        .in('deliverable_id', (deliverablesData || []).map(d => d.id))
-        .order('created_at', { ascending: false });
+      let tasksData = [];
+      if (deliverablesData && deliverablesData.length > 0) {
+        const { data, error: tasksError } = await supabase
+          .from('tasks')
+          .select(`
+            *,
+            deliverables:deliverable_id (
+              id,
+              title
+            )
+          `)
+          .in('deliverable_id', deliverablesData.map(d => d.id))
+          .order('created_at', { ascending: false });
 
-      if (tasksError) throw tasksError;
-      setTasks((tasksData || []) as Task[]);
+        if (tasksError) throw tasksError;
+        tasksData = data || [];
+      }
+      setTasks(tasksData as Task[]);
 
     } catch (error) {
       toast({
