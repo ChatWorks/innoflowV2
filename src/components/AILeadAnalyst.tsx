@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Bot, Send, Loader2, Brain, TrendingUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
   id: string;
@@ -140,7 +141,9 @@ Wat wil je weten over je leads?`,
                       <span className="text-xs font-medium text-blue-500">AI Analyst</span>
                     </div>
                   )}
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <div className="text-sm prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-ul:text-foreground prose-li:text-foreground prose-code:text-foreground">
+                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                  </div>
                   <span className="text-xs opacity-70 mt-1 block">
                     {message.timestamp.toLocaleTimeString('nl-NL', { 
                       hour: '2-digit', 
