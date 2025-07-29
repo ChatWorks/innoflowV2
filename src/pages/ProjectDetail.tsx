@@ -309,14 +309,35 @@ export default function ProjectDetail() {
           <Card>
             <CardContent className="p-4">
               <div className="text-sm text-muted-foreground mb-3">Totaal Declarabel</div>
-              <div className="text-2xl font-bold">{getTotalProjectDeclarable(deliverables)}h</div>
+              <div className="text-2xl font-bold mb-2">{getTotalProjectDeclarable(deliverables)}h</div>
+              <div className="w-full bg-blue-100 dark:bg-blue-900/20 rounded-full h-2">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">Budget beschikbaar</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardContent className="p-4">
               <div className="text-sm text-muted-foreground mb-3">Werkelijk Besteed</div>
-              <div className="text-2xl font-bold">{formatTimeToHours(totalProjectTimeSpent)}h</div>
+              <div className="text-2xl font-bold mb-2">{formatTimeToHours(totalProjectTimeSpent)}h</div>
+              <div className="w-full bg-orange-100 dark:bg-orange-900/20 rounded-full h-2">
+                <div 
+                  className="bg-orange-500 h-2 rounded-full transition-all duration-300" 
+                  style={{ 
+                    width: `${Math.min(100, (formatTimeToHours(totalProjectTimeSpent) / Math.max(1, getTotalProjectDeclarable(deliverables))) * 100)}%` 
+                  }}
+                />
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {getTotalProjectDeclarable(deliverables) > 0 
+                  ? `${Math.round((formatTimeToHours(totalProjectTimeSpent) / getTotalProjectDeclarable(deliverables)) * 100)}% van budget`
+                  : 'Geen budget ingesteld'
+                }
+              </div>
             </CardContent>
           </Card>
         </div>
