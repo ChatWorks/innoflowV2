@@ -105,21 +105,44 @@ export default function Index() {
         {/* Project Hero Section */}
         <div className="mb-8">
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary-hover to-primary p-8 text-white">
-            <div className="relative z-10">
+            {/* Animated Background Elements */}
+            <div className="absolute inset-0 opacity-20">
+              <div className="absolute top-0 -left-4 w-72 h-72 bg-white rounded-full mix-blend-overlay animate-pulse"></div>
+              <div className="absolute top-0 -right-4 w-72 h-72 bg-white rounded-full mix-blend-overlay animate-pulse [animation-delay:1s]"></div>
+              <div className="absolute -bottom-8 left-1/2 w-96 h-96 bg-white rounded-full mix-blend-overlay animate-pulse [animation-delay:2s] transform -translate-x-1/2"></div>
+            </div>
+            
+            {/* Floating Particles */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/40 rounded-full animate-[float_6s_ease-in-out_infinite]"></div>
+              <div className="absolute top-3/4 left-3/4 w-1 h-1 bg-white/60 rounded-full animate-[float_4s_ease-in-out_infinite] [animation-delay:1s]"></div>
+              <div className="absolute top-1/2 right-1/4 w-1.5 h-1.5 bg-white/50 rounded-full animate-[float_5s_ease-in-out_infinite] [animation-delay:2s]"></div>
+              <div className="absolute bottom-1/4 left-1/3 w-2.5 h-2.5 bg-white/30 rounded-full animate-[float_7s_ease-in-out_infinite] [animation-delay:3s]"></div>
+            </div>
+            
+            {/* Gradient Overlay Animation */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 animate-[shimmer_3s_ease-in-out_infinite]"></div>
+            
+            <div className="relative z-10 animate-fade-in">
               <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-4xl font-bold mb-2">Project Management</h1>
-                  <p className="text-primary-foreground/80 text-lg mb-4">
+                <div className="animate-[slideInLeft_0.8s_ease-out]">
+                  <h1 className="text-4xl font-bold mb-2 relative">
+                    Project Management
+                    <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-white/50 animate-[expandWidth_1.5s_ease-out_0.5s_forwards]"></div>
+                  </h1>
+                  <p className="text-primary-foreground/80 text-lg mb-4 animate-[slideInLeft_0.8s_ease-out_0.3s_both]">
                     Beheer je projecten en maximaliseer je productiviteit
                   </p>
                 </div>
-                <Button 
-                  className="bg-white/20 text-white border-white/30 hover:bg-white/30"
-                  onClick={() => navigate('/project/new')}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Nieuw Project
-                </Button>
+                <div className="animate-[slideInRight_0.8s_ease-out_0.6s_both]">
+                  <Button 
+                    className="bg-white/20 text-white border-white/30 hover:bg-white/30 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl backdrop-blur-sm"
+                    onClick={() => navigate('/project/new')}
+                  >
+                    <Plus className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90 duration-300" />
+                    Nieuw Project
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
