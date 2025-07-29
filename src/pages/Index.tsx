@@ -105,25 +105,22 @@ export default function Index() {
         {/* Project Hero Section */}
         <div className="mb-8">
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary-hover to-primary p-8 text-white">
-            {/* Gradient Overlay Animation */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12 animate-[shimmer_3s_ease-in-out_infinite]"></div>
-            
-            <div className="relative z-10 animate-fade-in">
+            <div className="relative z-10">
               <div className="flex items-center justify-between">
-                <div className="animate-[slideInLeft_0.8s_ease-out]">
+                <div>
                   <h1 className="text-4xl font-bold mb-2">
                     Project Management
                   </h1>
-                  <p className="text-primary-foreground/80 text-lg mb-4 animate-[slideInLeft_0.8s_ease-out_0.3s_both]">
+                  <p className="text-primary-foreground/80 text-lg mb-4">
                     Beheer je projecten en maximaliseer je productiviteit
                   </p>
                 </div>
-                <div className="animate-[slideInRight_0.8s_ease-out_0.6s_both]">
+                <div>
                   <Button 
-                    className="bg-white/20 text-white border-white/30 hover:bg-white/30 hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl backdrop-blur-sm"
+                    className="bg-white/20 text-white border-white/30 hover:bg-white/30"
                     onClick={() => navigate('/project/new')}
                   >
-                    <Plus className="mr-2 h-4 w-4 transition-transform group-hover:rotate-90 duration-300" />
+                    <Plus className="mr-2 h-4 w-4" />
                     Nieuw Project
                   </Button>
                 </div>
