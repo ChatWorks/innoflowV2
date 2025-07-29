@@ -80,6 +80,7 @@ export default function FloatingTimer() {
       const totalSeconds = pausedTime || elapsedTime;
       const endTime = new Date();
 
+      // Database update
       const { error } = await supabase
         .from('time_entries')
         .update({
@@ -91,12 +92,12 @@ export default function FloatingTimer() {
 
       if (error) throw error;
 
+      // SPECIFIEKE refresh - eliminates cascade calls
+      refreshTimeEntry(activeTimer.projectId, activeTimer.taskId);
+
       setActiveTimer(null);
       setFloatingVisible(false);
       setPausedTime(0);
-      
-      // Refresh specific time entry data only
-      refreshTimeEntry(activeTimer.projectId, activeTimer.taskId);
 
       const minutes = Math.floor(totalSeconds / 60);
       const seconds = totalSeconds % 60;

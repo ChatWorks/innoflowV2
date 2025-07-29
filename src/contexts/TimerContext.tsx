@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
 interface ActiveTimer {
   id: string;
@@ -53,11 +53,11 @@ export const TimerProvider: React.FC<TimerProviderProps> = ({ children }) => {
     setLastRefreshTaskId(null);
   };
 
-  const refreshTimeEntry = (projectId: string, taskId?: string) => {
+  const refreshTimeEntry = useCallback((projectId: string, taskId: string) => {
     setTimeEntryRefreshTrigger(prev => prev + 1);
     setLastRefreshProjectId(projectId);
-    setLastRefreshTaskId(taskId || null);
-  };
+    setLastRefreshTaskId(taskId);
+  }, []);
 
   return (
     <TimerContext.Provider
