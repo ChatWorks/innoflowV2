@@ -29,6 +29,7 @@ import TaskCreationDialog from './TaskCreationDialog';
 import TaskTimer from './TaskTimer';
 import InlineDateEdit from './InlineDateEdit';
 import InlineEditField from './InlineEditField';
+import PhaseCreationDialog from './PhaseCreationDialog';
 
 interface IntegratedProjectTimelineProps {
   project: Project;
@@ -306,6 +307,10 @@ export default function IntegratedProjectTimeline({
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">Project Timeline</h2>
+          <PhaseCreationDialog 
+            projectId={project.id} 
+            onPhaseCreated={onRefresh} 
+          />
         </div>
 
         <div className="space-y-4">
