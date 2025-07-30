@@ -234,41 +234,41 @@ export default function ProjectDetail() {
               <Button 
                 variant="ghost" 
                 onClick={() => navigate('/')}
-                className="text-white hover:bg-white/10 mb-4"
+                className="text-white hover:bg-white/10 mb-6"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Terug naar dashboard
               </Button>
               
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-4xl font-bold mb-2">{project.name}</h1>
-                  <p className="text-primary-foreground/80 text-lg mb-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h1 className="text-5xl font-semibold mb-3">{project.name}</h1>
+                  <p className="text-white/90 text-lg mb-6">
                     Real-time overzicht van je project voortgang en taken
                   </p>
-                   <div className="flex items-center gap-6 text-primary-foreground/80">
+                  <div className="flex items-center gap-8 text-white/85 text-sm">
                     <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
+                      <span className="text-base">👤</span>
                       <span>{project.client}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Euro className="h-4 w-4" />
+                      <span className="text-base">💰</span>
                       <InlineEditField
                         value={project.project_value ? formatCurrency(project.project_value) : "€0"}
                         onSave={(newValue) => updateProjectValue(newValue.replace(/[€.,\s]/g, ''))}
                         placeholder="€0"
-                        className="text-primary-foreground/80"
+                        className="text-white/85"
                         type="number"
                         prefix="€"
                       />
                     </div>
                     <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
+                      <span className="text-base">⏰</span>
                       <span>{project.total_hours}h</span>
                     </div>
                   </div>
                 </div>
-                <Badge className="bg-white/20 text-white border-white/30 px-3 py-1">
+                <Badge className="bg-white/20 text-white border-white/30 px-4 py-2 text-sm font-medium">
                   {project.status}
                 </Badge>
               </div>
