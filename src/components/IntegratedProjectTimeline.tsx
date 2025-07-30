@@ -322,9 +322,6 @@ export default function IntegratedProjectTimeline({
         title: completed ? "Taak voltooid" : "Taak heropend",
         description: `${task.title} is ${completed ? 'afgerond' : 'heropend'}`,
       });
-
-      // Refresh data in background
-      setTimeout(() => onRefresh(), 100);
       
     } catch (error) {
       toast({
