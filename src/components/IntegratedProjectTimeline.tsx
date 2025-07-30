@@ -664,22 +664,17 @@ export default function IntegratedProjectTimeline({
                                                    />
                                                    
                                                    <div className="flex-1 min-w-0">
-                                                     <div className="flex items-center gap-2">
-                                                       <span className={`text-[16px] font-normal ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'} truncate`}>
-                                                         {task.title}
-                                                       </span>
-                                                       {index === 0 && (
-                                                         <Badge variant="default" className="text-xs bg-primary shrink-0">
-                                                           Prioriteit
-                                                         </Badge>
-                                                       )}
-                                                       {task.assigned_to && (
-                                                         <Badge variant="outline" className="text-xs shrink-0">
-                                                           <User className="h-3 w-3 mr-1" />
-                                                           {task.assigned_to}
-                                                         </Badge>
-                                                       )}
-                                                     </div>
+                                                      <div className="flex items-center gap-2">
+                                                        <span className={`text-[16px] font-normal ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'} truncate`}>
+                                                          {task.title}
+                                                        </span>
+                                                        {task.assigned_to && (
+                                                          <Badge variant="outline" className="text-xs shrink-0">
+                                                            <User className="h-3 w-3 mr-1" />
+                                                            {task.assigned_to}
+                                                          </Badge>
+                                                        )}
+                                                      </div>
                                                      {task.description && (
                                                        <p className={`text-sm text-muted-foreground mt-1 ${task.completed ? 'line-through' : ''} line-clamp-2`}>
                                                          {task.description}
