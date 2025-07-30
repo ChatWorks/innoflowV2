@@ -73,7 +73,7 @@ export default function InlineEditField({
           onChange={(e) => setEditValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="h-8 text-sm placeholder:text-muted-foreground"
+          className="h-8 text-sm text-foreground placeholder:text-muted-foreground"
           autoFocus
         />
         <Button
@@ -81,7 +81,7 @@ export default function InlineEditField({
           variant="ghost"
           onClick={handleSave}
           disabled={isSaving}
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 text-white hover:bg-white/20"
         >
           <Check className="h-3 w-3" />
         </Button>
@@ -90,7 +90,7 @@ export default function InlineEditField({
           variant="ghost"
           onClick={handleCancel}
           disabled={isSaving}
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 text-white hover:bg-white/20"
         >
           <X className="h-3 w-3" />
         </Button>
