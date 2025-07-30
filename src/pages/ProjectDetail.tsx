@@ -198,6 +198,37 @@ export default function ProjectDetail() {
     });
   };
 
+  const updateProjectClient = async (newValue: string) => {
+    const { error } = await supabase
+      .from('projects')
+      .update({ client: newValue })
+      .eq('id', id);
+    
+    if (error) throw error;
+    
+    setProject(prev => prev ? { ...prev, client: newValue } : null);
+    toast({
+      title: "Client bijgewerkt",
+      description: `Nieuwe client: ${newValue}`,
+    });
+  };
+
+  const updateProjectTotalHours = async (newValue: string) => {
+    const numericValue = parseFloat(newValue) || 0;
+    const { error } = await supabase
+      .from('projects')
+      .update({ total_hours: numericValue })
+      .eq('id', id);
+    
+    if (error) throw error;
+    
+    setProject(prev => prev ? { ...prev, total_hours: numericValue } : null);
+    toast({
+      title: "Totaal uren bijgewerkt",
+      description: `Nieuwe waarde: ${numericValue}h`,
+    });
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -250,7 +281,14 @@ export default function ProjectDetail() {
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full" 
                          style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
                       <span className="text-base">👤</span>
-                      <span className="text-white font-medium text-sm">{project.client}</span>
+                      <InlineEditField
+                        value={project.client}
+                        onSave={updateProjectClient}
+                        placeholder="Client naam"
+                        className="text-white font-medium text-sm"
+                        iconClassName="!text-white hover:!bg-white/20"
+                        type="text"
+                      />
                     </div>
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full" 
                          style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
@@ -260,6 +298,7 @@ export default function ProjectDetail() {
                         onSave={(newValue) => updateProjectValue(newValue.replace(/[€.,\s]/g, ''))}
                         placeholder="€0"
                         className="text-white font-medium text-sm"
+                        iconClassName="!text-white hover:!bg-white/20"
                         type="number"
                         prefix="€"
                       />
@@ -267,7 +306,14 @@ export default function ProjectDetail() {
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full" 
                          style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
                       <span className="text-base">⏰</span>
-                      <span className="text-white font-medium text-sm">{project.total_hours}h</span>
+                      <InlineEditField
+                        value={project.total_hours ? `${project.total_hours}h` : "0h"}
+                        onSave={(newValue) => updateProjectTotalHours(newValue.replace(/[h\s]/g, ''))}
+                        placeholder="0h"
+                        className="text-white font-medium text-sm"
+                        iconClassName="!text-white hover:!bg-white/20"
+                        type="number"
+                      />
                     </div>
                   </div>
                 </div>

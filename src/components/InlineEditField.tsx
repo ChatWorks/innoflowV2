@@ -10,6 +10,7 @@ interface InlineEditFieldProps {
   className?: string;
   type?: 'text' | 'number';
   prefix?: string;
+  iconClassName?: string;
 }
 
 export default function InlineEditField({ 
@@ -18,7 +19,8 @@ export default function InlineEditField({
   placeholder = "", 
   className = "",
   type = "text",
-  prefix = ""
+  prefix = "",
+  iconClassName = ""
 }: InlineEditFieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
@@ -111,7 +113,7 @@ export default function InlineEditField({
             handleEdit();
           }
         }}
-        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded hover:bg-muted flex items-center justify-center"
+        className={`h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded hover:bg-muted flex items-center justify-center ${iconClassName}`}
       >
         <Pencil className="h-3 w-3" />
       </span>
