@@ -449,7 +449,16 @@ export default function IntegratedProjectTimeline({
               <p className="text-sm">Maak je eerste fase aan om te beginnen</p>
             </div>
           ) : (
-            phases.map((phase) => {
+            phases
+              .sort((a, b) => {
+                // Ensure "Fase 1" always appears first
+                if (a.name.toLowerCase().includes('fase 1')) return -1;
+                if (b.name.toLowerCase().includes('fase 1')) return 1;
+                
+                // For other phases, sort by name naturally
+                return a.name.localeCompare(b.name, 'nl', { numeric: true });
+              })
+              .map((phase) => {
               const phaseDeliverables = localDeliverables.filter(d => d.phase_id === phase.id);
               const phaseStatus = getPhaseStatus(phase, localDeliverables, localTasks);
               const phaseProgressPercentage = getPhaseProgress(phase, localDeliverables, localTasks);
