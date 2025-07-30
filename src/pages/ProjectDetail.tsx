@@ -215,6 +215,16 @@ export default function ProjectDetail() {
 
   const updateProjectTotalHours = async (newValue: string) => {
     const numericValue = parseFloat(newValue) || 0;
+    
+    // Calculate current total declarable hours
+    const currentTotal = getTotalProjectDeclarable(deliverables);
+    
+    if (numericValue === currentTotal) {
+      return; // No change needed
+    }
+    
+    // For simplicity, update the total_hours field in projects table
+    // In a more complex scenario, you might want to distribute this across deliverables
     const { error } = await supabase
       .from('projects')
       .update({ total_hours: numericValue })
@@ -309,7 +319,7 @@ export default function ProjectDetail() {
                          style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
                       <span className="text-base">⏰</span>
                       <InlineEditField
-                        value={project.total_hours ? `${project.total_hours}h` : "0h"}
+                        value={`${getTotalProjectDeclarable(deliverables) || project.total_hours || 0}h`}
                         onSave={(newValue) => updateProjectTotalHours(newValue.replace(/[h\s]/g, ''))}
                         placeholder="0h"
                         className="text-white font-medium text-sm"
