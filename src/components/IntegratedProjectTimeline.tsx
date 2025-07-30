@@ -654,9 +654,9 @@ export default function IntegratedProjectTimeline({
                                             {[...deliverableTasks]
                                               .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                                                .map((task, index) => (
-                                                 <div key={task.id} className={`flex items-center gap-4 py-3 px-4 border rounded-lg hover:bg-muted/20 transition-colors ${
-                                                   index === 0 ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-border'
-                                                 }`}>
+                                                <div key={task.id} className={`flex items-center gap-4 py-3 px-4 border rounded-lg hover:border-primary/50 hover:shadow-sm hover:shadow-primary/10 transition-all duration-200 ${
+                                                  index === 0 ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-border'
+                                                }`}>
                                                    <Checkbox
                                                      checked={task.completed}
                                                      onCheckedChange={() => toggleTaskCompletion(task)}
