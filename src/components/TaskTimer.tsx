@@ -158,36 +158,32 @@ export default function TaskTimer({
 
   return (
     <div className="flex items-center gap-2">
-      {isThisTaskActive && (
-        <div className={`text-sm font-mono font-medium ${
-          isPaused ? 'text-orange-600' : 'text-green-600'
-        }`}>
-          {formatTime(elapsedTime)}
-        </div>
-      )}
-      
       {!isThisTaskActive ? (
         <Button
-          size="sm"
+          size="default"
           variant="outline"
           onClick={handleStart}
-          className="h-8 w-8 p-0"
+          disabled={isProcessing}
+          className="h-10 px-4 gap-2 border-green-200 hover:bg-green-50 hover:border-green-300 dark:border-green-800 dark:hover:bg-green-950"
         >
-          <Play className="h-3 w-3" />
+          <Play className="h-4 w-4 text-green-600" />
+          <span className="text-sm font-medium">Start</span>
         </Button>
       ) : (
-        <div className="text-xs text-muted-foreground">
-          Gebruik floating timer
-        </div>
-      )}
-      
-      {isThisTaskActive && (
-        <div className="flex items-center gap-1">
-          <div className={`w-2 h-2 rounded-full ${
+        <div className="flex items-center gap-3 bg-green-50 dark:bg-green-950/30 px-3 py-2 rounded-lg border border-green-200 dark:border-green-800">
+          <div className={`w-3 h-3 rounded-full ${
             isPaused 
-              ? 'bg-orange-500' 
+              ? 'bg-orange-500 animate-none' 
               : 'bg-green-600 animate-pulse'
           }`}></div>
+          <div className={`text-sm font-mono font-bold ${
+            isPaused ? 'text-orange-600' : 'text-green-600'
+          }`}>
+            {formatTime(elapsedTime)}
+          </div>
+          <span className="text-xs text-muted-foreground">
+            Actief
+          </span>
         </div>
       )}
     </div>

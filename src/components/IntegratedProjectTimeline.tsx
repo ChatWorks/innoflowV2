@@ -88,10 +88,30 @@ export default function IntegratedProjectTimeline({
   const { toast } = useToast();
   const { refreshTrigger, timeEntryRefreshTrigger, lastRefreshProjectId, lastRefreshTaskId } = useTimer();
 
-  // Initialize expanded phases (all open by default)
+  // Smart defaults: Only expand "In Progress" phases and remember user preferences
   useEffect(() => {
-    setExpandedPhases(new Set(phases.map(p => p.id)));
-  }, [phases]);
+    const inProgressPhases = phases.filter(phase => {
+      const phaseDeliverables = localDeliverables.filter(d => d.phase_id === phase.id);
+      const status = getLocalPhaseStatus(phaseDeliverables);
+      return status === 'in-progress';
+    });
+    
+    // Start with only in-progress phases expanded
+    const defaultExpanded = new Set(inProgressPhases.map(p => p.id));
+    
+    // TODO: Load user preferences from localStorage
+    const savedExpanded = localStorage.getItem(`expanded-phases-${project.id}`);
+    if (savedExpanded) {
+      try {
+        const parsed = JSON.parse(savedExpanded);
+        setExpandedPhases(new Set(parsed));
+      } catch {
+        setExpandedPhases(defaultExpanded);
+      }
+    } else {
+      setExpandedPhases(defaultExpanded);
+    }
+  }, [phases, localDeliverables, project.id]);
 
   // Update local state when props change
   useEffect(() => {
@@ -137,6 +157,10 @@ export default function IntegratedProjectTimeline({
       } else {
         newSet.add(phaseId);
       }
+      
+      // Save user preferences
+      localStorage.setItem(`expanded-phases-${project.id}`, JSON.stringify([...newSet]));
+      
       return newSet;
     });
   };
@@ -149,6 +173,10 @@ export default function IntegratedProjectTimeline({
       } else {
         newSet.add(deliverableId);
       }
+      
+      // Save user preferences
+      localStorage.setItem(`expanded-deliverables-${project.id}`, JSON.stringify([...newSet]));
+      
       return newSet;
     });
   };
@@ -177,11 +205,25 @@ export default function IntegratedProjectTimeline({
 
   const getPhaseStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'border-l-green-500 bg-green-50 dark:bg-green-950';
-      case 'in-progress': return 'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950';
-      case 'pending': return 'border-l-gray-300 bg-gray-50 dark:bg-gray-900';
-      default: return 'border-l-gray-300 bg-gray-50 dark:bg-gray-900';
+      case 'completed': return 'border-l-4 border-l-green-500 bg-green-50/50 dark:bg-green-950/20';
+      case 'in-progress': return 'border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-950/20';
+      case 'pending': return 'border-l-4 border-l-gray-300 bg-gray-50/50 dark:bg-gray-900/50';
+      default: return 'border-l-4 border-l-gray-300 bg-gray-50/50 dark:bg-gray-900/50';
     }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed': return '✅';
+      case 'in-progress': return '🔄';
+      case 'pending': return '⏳';
+      default: return '⏳';
+    }
+  };
+
+  const getCompactStatusBadge = (status: string, progressPercentage: number) => {
+    const icon = getStatusIcon(status);
+    return `${icon} ${progressPercentage}%`;
   };
 
   // Real-time status cascading: Task → Deliverable → Phase
@@ -421,48 +463,37 @@ export default function IntegratedProjectTimeline({
                   open={isExpanded}
                   onOpenChange={() => togglePhase(phase.id)}
                 >
-                  <Card className={`border-l-4 ${getPhaseStatusColor(getLocalPhaseStatus(phaseDeliverables))} transition-all duration-200`}>
-                    <CollapsibleTrigger className="w-full p-4 text-left hover:bg-muted/50 transition-colors">
-                      {/* Fase Header - GESCHEIDEN progress en efficiency */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {isExpanded ? (
-                            <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform" />
-                          ) : (
-                            <ChevronRight className="h-5 w-5 text-muted-foreground transition-transform" />
-                          )}
-                          <InlineEditField
-                            value={phase.name}
-                            onSave={(newName) => updatePhaseName(phase.id, newName)}
-                            placeholder="Fase naam"
-                            className="text-lg font-semibold"
-                          />
-                          <Badge variant={getPhaseStatusVariant(phaseStatus)}>
-                            {phaseStatus}
-                          </Badge>
-                        </div>
-                        
+                  <Card className={`${getPhaseStatusColor(getLocalPhaseStatus(phaseDeliverables))} transition-all duration-200`}>
+                    <CollapsibleTrigger className="w-full text-left hover:bg-muted/20 transition-colors">
+                      {/* Fase Header - Improved Visual Hierarchy */}
+                      <div className="flex items-center justify-between p-6">
                         <div className="flex items-center gap-4">
-                          {/* VOORTGANG BAR - Completion based */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Voortgang:</span>
-                            <Progress 
-                              value={phaseProgressPercentage} 
-                              className="h-3 w-24" 
+                          {isExpanded ? (
+                            <ChevronDown className="h-6 w-6 text-foreground transition-transform" />
+                          ) : (
+                            <ChevronRight className="h-6 w-6 text-foreground transition-transform" />
+                          )}
+                          <div className="flex items-center gap-3">
+                            <InlineEditField
+                              value={phase.name}
+                              onSave={(newName) => updatePhaseName(phase.id, newName)}
+                              placeholder="Fase naam"
+                              className="text-[22px] font-bold text-foreground"
                             />
-                            <span className="text-sm font-medium">
-                              {phaseProgressPercentage}%
+                            <span className="text-lg font-medium text-muted-foreground">
+                              {getCompactStatusBadge(getLocalPhaseStatus(phaseDeliverables), phaseProgressPercentage)}
                             </span>
                           </div>
-                          
-                          {/* EFFICIENCY DOTS - Fase level */}
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Efficiency:</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-6">
+                          {/* Compact Progress & Efficiency */}
+                          <div className="flex items-center gap-3">
                             <EfficiencyDots 
                               value={getPhaseEfficiency(phase, localDeliverables, localTasks, timeEntries)}
-                              size="md"
-                              showLabel={true}
-                              showPercentage={true}
+                              size="lg"
+                              showLabel={false}
+                              showPercentage={false}
                               entityName={`Fase: ${phase.name}`}
                               statsData={{
                                 budgetHours: getPhaseDeclarableHours(phase, localDeliverables),
@@ -471,11 +502,9 @@ export default function IntegratedProjectTimeline({
                                 timeRemaining: Math.max(0, getPhaseDeclarableHours(phase, localDeliverables) - formatTimeToHours(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries)))
                               }}
                             />
-                          </div>
-                          
-                          {/* UREN DISPLAY - Declarabel vs timer */}
-                          <div className="text-sm text-muted-foreground">
-                            {formatTime(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries))} / {getPhaseDeclarableHours(phase, localDeliverables)}h
+                            <span className="text-base font-medium text-foreground min-w-[80px]">
+                              {formatTime(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries))}/{getPhaseDeclarableHours(phase, localDeliverables)}h
+                            </span>
                           </div>
                           
                           <InlineDateEdit
@@ -488,10 +517,10 @@ export default function IntegratedProjectTimeline({
                     </CollapsibleTrigger>
 
                     <CollapsibleContent className="border-t animate-accordion-down">
-                      <div className="p-4 pl-12 space-y-3">
+                      <div className="px-6 pb-6 pt-4 space-y-4">
                         {/* Deliverables within this phase */}
                         {phaseDeliverables.length === 0 ? (
-                          <div className="text-center py-6 text-muted-foreground border-2 border-dashed rounded-lg">
+                          <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg ml-4">
                             <p className="text-sm">Nog geen deliverables in deze fase</p>
                           </div>
                         ) : (
@@ -509,40 +538,28 @@ export default function IntegratedProjectTimeline({
                                 open={isDeliverableExpanded}
                                 onOpenChange={() => toggleDeliverable(deliverable.id)}
                               >
-                                <Card className="border-l-2 border-primary/30 ml-4">
-                                  <CollapsibleTrigger className="w-full p-3 text-left hover:bg-muted/30 transition-colors">
-                                    {/* Deliverable Header - GESCHEIDEN progress en efficiency */}
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-2">
+                                <Card className="border-l-2 border-primary/20 ml-4 bg-background/60">
+                                  <CollapsibleTrigger className="w-full text-left hover:bg-muted/20 transition-colors">
+                                    {/* Deliverable Header - Compact Design */}
+                                    <div className="flex items-center justify-between p-4">
+                                      <div className="flex items-center gap-3">
                                         {isDeliverableExpanded ? (
-                                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                          <ChevronDown className="h-5 w-5 text-muted-foreground" />
                                         ) : (
-                                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
                                         )}
-                                        <span className="font-medium">{deliverable.title}</span>
-                                        <Badge variant={getDeliverableStatusVariant(deliverable.status)}>
-                                          {deliverable.status}
-                                        </Badge>
+                                        <span className="text-[18px] font-medium text-foreground">{deliverable.title}</span>
+                                        <span className="text-base text-muted-foreground">
+                                          {getCompactStatusBadge(deliverable.status.toLowerCase(), deliverableProgressPercentage)}
+                                        </span>
                                       </div>
                                       
-                                      <div className="flex items-center gap-3">
-                                        {/* VOORTGANG - Completion */}
-                                        <div className="flex items-center gap-1">
-                                          <Progress 
-                                            value={deliverableProgressPercentage} 
-                                            className="h-2 w-20" 
-                                          />
-                                          <span className="text-xs">
-                                            {deliverableProgressPercentage}%
-                                          </span>
-                                        </div>
-                                        
-                                        {/* EFFICIENCY DOTS - Deliverable level */}
+                                      <div className="flex items-center gap-4">
                                         <EfficiencyDots 
                                           value={getDeliverableEfficiency(deliverable, localTasks, timeEntries)}
-                                          size="sm"
+                                          size="md"
                                           showLabel={false}
-                                          showPercentage={true}
+                                          showPercentage={false}
                                           compact={true}
                                           entityName={deliverable.title}
                                           statsData={{
@@ -552,58 +569,53 @@ export default function IntegratedProjectTimeline({
                                           }}
                                         />
                                         
-                                         {/* UREN */}
-                                         <span className="text-sm text-muted-foreground">
-                                           {formatTime(getDeliverableTimerTime(deliverable, localTasks, timeEntries))} / 
-                                           <InlineEditField
-                                             value={`${deliverable.declarable_hours || 0}h`}
-                                             onSave={(newHours) => updateDeliverableHours(deliverable.id, newHours.replace('h', ''))}
-                                             placeholder="0h"
-                                             className="text-sm text-muted-foreground inline"
-                                             type="text"
-                                           />
-                                         </span>
-                                        
-                                        <InlineDateEdit
-                                          value={deliverable.target_date || undefined}
-                                          onSave={(newDate) => updateDeliverableDate(deliverable.id, newDate)}
-                                          placeholder="Geen datum"
-                                        />
+                                        <span className="text-sm font-medium text-foreground min-w-[60px]">
+                                          {formatTime(getDeliverableTimerTime(deliverable, localTasks, timeEntries))}/
+                                          <InlineEditField
+                                            value={`${deliverable.declarable_hours || 0}h`}
+                                            onSave={(newHours) => updateDeliverableHours(deliverable.id, newHours.replace('h', ''))}
+                                            placeholder="0h"
+                                            className="text-sm font-medium inline ml-0"
+                                            type="text"
+                                          />
+                                        </span>
                                       </div>
                                     </div>
                                   </CollapsibleTrigger>
 
                                   <CollapsibleContent className="border-t animate-accordion-down">
-                                    <div className="p-3 pl-8 space-y-2">
-                                      {/* Action buttons */}
-                                      <div className="flex items-center gap-2 mb-4">
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleStatsMode(deliverable.id);
-                                          }}
-                                          className="gap-2"
-                                        >
-                                          {isStatsMode ? (
-                                            <>
-                                              <List className="h-4 w-4" />
-                                              Taken
-                                            </>
-                                          ) : (
-                                            <>
-                                              <BarChart3 className="h-4 w-4" />
-                                              Stats
-                                            </>
+                                    <div className="p-4 space-y-3">
+                                      {/* Action buttons - Better design */}
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              toggleStatsMode(deliverable.id);
+                                            }}
+                                            className="gap-2"
+                                          >
+                                            {isStatsMode ? (
+                                              <>
+                                                <List className="h-4 w-4" />
+                                                Taken
+                                              </>
+                                            ) : (
+                                              <>
+                                                <BarChart3 className="h-4 w-4" />
+                                                Stats
+                                              </>
+                                            )}
+                                          </Button>
+                                          {!isStatsMode && (
+                                            <TaskCreationDialog 
+                                              deliverableId={deliverable.id} 
+                                              onTaskCreated={onRefresh} 
+                                            />
                                           )}
-                                        </Button>
-                                        {!isStatsMode && (
-                                          <TaskCreationDialog 
-                                            deliverableId={deliverable.id} 
-                                            onTaskCreated={onRefresh} 
-                                          />
-                                        )}
+                                        </div>
                                       </div>
 
                                       {/* Tasks within this deliverable */}
@@ -625,7 +637,7 @@ export default function IntegratedProjectTimeline({
                                         </div>
                                       ) : (
                                         deliverableTasks.length === 0 ? (
-                                          <div className="text-center py-4 text-muted-foreground border-2 border-dashed rounded-lg">
+                                          <div className="text-center py-6 text-muted-foreground border-2 border-dashed rounded-lg">
                                             <p className="text-sm">Nog geen taken - klik op "Nieuwe Taak" om te beginnen</p>
                                           </div>
                                         ) : (
@@ -633,61 +645,61 @@ export default function IntegratedProjectTimeline({
                                             {[...deliverableTasks]
                                               .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                                                .map((task, index) => (
-                                                 <div key={task.id} className={`flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors ${
-                                                   index === 0 ? 'border-primary bg-primary/5 dark:bg-primary/10' : ''
+                                                 <div key={task.id} className={`flex items-center gap-4 py-3 px-4 border rounded-lg hover:bg-muted/20 transition-colors ${
+                                                   index === 0 ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-border'
                                                  }`}>
                                                    <Checkbox
                                                      checked={task.completed}
                                                      onCheckedChange={() => toggleTaskCompletion(task)}
+                                                     className="mt-1"
                                                    />
                                                    
-                                                   <div className="flex-1">
-                                                     <div className="flex items-center gap-2 mb-1">
-                                                       <span className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                                   <div className="flex-1 min-w-0">
+                                                     <div className="flex items-center gap-2">
+                                                       <span className={`text-[16px] font-normal ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'} truncate`}>
                                                          {task.title}
                                                        </span>
                                                        {index === 0 && (
-                                                         <Badge variant="default" className="text-xs bg-primary">
-                                                           Top Taak
+                                                         <Badge variant="default" className="text-xs bg-primary shrink-0">
+                                                           Prioriteit
                                                          </Badge>
                                                        )}
                                                        {task.assigned_to && (
-                                                         <Badge variant="outline" className="text-xs">
+                                                         <Badge variant="outline" className="text-xs shrink-0">
                                                            <User className="h-3 w-3 mr-1" />
                                                            {task.assigned_to}
                                                          </Badge>
                                                        )}
-                                                        <Badge variant="secondary" className="text-xs">
-                                                          <Clock className="h-3 w-3 mr-1" />
-                                                          {formatTime(taskTimeSpent[task.id] || 0)}
-                                                        </Badge>
-                                                     </div>
-                                                     {/* Task progress bar */}
-                                                     <div className="flex items-center gap-2 mt-1">
-                                                       <Progress 
-                                                         value={getTaskProgress(task, taskTimeSpent[task.id] || 0)} 
-                                                         className={`h-2 w-16 ${getProgressColor(getActualTaskProgress(task, taskTimeSpent[task.id] || 0))}`}
-                                                       />
-                                                        <span className="text-xs text-muted-foreground">
-                                                          {formatTime(taskTimeSpent[task.id] || 0)} besteed
-                                                        </span>
                                                      </div>
                                                      {task.description && (
-                                                       <p className={`text-sm text-muted-foreground ${task.completed ? 'line-through' : ''}`}>
+                                                       <p className={`text-sm text-muted-foreground mt-1 ${task.completed ? 'line-through' : ''} line-clamp-2`}>
                                                          {task.description}
                                                        </p>
                                                      )}
                                                    </div>
                                                    
-                                                    <TaskTimer 
-                                                      taskId={task.id}
-                                                      taskTitle={task.title}
-                                                      deliverableId={deliverable.id}
-                                                      deliverableTitle={deliverable.title}
-                                                      projectId={project.id}
-                                                      projectName={project.name}
-                                                      onTimerChange={onRefresh}
-                                                    />
+                                                   {/* Compact status */}
+                                                   <div className="text-sm text-muted-foreground shrink-0">
+                                                     {task.completed ? '✅' : '⏳'}
+                                                   </div>
+                                                   
+                                                   {/* GROTE timer button - Most used action */}
+                                                   <div className="shrink-0">
+                                                     <TaskTimer 
+                                                       taskId={task.id}
+                                                       taskTitle={task.title}
+                                                       deliverableId={deliverable.id}
+                                                       deliverableTitle={deliverable.title}
+                                                       projectId={project.id}
+                                                       projectName={project.name}
+                                                       onTimerChange={onRefresh}
+                                                     />
+                                                   </div>
+                                                   
+                                                   {/* Time display */}
+                                                   <div className="text-sm font-medium text-foreground min-w-[60px] text-right shrink-0">
+                                                     {formatTime(taskTimeSpent[task.id] || 0)}
+                                                   </div>
                                                  </div>
                                                ))}
                                            </div>
@@ -701,8 +713,8 @@ export default function IntegratedProjectTimeline({
                           })
                         )}
                         
-                        {/* Add Deliverable Button */}
-                        <div className="pt-2">
+                        {/* Add Deliverable Button - Better positioned */}
+                        <div className="pt-4 ml-4">
                           <DeliverableCreationDialog 
                             projectId={project.id} 
                             onDeliverableCreated={onRefresh} 
