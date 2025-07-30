@@ -96,7 +96,7 @@ export default function InlineEditField({
 
   return (
     <div className={`group inline-flex items-center gap-2 ${className}`}>
-      <span>{prefix}{value}</span>
+      <span>{value}</span>
       <span
         role="button"
         tabIndex={0}
