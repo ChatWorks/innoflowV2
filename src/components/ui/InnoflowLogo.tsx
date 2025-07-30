@@ -25,8 +25,8 @@ export const InnoflowLogo: React.FC<InnoflowLogoProps> = ({
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <div className={`${sizeClasses[size]} bg-black rounded-lg flex items-center justify-center`}>
-        <span className="text-white font-bold">I</span>
+      <div className={`${sizeClasses[size]} bg-slate-800 rounded-xl flex items-center justify-center`}>
+        <div className="w-1/2 h-1/2 bg-white rounded-sm"></div>
       </div>
       {showText && (
         <span className={`${textSizeClasses[size]} font-semibold text-foreground`}>
