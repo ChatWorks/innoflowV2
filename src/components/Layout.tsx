@@ -14,6 +14,11 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Deadline Banner */}
+      <div className="bg-primary text-primary-foreground text-center py-2 text-sm font-medium">
+        12 AUGUSTUS MOET HET AF ZIJN
+      </div>
+      
       {/* Navigation Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-6 py-4">
