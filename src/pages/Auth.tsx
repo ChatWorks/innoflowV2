@@ -116,6 +116,7 @@ const Auth = () => {
             <div className="flex justify-center mb-4">
               <InnoflowLogo size="lg" showText={false} />
             </div>
+            <h1 className="text-2xl font-semibold text-gray-900 mb-1">Innoflow</h1>
             <h2 className="text-xl font-medium text-gray-900 mb-8">Welkom terug</h2>
           </div>
 
