@@ -73,7 +73,7 @@ export default function InlineEditField({
           onChange={(e) => setEditValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="h-8 text-sm"
+          className="h-8 text-sm placeholder:text-muted-foreground"
           autoFocus
         />
         <Button
