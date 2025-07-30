@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, User } from 'lucide-react';
+import { InnoflowLogo } from '@/components/ui/InnoflowLogo';
 
 interface LayoutProps {
   children: ReactNode;
@@ -24,12 +25,7 @@ export default function Layout({ children }: LayoutProps) {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">I</span>
-                </div>
-                <span className="text-xl font-semibold">Innoflow</span>
-              </div>
+              <InnoflowLogo size="md" showText={true} />
               
               <nav className="flex items-center gap-6">
                 <Button variant="ghost" onClick={() => navigate('/')} className="text-gray-600 hover:text-gray-900">
