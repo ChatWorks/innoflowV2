@@ -246,25 +246,28 @@ export default function ProjectDetail() {
                   <p className="text-white/90 text-lg mb-6">
                     Real-time overzicht van je project voortgang en taken
                   </p>
-                  <div className="flex items-center gap-8 text-white/85 text-sm">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full" 
+                         style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
                       <span className="text-base">👤</span>
-                      <span>{project.client}</span>
+                      <span className="text-white font-medium text-sm">{project.client}</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full" 
+                         style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
                       <span className="text-base">💰</span>
                       <InlineEditField
                         value={project.project_value ? formatCurrency(project.project_value) : "€0"}
                         onSave={(newValue) => updateProjectValue(newValue.replace(/[€.,\s]/g, ''))}
                         placeholder="€0"
-                        className="text-white/85"
+                        className="text-white font-medium text-sm"
                         type="number"
                         prefix="€"
                       />
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full" 
+                         style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
                       <span className="text-base">⏰</span>
-                      <span>{project.total_hours}h</span>
+                      <span className="text-white font-medium text-sm">{project.total_hours}h</span>
                     </div>
                   </div>
                 </div>
