@@ -557,7 +557,7 @@ export default function IntegratedProjectTimeline({
                                         ) : (
                                           <ChevronRight className="h-5 w-5 text-muted-foreground" />
                                         )}
-                                        <span className="text-[18px] font-medium text-foreground">{deliverable.title}</span>
+                                        <span className="text-base font-bold text-foreground">{deliverable.title}</span>
                                         <span className="text-base text-muted-foreground">
                                           {getCompactStatusBadge(deliverable.status.toLowerCase(), deliverableProgressPercentage)}
                                         </span>
