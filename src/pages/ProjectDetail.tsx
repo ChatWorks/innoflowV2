@@ -287,6 +287,7 @@ export default function ProjectDetail() {
                         placeholder="Client naam"
                         className="text-white font-medium text-sm"
                         iconClassName="!text-white hover:!bg-white/20"
+                        alwaysShowIcon={true}
                         type="text"
                       />
                     </div>
@@ -299,6 +300,7 @@ export default function ProjectDetail() {
                         placeholder="€0"
                         className="text-white font-medium text-sm"
                         iconClassName="!text-white hover:!bg-white/20"
+                        alwaysShowIcon={true}
                         type="number"
                         prefix="€"
                       />
@@ -312,6 +314,7 @@ export default function ProjectDetail() {
                         placeholder="0h"
                         className="text-white font-medium text-sm"
                         iconClassName="!text-white hover:!bg-white/20"
+                        alwaysShowIcon={true}
                         type="number"
                       />
                     </div>
