@@ -57,7 +57,6 @@ import {
   updateProjectStatusIfNeeded
 } from '@/utils/progressCalculations';
 import EfficiencyDots from '@/components/ui/EfficiencyDots';
-import GlassIcons from '@/components/ui/GlassIcons';
 
 interface IntegratedProjectTimelineProps {
   project: Project;
@@ -431,47 +430,12 @@ export default function IntegratedProjectTimeline({
   return (
     <Card>
       <CardContent className="p-6">
-        <div className="flex flex-col gap-4 mb-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Project Timeline</h2>
-            <PhaseCreationDialog 
-              projectId={project.id} 
-              onPhaseCreated={onRefresh} 
-            />
-          </div>
-          
-          {/* Timeline Glass Icons */}
-          <div className="flex justify-center">
-            <GlassIcons 
-              className="mini-icons"
-              items={[
-                {
-                  icon: <Calendar />,
-                  color: 'blue',
-                  label: 'Planning',
-                  onClick: () => {}
-                },
-                {
-                  icon: <CheckCircle />,
-                  color: 'green', 
-                  label: 'Voortgang',
-                  onClick: () => {}
-                },
-                {
-                  icon: <Clock />,
-                  color: 'orange',
-                  label: 'Tijd',
-                  onClick: () => {}
-                },
-                {
-                  icon: <BarChart3 />,
-                  color: 'purple',
-                  label: 'Analyse',
-                  onClick: () => {}
-                }
-              ]}
-            />
-          </div>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Project Timeline</h2>
+          <PhaseCreationDialog 
+            projectId={project.id} 
+            onPhaseCreated={onRefresh} 
+          />
         </div>
 
         <div className="space-y-4">

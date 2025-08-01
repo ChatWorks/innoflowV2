@@ -13,11 +13,7 @@ import {
   Clock,
   CheckCircle,
   Circle,
-  PlayCircle,
-  User,
-  TrendingUp,
-  Timer,
-  DollarSign
+  PlayCircle
 } from 'lucide-react';
 import { Project, Deliverable, TimeEntry, Task, Phase } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,7 +34,6 @@ import {
   getTotalProjectDeclarable
 } from '@/utils/progressCalculations';
 import EfficiencyDots from '@/components/ui/EfficiencyDots';
-import GlassIcons from '@/components/ui/GlassIcons';
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -288,41 +283,6 @@ export default function ProjectDetail() {
                   <p className="text-white/90 text-lg mb-6">
                     Real-time overzicht van je project voortgang en taken
                   </p>
-                  
-                  {/* Glass Icons for Project Meta */}
-                  <div className="mb-6">
-                    <GlassIcons 
-                      className="header-icons"
-                      items={[
-                        {
-                          icon: <User />,
-                          color: 'blue',
-                          label: project.client || 'Client naam',
-                          onClick: () => {}
-                        },
-                        {
-                          icon: <DollarSign />,
-                          color: 'green',
-                          label: project.project_value ? formatCurrency(project.project_value) : '€0',
-                          onClick: () => {}
-                        },
-                        {
-                          icon: <Timer />,
-                          color: 'orange',
-                          label: `${project.total_hours || 0}h`,
-                          onClick: () => {}
-                        },
-                        {
-                          icon: <TrendingUp />,
-                          color: 'purple',
-                          label: `${projectProgress}%`,
-                          onClick: () => {}
-                        }
-                      ]}
-                    />
-                  </div>
-                  
-                  {/* Editable badges below icons */}
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2 px-4 py-2 rounded-full" 
                          style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
