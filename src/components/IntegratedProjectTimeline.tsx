@@ -15,6 +15,7 @@ import {
   CheckCircle, 
   Circle, 
   Plus,
+  PlusCircle,
   BarChart3,
   List 
 } from 'lucide-react';
@@ -31,6 +32,7 @@ import TaskTimer from './TaskTimer';
 import InlineDateEdit from './InlineDateEdit';
 import InlineEditField from './InlineEditField';
 import PhaseCreationDialog from './PhaseCreationDialog';
+import ManualTimeDialog from './ManualTimeDialog';
 import { 
   getTaskProgress, 
   getDeliverableProgress, 
@@ -85,6 +87,17 @@ export default function IntegratedProjectTimeline({
   const [localDeliverables, setLocalDeliverables] = useState<Deliverable[]>(deliverables);
   const [taskTimeSpent, setTaskTimeSpent] = useState<Record<string, number>>({});
   const [statsMode, setStatsMode] = useState<Record<string, boolean>>({});
+  const [manualTimeDialog, setManualTimeDialog] = useState<{
+    isOpen: boolean;
+    targetType: 'task' | 'deliverable' | 'phase';
+    targetId: string;
+    targetName: string;
+  }>({
+    isOpen: false,
+    targetType: 'task',
+    targetId: '',
+    targetName: ''
+  });
   const { toast } = useToast();
   const { refreshTrigger, timeEntryRefreshTrigger, lastRefreshProjectId, lastRefreshTaskId } = useTimer();
 
@@ -393,6 +406,25 @@ export default function IntegratedProjectTimeline({
     });
   };
 
+  // Manual time dialog handlers
+  const openManualTimeDialog = (targetType: 'task' | 'deliverable' | 'phase', targetId: string, targetName: string) => {
+    setManualTimeDialog({
+      isOpen: true,
+      targetType,
+      targetId,
+      targetName
+    });
+  };
+
+  const closeManualTimeDialog = () => {
+    setManualTimeDialog({
+      isOpen: false,
+      targetType: 'task',
+      targetId: '',
+      targetName: ''
+    });
+  };
+
   const formatTime = (seconds: number) => {
     if (seconds === 0) return '0s';
     const hours = Math.floor(seconds / 3600);
@@ -492,26 +524,50 @@ export default function IntegratedProjectTimeline({
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-6">
-                          {/* Compact Progress & Efficiency */}
-                          <div className="flex items-center gap-3">
-                            <EfficiencyDots 
-                              value={getPhaseEfficiency(phase, localDeliverables, localTasks, timeEntries)}
-                              size="lg"
-                              showLabel={false}
-                              showPercentage={false}
-                              entityName={`Fase: ${phase.name}`}
-                              statsData={{
-                                budgetHours: getPhaseDeclarableHours(phase, localDeliverables),
-                                actualHours: formatTimeToHours(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries)),
-                                progressPercentage: phaseProgressPercentage,
-                                timeRemaining: Math.max(0, getPhaseDeclarableHours(phase, localDeliverables) - formatTimeToHours(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries)))
-                              }}
-                            />
-                            <span className="text-base font-medium text-foreground min-w-[80px]">
-                              {formatTime(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries))}/{getPhaseDeclarableHours(phase, localDeliverables)}h
-                            </span>
-                          </div>
+                         <div className="flex items-center gap-6">
+                           {/* Compact Progress & Efficiency */}
+                           <div className="flex items-center gap-3">
+                             <EfficiencyDots 
+                               value={getPhaseEfficiency(phase, localDeliverables, localTasks, timeEntries)}
+                               size="lg"
+                               showLabel={false}
+                               showPercentage={false}
+                               entityName={`Fase: ${phase.name}`}
+                               statsData={{
+                                 budgetHours: getPhaseDeclarableHours(phase, localDeliverables),
+                                 actualHours: formatTimeToHours(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries)),
+                                 progressPercentage: phaseProgressPercentage,
+                                 timeRemaining: Math.max(0, getPhaseDeclarableHours(phase, localDeliverables) - formatTimeToHours(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries)))
+                               }}
+                             />
+                             
+                             {/* Manual time add button for phase */}
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               className="h-8 w-8 p-0 hover:bg-primary/10"
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 openManualTimeDialog('phase', phase.id, phase.name);
+                               }}
+                               title="Handmatige tijd toevoegen aan fase"
+                             >
+                               <PlusCircle className="h-5 w-5 text-muted-foreground hover:text-primary" />
+                             </Button>
+                             
+                             <span className="text-base font-medium text-foreground min-w-[80px]">
+                               <div className="flex flex-col items-end">
+                                 <span>
+                                   {formatTime(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries))}/{getPhaseDeclarableHours(phase, localDeliverables)}h
+                                 </span>
+                                 {(phase as any).manual_time_seconds > 0 && (
+                                   <span className="text-xs text-blue-600 dark:text-blue-400">
+                                     +{formatTime((phase as any).manual_time_seconds || 0)}
+                                   </span>
+                                 )}
+                               </div>
+                             </span>
+                           </div>
                           
                           <InlineDateEdit
                             value={phase.target_date || undefined}
@@ -559,33 +615,56 @@ export default function IntegratedProjectTimeline({
                                           {getCompactStatusBadge(deliverable.status.toLowerCase(), deliverableProgressPercentage)}
                                         </span>
                                       </div>
-                                      
-                                      <div className="flex items-center gap-4">
-                                        <EfficiencyDots 
-                                          value={getDeliverableEfficiency(deliverable, localTasks, timeEntries)}
-                                          size="md"
-                                          showLabel={false}
-                                          showPercentage={false}
-                                          compact={true}
-                                          entityName={deliverable.title}
-                                          statsData={{
-                                            budgetHours: deliverable.declarable_hours || 0,
-                                            actualHours: formatTimeToHours(getDeliverableTimerTime(deliverable, localTasks, timeEntries)),
-                                            progressPercentage: Math.round(getDeliverableProgress(deliverable, localTasks))
-                                          }}
-                                        />
-                                        
-                                        <span className="text-sm font-medium text-foreground min-w-[60px]">
-                                          {formatTime(getDeliverableTimerTime(deliverable, localTasks, timeEntries))}/
-                                          <InlineEditField
-                                            value={`${deliverable.declarable_hours || 0}h`}
-                                            onSave={(newHours) => updateDeliverableHours(deliverable.id, newHours.replace('h', ''))}
-                                            placeholder="0h"
-                                            className="text-sm font-medium inline ml-0"
-                                            type="text"
-                                          />
-                                        </span>
-                                      </div>
+                                       
+                                       <div className="flex items-center gap-4">
+                                         <EfficiencyDots 
+                                           value={getDeliverableEfficiency(deliverable, localTasks, timeEntries)}
+                                           size="md"
+                                           showLabel={false}
+                                           showPercentage={false}
+                                           compact={true}
+                                           entityName={deliverable.title}
+                                           statsData={{
+                                             budgetHours: deliverable.declarable_hours || 0,
+                                             actualHours: formatTimeToHours(getDeliverableTimerTime(deliverable, localTasks, timeEntries)),
+                                             progressPercentage: Math.round(getDeliverableProgress(deliverable, localTasks))
+                                           }}
+                                         />
+                                         
+                                         {/* Manual time add button for deliverable */}
+                                         <Button
+                                           variant="ghost"
+                                           size="sm"
+                                           className="h-8 w-8 p-0 hover:bg-primary/10"
+                                           onClick={(e) => {
+                                             e.stopPropagation();
+                                             openManualTimeDialog('deliverable', deliverable.id, deliverable.title);
+                                           }}
+                                           title="Handmatige tijd toevoegen aan deliverable"
+                                         >
+                                           <PlusCircle className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                                         </Button>
+                                         
+                                         <span className="text-sm font-medium text-foreground min-w-[60px]">
+                                           <div className="flex flex-col items-end">
+                                             <span>
+                                               {formatTime(getDeliverableTimerTime(deliverable, localTasks, timeEntries))}/
+                                               <InlineEditField
+                                                 value={`${deliverable.declarable_hours || 0}h`}
+                                                 onSave={(newHours) => updateDeliverableHours(deliverable.id, newHours.replace('h', ''))}
+                                                 placeholder="0h"
+                                                 className="text-sm font-medium inline ml-0"
+                                                 type="text"
+                                               />
+                                             </span>
+                                             {(deliverable as any).manual_time_seconds > 0 && (
+                                               <span className="text-xs text-blue-600 dark:text-blue-400">
+                                                 +{formatTime((deliverable as any).manual_time_seconds || 0)}
+                                               </span>
+                                             )}
+                                           </div>
+                                         </span>
+                                       </div>
                                     </div>
                                   </CollapsibleTrigger>
 
@@ -695,12 +774,33 @@ export default function IntegratedProjectTimeline({
                                                        projectName={project.name}
                                                        onTimerChange={onRefresh}
                                                      />
-                                                   </div>
-                                                   
-                                                   {/* Time display */}
-                                                   <div className="text-sm font-medium text-foreground min-w-[60px] text-right shrink-0">
-                                                     {formatTime(taskTimeSpent[task.id] || 0)}
-                                                   </div>
+                                                    </div>
+                                                    
+                                                    {/* Manual time add button */}
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      className="h-8 w-8 p-0 hover:bg-primary/10"
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        openManualTimeDialog('task', task.id, task.title);
+                                                      }}
+                                                      title="Handmatige tijd toevoegen"
+                                                    >
+                                                      <PlusCircle className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                                                    </Button>
+                                                    
+                                                    {/* Time display with manual time indication */}
+                                                    <div className="text-sm font-medium text-foreground min-w-[80px] text-right shrink-0">
+                                                      <div className="flex flex-col items-end">
+                                                        <span>{formatTime(taskTimeSpent[task.id] || 0)}</span>
+                                                        {(task as any).manual_time_seconds > 0 && (
+                                                          <span className="text-xs text-blue-600 dark:text-blue-400">
+                                                            +{formatTime((task as any).manual_time_seconds || 0)}
+                                                          </span>
+                                                        )}
+                                                      </div>
+                                                    </div>
                                                  </div>
                                                ))}
                                            </div>
@@ -730,6 +830,17 @@ export default function IntegratedProjectTimeline({
           )}
         </div>
       </CardContent>
+      
+      {/* Manual Time Dialog */}
+      <ManualTimeDialog
+        isOpen={manualTimeDialog.isOpen}
+        onClose={closeManualTimeDialog}
+        onTimeAdded={onRefresh}
+        targetType={manualTimeDialog.targetType}
+        targetId={manualTimeDialog.targetId}
+        targetName={manualTimeDialog.targetName}
+        projectId={project.id}
+      />
     </Card>
   );
 }
