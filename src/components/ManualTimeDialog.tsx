@@ -34,8 +34,8 @@ export default function ManualTimeDialog({
   targetName,
   projectId
 }: ManualTimeDialogProps) {
-  const [hours, setHours] = useState(0);
-  const [minutes, setMinutes] = useState(0);
+  const [hours, setHours] = useState('');
+  const [minutes, setMinutes] = useState('');
   const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [mode, setMode] = useState<'add' | 'remove'>('add');
@@ -89,7 +89,10 @@ export default function ManualTimeDialog({
     e.preventDefault();
     
     // Validation
-    const totalMinutes = hours * 60 + minutes;
+    const hoursNum = parseInt(hours) || 0;
+    const minutesNum = parseInt(minutes) || 0;
+    const totalMinutes = hoursNum * 60 + minutesNum;
+    
     if (totalMinutes < 1) {
       toast({
         title: "Validatie Error",
@@ -99,10 +102,10 @@ export default function ManualTimeDialog({
       return;
     }
 
-    if (hours > 23 || minutes > 59) {
+    if (minutesNum > 59) {
       toast({
         title: "Validatie Error", 
-        description: "Uren moeten tussen 0-23 zijn en minuten tussen 0-59",
+        description: "Minuten moeten tussen 0-59 zijn",
         variant: "destructive",
       });
       return;
@@ -177,8 +180,8 @@ export default function ManualTimeDialog({
       });
 
       // Reset form and fetch updated time
-      setHours(0);
-      setMinutes(0);
+      setHours('');
+      setMinutes('');
       setDescription('');
       setMode('add');
       await fetchCurrentManualTime();
@@ -201,8 +204,8 @@ export default function ManualTimeDialog({
 
   const handleClose = () => {
     if (!isLoading) {
-      setHours(0);
-      setMinutes(0);
+      setHours('');
+      setMinutes('');
       setDescription('');
       setMode('add');
       onClose();
@@ -279,10 +282,10 @@ export default function ManualTimeDialog({
                   id="hours"
                   type="number"
                   min="0"
-                  max="23"
                   value={hours}
-                  onChange={(e) => setHours(Math.max(0, Math.min(23, parseInt(e.target.value) || 0)))}
+                  onChange={(e) => setHours(e.target.value)}
                   className="pr-12"
+                  placeholder="0"
                   autoFocus
                   disabled={isLoading}
                 />
@@ -302,19 +305,23 @@ export default function ManualTimeDialog({
                   max="59"
                   value={minutes}
                   onChange={(e) => {
-                    const newMinutes = Math.max(0, Math.min(59, parseInt(e.target.value) || 0));
-                    setMinutes(newMinutes);
+                    const value = e.target.value;
+                    const numValue = parseInt(value) || 0;
                     
-                    // Auto-convert minutes > 59 to hours
-                    if (e.target.value && parseInt(e.target.value) >= 60) {
-                      const totalMinutes = parseInt(e.target.value);
+                    if (numValue >= 60) {
+                      // Auto-convert minutes > 59 to hours
+                      const totalMinutes = numValue;
                       const extraHours = Math.floor(totalMinutes / 60);
                       const remainingMinutes = totalMinutes % 60;
-                      setHours(prev => Math.min(23, prev + extraHours));
-                      setMinutes(remainingMinutes);
+                      const currentHours = parseInt(hours) || 0;
+                      setHours((currentHours + extraHours).toString());
+                      setMinutes(remainingMinutes.toString());
+                    } else {
+                      setMinutes(value);
                     }
                   }}
                   className="pr-16"
+                  placeholder="0"
                   disabled={isLoading}
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">
@@ -348,7 +355,7 @@ export default function ManualTimeDialog({
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || (hours === 0 && minutes === 0)}
+              disabled={isLoading || (hours === '' && minutes === '') || (parseInt(hours) === 0 && parseInt(minutes) === 0)}
               className="min-w-[120px]"
             >
               {isLoading ? (
