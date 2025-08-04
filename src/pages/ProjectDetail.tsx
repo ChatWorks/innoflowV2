@@ -14,7 +14,9 @@ import {
   CheckCircle,
   Circle,
   PlayCircle,
-  RotateCcw
+  RotateCcw,
+  Globe,
+  Plus
 } from 'lucide-react';
 import { Project, Deliverable, TimeEntry, Task, Phase } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,6 +27,8 @@ import Layout from '@/components/Layout';
 import InlineEditField from '@/components/InlineEditField';
 import InlineDateEdit from '@/components/InlineDateEdit';
 import IntegratedProjectTimeline from '@/components/IntegratedProjectTimeline';
+import { ClientPortalDialog } from '@/components/ClientPortalDialog';
+import { ClientUpdateDialog } from '@/components/ClientUpdateDialog';
 import {
   getProjectProgress,
   getTotalProjectTimeSpent,
@@ -45,6 +49,8 @@ export default function ProjectDetail() {
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPortalDialog, setShowPortalDialog] = useState(false);
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const { toast } = useToast();
   const { timeEntryRefreshTrigger } = useTimer();
 
@@ -411,9 +417,27 @@ export default function ProjectDetail() {
                     </div>
                   </div>
                 </div>
-                <Badge className="bg-white/20 text-white border-white/30 px-4 py-2 text-sm font-medium">
-                  {project.status}
-                </Badge>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPortalDialog(true)}
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  >
+                    <Globe className="mr-2 h-4 w-4" />
+                    Client Portal
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowUpdateDialog(true)}
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Update
+                  </Button>
+                  <Badge className="bg-white/20 text-white border-white/30 px-4 py-2 text-sm font-medium">
+                    {project.status}
+                  </Badge>
+                </div>
               </div>
             </div>
           </div>
@@ -510,6 +534,26 @@ export default function ProjectDetail() {
           }}
         />
       </main>
+
+      {/* Client Portal Dialog */}
+      <ClientPortalDialog
+        isOpen={showPortalDialog}
+        onClose={() => setShowPortalDialog(false)}
+        projectId={id!}
+        projectName={project.name}
+        clientName={project.client}
+      />
+
+      {/* Client Update Dialog */}
+      <ClientUpdateDialog
+        isOpen={showUpdateDialog}
+        onClose={() => setShowUpdateDialog(false)}
+        projectId={id!}
+        onUpdateCreated={() => {
+          // Optionally refresh data when update is created
+          console.log('Client update created');
+        }}
+      />
     </Layout>
   );
 }

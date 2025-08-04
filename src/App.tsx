@@ -13,6 +13,7 @@ import ProjectSetupWizard from "./components/ProjectSetupWizard";
 import Leads from "./pages/Leads";
 import LeadDetail from "./pages/LeadDetail";
 import Auth from "./pages/Auth";
+import ClientPortal from "./pages/ClientPortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,8 @@ const App = () => (
                   <LeadDetail />
                 </ProtectedRoute>
               } />
+              {/* Public route for client portal - no auth required */}
+              <Route path="/portal/:hash" element={<ClientPortal />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
