@@ -1,17 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Clock, Target, Zap, CheckCircle } from 'lucide-react';
-import { Task, TimeEntry, Deliverable } from '@/types/project';
+import { Task, TimeEntry, Deliverable, Phase } from '@/types/project';
 import { formatTime, getProjectEfficiency, getTotalProjectDeclarable, formatCurrency } from '@/utils/progressCalculations';
 
 interface ProjectInsightsProps {
   tasks: Task[];
   timeEntries: TimeEntry[];
   deliverables: Deliverable[];
+  phases: Phase[];
   hourlyRate?: number;
 }
 
-export default function ProjectInsights({ tasks, timeEntries, deliverables, hourlyRate = 75 }: ProjectInsightsProps) {
+export default function ProjectInsights({ tasks, timeEntries, deliverables, phases, hourlyRate = 75 }: ProjectInsightsProps) {
   // Calculate total actual hours worked
   const actualHours = timeEntries
     .filter(entry => entry.duration_minutes)
@@ -26,7 +27,7 @@ export default function ProjectInsights({ tasks, timeEntries, deliverables, hour
     .reduce((sum, entry) => sum + (entry.duration_seconds || 0), 0) / 3600;
 
   // Calculate efficiency (timer hours / declarable hours * 100)
-  const efficiency = getProjectEfficiency(deliverables, tasks, timeEntries);
+  const efficiency = getProjectEfficiency(deliverables, tasks, timeEntries, phases);
 
   // Calculate completion percentage (completed tasks / total tasks)
   const completionPercentage = tasks.length > 0 ? 

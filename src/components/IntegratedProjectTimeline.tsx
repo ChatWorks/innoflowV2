@@ -55,6 +55,8 @@ import {
   getPhaseDeclarableHours,
   getPhaseTimerTime,
   getDeliverableTimerTime,
+  getDeliverableTotalTime,
+  getPhaseTotalTime,
   getProjectProgress,
   updateProjectStatusIfNeeded
 } from '@/utils/progressCalculations';
@@ -427,19 +429,7 @@ export default function IntegratedProjectTimeline({
     });
   };
 
-  const formatTime = (seconds: number) => {
-    if (seconds === 0) return '0s';
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    
-    let result = '';
-    if (hours > 0) result += `${hours}h `;
-    if (minutes > 0) result += `${minutes}m `;
-    if (secs > 0 || result === '') result += `${secs}s`;
-    
-    return result.trim();
-  };
+  // Use imported formatTime function from utils
 
   const calculateDeliverableStats = (deliverable: Deliverable) => {
     const deliverableTasks = localTasks.filter(t => t.deliverable_id === deliverable.id);
@@ -537,9 +527,9 @@ export default function IntegratedProjectTimeline({
                                entityName={`Fase: ${phase.name}`}
                                statsData={{
                                  budgetHours: getPhaseDeclarableHours(phase, localDeliverables),
-                                 actualHours: formatTimeToHours(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries)),
+                                 actualHours: formatTimeToHours(getPhaseTotalTime(phase, localDeliverables, localTasks, timeEntries)),
                                  progressPercentage: phaseProgressPercentage,
-                                 timeRemaining: Math.max(0, getPhaseDeclarableHours(phase, localDeliverables) - formatTimeToHours(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries)))
+                                 timeRemaining: Math.max(0, getPhaseDeclarableHours(phase, localDeliverables) - formatTimeToHours(getPhaseTotalTime(phase, localDeliverables, localTasks, timeEntries)))
                                }}
                              />
                              
@@ -560,7 +550,7 @@ export default function IntegratedProjectTimeline({
                              <span className="text-base font-medium text-foreground min-w-[80px]">
                                <div className="flex flex-col items-end">
                                  <span>
-                                   {formatTime(getPhaseTimerTime(phase, localDeliverables, localTasks, timeEntries))}/{getPhaseDeclarableHours(phase, localDeliverables)}h
+                                   {formatTime(getPhaseTotalTime(phase, localDeliverables, localTasks, timeEntries))}/{getPhaseDeclarableHours(phase, localDeliverables)}h
                                  </span>
                                  {(phase as any).manual_time_seconds > 0 && (
                                    <span className="text-xs text-blue-600 dark:text-blue-400">
@@ -628,7 +618,7 @@ export default function IntegratedProjectTimeline({
                                            entityName={deliverable.title}
                                            statsData={{
                                              budgetHours: deliverable.declarable_hours || 0,
-                                             actualHours: formatTimeToHours(getDeliverableTimerTime(deliverable, localTasks, timeEntries)),
+                                             actualHours: formatTimeToHours(getDeliverableTotalTime(deliverable, localTasks, timeEntries)),
                                              progressPercentage: Math.round(getDeliverableProgress(deliverable, localTasks))
                                            }}
                                          />
@@ -650,7 +640,7 @@ export default function IntegratedProjectTimeline({
                                          <span className="text-sm font-medium text-foreground min-w-[60px]">
                                            <div className="flex flex-col items-end">
                                              <span>
-                                               {formatTime(getDeliverableTimerTime(deliverable, localTasks, timeEntries))}/
+                                               {formatTime(getDeliverableTotalTime(deliverable, localTasks, timeEntries))}/
                                                <InlineEditField
                                                  value={`${deliverable.declarable_hours || 0}h`}
                                                  onSave={(newHours) => updateDeliverableHours(deliverable.id, newHours.replace('h', ''))}

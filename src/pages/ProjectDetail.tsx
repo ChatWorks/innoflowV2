@@ -178,7 +178,7 @@ export default function ProjectDetail() {
   // Time-based calculations
   const totalProjectTimeSpent = getTotalProjectTimeSpent(timeEntries);
   const projectProgress = getProjectProgress(phases, deliverables, tasks);
-  const projectEfficiency = getProjectEfficiency(deliverables, tasks, timeEntries);
+  const projectEfficiency = getProjectEfficiency(deliverables, tasks, timeEntries, phases);
   const totalDeclarableHours = deliverables.reduce((sum, deliverable) => sum + (deliverable.declarable_hours || 0), 0);
 
   // Inline editing functions
