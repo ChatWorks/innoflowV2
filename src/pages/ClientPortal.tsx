@@ -37,7 +37,7 @@ export default function ClientPortal() {
 
       console.log('Fetching portal data for hash:', hash);
 
-      // First get portal data using the function
+      // Get all portal data using the enhanced function
       const { data: portalResult, error: portalError } = await supabase
         .rpc('get_portal_data', { portal_hash_param: hash });
 
@@ -51,39 +51,22 @@ export default function ClientPortal() {
       }
 
       const parsedPortalData = typeof portalResult === 'string' ? JSON.parse(portalResult) : portalResult;
-      setPortalData(parsedPortalData as PortalData);
-
-      // Now fetch progress data
-      const projectId = parsedPortalData.portal.project_id;
       
-      const [
-        { data: phases },
-        { data: deliverables }, 
-        { data: tasks },
-        { data: clientUpdates }
-      ] = await Promise.all([
-        supabase.from('phases').select('*').eq('project_id', projectId).order('target_date'),
-        supabase.from('deliverables').select('*').eq('project_id', projectId).order('target_date'),
-        supabase.from('tasks').select('*').in('deliverable_id', 
-          await supabase.from('deliverables').select('id').eq('project_id', projectId)
-            .then(res => res.data?.map(d => d.id) || [])
-        ),
-        supabase.from('client_updates').select('*')
-          .eq('project_id', projectId)
-          .eq('is_visible_to_client', true)
-          .order('created_at', { ascending: false })
-          .limit(5)
-      ]);
+      // Set portal data
+      setPortalData({ portal: parsedPortalData.portal } as PortalData);
+
+      // Extract data from the function result
+      const phasesData = parsedPortalData.phases || [];
+      const deliverablesData = parsedPortalData.deliverables || [];
+      const tasksData = parsedPortalData.tasks || [];
+      const updatesData = parsedPortalData.updates || [];
+
+      console.log('Extracted data:', { phasesData, deliverablesData, tasksData, updatesData });
 
       // Calculate progress
-      const phasesData = phases || [];
-      const deliverablesData = deliverables || [];
-      const tasksData = tasks || [];
-      const updatesData = clientUpdates || [];
-
       const overallProgress = getProjectProgress(phasesData as Phase[], deliverablesData as Deliverable[], tasksData as Task[]);
 
-      const phaseProgress = phasesData.map(phase => ({
+      const phaseProgress = phasesData.map((phase: any) => ({
         id: phase.id,
         name: phase.name,
         progress: getPhaseProgress(phase as Phase, deliverablesData as Deliverable[], tasksData as Task[]),
@@ -91,7 +74,7 @@ export default function ClientPortal() {
         target_date: phase.target_date
       }));
 
-      const deliverableProgress = deliverablesData.map(deliverable => ({
+      const deliverableProgress = deliverablesData.map((deliverable: any) => ({
         id: deliverable.id,
         title: deliverable.title,
         status: deliverable.status as 'Pending' | 'In Progress' | 'Completed',
@@ -99,7 +82,7 @@ export default function ClientPortal() {
         due_date: deliverable.due_date
       }));
 
-      const recentUpdates = updatesData.map(update => ({
+      const recentUpdates = updatesData.map((update: any) => ({
         title: update.title,
         message: update.message,
         date: update.created_at
@@ -114,7 +97,7 @@ export default function ClientPortal() {
 
     } catch (error: any) {
       console.error('Error fetching portal data:', error);
-      setError('Failed to load portal data');
+      setError('Fout bij het laden van portal data: ' + error.message);
     } finally {
       setLoading(false);
     }
