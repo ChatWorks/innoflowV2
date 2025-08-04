@@ -52,15 +52,26 @@ export default function ManualTimeDialog({
   const fetchCurrentManualTime = async () => {
     try {
       const tableName = targetType === 'task' ? 'tasks' : targetType === 'deliverable' ? 'deliverables' : 'phases';
-      const { data } = await supabase
+      console.log('Fetching manual time for:', { tableName, targetId, targetType });
+      
+      const { data, error } = await supabase
         .from(tableName as any)
         .select('manual_time_seconds')
         .eq('id', targetId)
         .single();
       
-      setCurrentManualTime((data as any)?.manual_time_seconds || 0);
+      if (error) {
+        console.error('Supabase error fetching manual time:', error);
+        setCurrentManualTime(0);
+        return;
+      }
+      
+      const manualTime = (data as any)?.manual_time_seconds || 0;
+      console.log('Current manual time fetched:', manualTime);
+      setCurrentManualTime(manualTime);
     } catch (error) {
       console.error('Error fetching current manual time:', error);
+      setCurrentManualTime(0);
     }
   };
 
@@ -98,17 +109,22 @@ export default function ManualTimeDialog({
     }
 
     setIsLoading(true);
+    console.log('Submit attempt:', { mode, totalMinutes, currentManualTime, targetType, targetId });
 
     try {
       const totalSeconds = totalMinutes * 60;
       const isAdding = mode === 'add';
 
+      console.log('Processing:', { isAdding, totalSeconds, currentManualTime });
+
       if (!isAdding && totalSeconds > currentManualTime) {
+        console.log('Validation failed: trying to remove more than available');
         toast({
           title: "Validatie Error",
-          description: "Je kunt niet meer tijd verwijderen dan er handmatig toegevoegd is",
+          description: `Je kunt niet meer tijd verwijderen dan er handmatig toegevoegd is. Beschikbaar: ${formatTime(currentManualTime)}`,
           variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
 
