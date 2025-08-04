@@ -208,7 +208,7 @@ export const ClientPortalDialog = ({
   const sendEmailToClient = () => {
     const subject = encodeURIComponent(`Project Portal - ${projectName}`);
     const body = encodeURIComponent(
-      `Hi ${clientName},\n\nYou can now track the progress of your project "${projectName}" through our secure client portal:\n\n${portalUrl}\n\nBest regards,\nYour Project Team`
+      `Beste ${clientName},\n\nJe kunt nu de voortgang van jouw project "${projectName}" volgen via onze beveiligde client portal:\n\n${portalUrl}\n\nMet vriendelijke groet,\nJouw Project Team`
     );
     window.open(`mailto:?subject=${subject}&body=${body}`);
   };
