@@ -64,8 +64,8 @@ export const ClientPortalDialog = ({
       }
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: "Failed to fetch existing portal",
+        title: "Fout",
+        description: "Kon bestaande portal niet ophalen",
         variant: "destructive",
       });
     }
@@ -79,6 +79,8 @@ export const ClientPortalDialog = ({
         .rpc('generate_portal_hash');
 
       if (hashError) throw hashError;
+
+      console.log('Generated hash:', hashData);
 
       const portalData = {
         project_id: projectId,
@@ -100,13 +102,13 @@ export const ClientPortalDialog = ({
       setPassword(''); // Clear password from state
       
       toast({
-        title: "Portal Created!",
-        description: "Client portal has been successfully generated",
+        title: "Portal Aangemaakt!",
+        description: "Client portal is succesvol gegenereerd",
       });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create portal",
+        title: "Fout",
+        description: error.message || "Kon portal niet aanmaken",
         variant: "destructive",
       });
     } finally {
@@ -137,13 +139,13 @@ export const ClientPortalDialog = ({
       setPassword(''); // Clear password from state
       
       toast({
-        title: "Portal Updated!",
-        description: "Portal settings have been updated",
+        title: "Portal Bijgewerkt!",
+        description: "Portal instellingen zijn bijgewerkt",
       });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update portal",
+        title: "Fout",
+        description: error.message || "Kon portal niet bijwerken",
         variant: "destructive",
       });
     } finally {
@@ -166,13 +168,13 @@ export const ClientPortalDialog = ({
       setPortal(null);
       
       toast({
-        title: "Portal Deactivated",
-        description: "Client portal has been deactivated",
+        title: "Portal Gedeactiveerd",
+        description: "Client portal is gedeactiveerd",
       });
     } catch (error: any) {
       toast({
-        title: "Error", 
-        description: error.message || "Failed to deactivate portal",
+        title: "Fout", 
+        description: error.message || "Kon portal niet deactiveren",
         variant: "destructive",
       });
     } finally {
@@ -184,13 +186,13 @@ export const ClientPortalDialog = ({
     try {
       await navigator.clipboard.writeText(text);
       toast({
-        title: "Copied!",
-        description: "Portal URL copied to clipboard",
+        title: "Gekopieerd!",
+        description: "Portal URL gekopieerd naar klembord",
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to copy to clipboard",
+        title: "Fout",
+        description: "Kon niet kopiëren naar klembord",
         variant: "destructive",
       });
     }
