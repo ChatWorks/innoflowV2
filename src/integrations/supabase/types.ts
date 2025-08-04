@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_portals: {
+        Row: {
+          access_count: number
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          last_accessed: string | null
+          password_hash: string | null
+          portal_hash: string
+          project_id: string
+          show_team_names: boolean
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          access_count?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_accessed?: string | null
+          password_hash?: string | null
+          portal_hash: string
+          project_id: string
+          show_team_names?: boolean
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          access_count?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          last_accessed?: string | null
+          password_hash?: string | null
+          portal_hash?: string
+          project_id?: string
+          show_team_names?: boolean
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      client_updates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_visible_to_client: boolean
+          message: string
+          project_id: string
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_visible_to_client?: boolean
+          message: string
+          project_id: string
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_visible_to_client?: boolean
+          message?: string
+          project_id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       deliverables: {
         Row: {
           created_at: string
@@ -21,6 +102,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          manual_time_seconds: number | null
           phase_id: string | null
           project_id: string
           status: string
@@ -35,6 +117,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          manual_time_seconds?: number | null
           phase_id?: string | null
           project_id: string
           status?: string
@@ -49,6 +132,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          manual_time_seconds?: number | null
           phase_id?: string | null
           project_id?: string
           status?: string
@@ -202,6 +286,45 @@ export type Database = {
         }
         Relationships: []
       }
+      manual_time_entries: {
+        Row: {
+          created_at: string
+          deliverable_id: string | null
+          description: string | null
+          id: string
+          phase_id: string | null
+          project_id: string
+          task_id: string | null
+          time_seconds: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deliverable_id?: string | null
+          description?: string | null
+          id?: string
+          phase_id?: string | null
+          project_id: string
+          task_id?: string | null
+          time_seconds: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deliverable_id?: string | null
+          description?: string | null
+          id?: string
+          phase_id?: string | null
+          project_id?: string
+          task_id?: string | null
+          time_seconds?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -242,6 +365,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          manual_time_seconds: number | null
           name: string
           project_id: string
           status: string | null
@@ -252,6 +376,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          manual_time_seconds?: number | null
           name: string
           project_id: string
           status?: string | null
@@ -262,12 +387,37 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          manual_time_seconds?: number | null
           name?: string
           project_id?: string
           status?: string | null
           target_date?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      portal_access_logs: {
+        Row: {
+          accessed_at: string
+          id: string
+          ip_address: unknown | null
+          portal_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          accessed_at?: string
+          id?: string
+          ip_address?: unknown | null
+          portal_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          accessed_at?: string
+          id?: string
+          ip_address?: unknown | null
+          portal_id?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -361,6 +511,7 @@ export type Database = {
           deliverable_id: string
           description: string | null
           id: string
+          manual_time_seconds: number | null
           title: string
           updated_at: string
           user_id: string | null
@@ -373,6 +524,7 @@ export type Database = {
           deliverable_id: string
           description?: string | null
           id?: string
+          manual_time_seconds?: number | null
           title: string
           updated_at?: string
           user_id?: string | null
@@ -385,6 +537,7 @@ export type Database = {
           deliverable_id?: string
           description?: string | null
           id?: string
+          manual_time_seconds?: number | null
           title?: string
           updated_at?: string
           user_id?: string | null
@@ -471,7 +624,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_portal_hash: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_portal_data: {
+        Args: { portal_hash_param: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
