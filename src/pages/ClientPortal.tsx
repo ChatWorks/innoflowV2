@@ -35,13 +35,18 @@ export default function ClientPortal() {
       setLoading(true);
       setError(null);
 
+      console.log('Fetching portal data for hash:', hash);
+
       // First get portal data using the function
       const { data: portalResult, error: portalError } = await supabase
         .rpc('get_portal_data', { portal_hash_param: hash });
 
+      console.log('Portal result:', portalResult);
+      console.log('Portal error:', portalError);
+
       if (portalError) throw portalError;
       if (!portalResult) {
-        setError('Portal not found or has expired');
+        setError("Portal niet gevonden of verlopen");
         return;
       }
 
@@ -127,8 +132,8 @@ export default function ClientPortal() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Portal Not Found</h1>
-          <p className="text-gray-600">This portal link may have expired or is no longer active.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Portal Niet Gevonden</h1>
+          <p className="text-gray-600">Deze portal link is mogelijk verlopen of niet meer actief.</p>
         </div>
       </div>
     );
