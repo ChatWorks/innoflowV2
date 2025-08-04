@@ -179,7 +179,7 @@ export function ProjectCard({ project, onClick, onUpdate }: ProjectCardProps) {
   // Calculate both progress and efficiency
   const projectProgress = getProjectProgress(phases, deliverables, tasks);
   const projectEfficiency = getProjectEfficiency(deliverables, tasks, timeEntries, phases);
-  const totalTimeSpent = getTotalProjectTimeSpent(timeEntries);
+  const totalTimeSpent = getTotalProjectTimeSpent(timeEntries, tasks, deliverables, phases);
   const totalDeclarable = getTotalProjectDeclarable(deliverables);
 
   return (

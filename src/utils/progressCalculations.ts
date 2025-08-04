@@ -293,11 +293,22 @@ export const getTotalPhaseDeclarable = (phase: Phase, deliverables: Deliverable[
   return getPhaseDeclarableHours(phase, deliverables);
 };
 
-// Calculate total time spent on project
-export const getTotalProjectTimeSpent = (timeEntries: TimeEntry[]): number => {
-  return timeEntries
+// Calculate total time spent on project (timer + manual time)
+export const getTotalProjectTimeSpent = (
+  timeEntries: TimeEntry[], 
+  tasks: Task[] = [], 
+  deliverables: Deliverable[] = [], 
+  phases: Phase[] = []
+): number => {
+  const timerTime = timeEntries
     .filter(entry => entry.duration_seconds)
     .reduce((sum, entry) => sum + (entry.duration_seconds || 0), 0);
+  
+  const taskManualTime = tasks.reduce((sum, task) => sum + ((task as any).manual_time_seconds || 0), 0);
+  const deliverableManualTime = deliverables.reduce((sum, deliverable) => sum + ((deliverable as any).manual_time_seconds || 0), 0);
+  const phaseManualTime = phases.reduce((sum, phase) => sum + ((phase as any).manual_time_seconds || 0), 0);
+  
+  return timerTime + taskManualTime + deliverableManualTime + phaseManualTime;
 };
 
 // Calculate total declarable hours for project

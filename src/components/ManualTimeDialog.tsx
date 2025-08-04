@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Clock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Clock, Plus, Minus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -37,7 +38,41 @@ export default function ManualTimeDialog({
   const [minutes, setMinutes] = useState(0);
   const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [mode, setMode] = useState<'add' | 'remove'>('add');
+  const [currentManualTime, setCurrentManualTime] = useState(0);
   const { toast } = useToast();
+
+  // Fetch current manual time when dialog opens
+  useEffect(() => {
+    if (isOpen && targetId) {
+      fetchCurrentManualTime();
+    }
+  }, [isOpen, targetId, targetType]);
+
+  const fetchCurrentManualTime = async () => {
+    try {
+      const tableName = targetType === 'task' ? 'tasks' : targetType === 'deliverable' ? 'deliverables' : 'phases';
+      const { data } = await supabase
+        .from(tableName as any)
+        .select('manual_time_seconds')
+        .eq('id', targetId)
+        .single();
+      
+      setCurrentManualTime((data as any)?.manual_time_seconds || 0);
+    } catch (error) {
+      console.error('Error fetching current manual time:', error);
+    }
+  };
+
+  const formatTime = (seconds: number): string => {
+    if (seconds <= 0) return '0m';
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    if (hours > 0) {
+      return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+    }
+    return `${minutes}m`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,11 +101,21 @@ export default function ManualTimeDialog({
 
     try {
       const totalSeconds = totalMinutes * 60;
+      const isAdding = mode === 'add';
+
+      if (!isAdding && totalSeconds > currentManualTime) {
+        toast({
+          title: "Validatie Error",
+          description: "Je kunt niet meer tijd verwijderen dan er handmatig toegevoegd is",
+          variant: "destructive",
+        });
+        return;
+      }
 
       // Create manual time entry record
       const entryData = {
         project_id: projectId,
-        time_seconds: totalSeconds,
+        time_seconds: isAdding ? totalSeconds : -totalSeconds,
         description: description.trim() || null,
       };
 
@@ -92,15 +137,8 @@ export default function ManualTimeDialog({
       // Update the target entity's manual_time_seconds
       const tableName = targetType === 'task' ? 'tasks' : targetType === 'deliverable' ? 'deliverables' : 'phases';
       
-      // First, get current manual time
-      const { data: currentData } = await supabase
-        .from(tableName as any)
-        .select('manual_time_seconds')
-        .eq('id', targetId)
-        .single();
-
-      const currentSeconds = (currentData as any)?.manual_time_seconds || 0;
-      const newSeconds = currentSeconds + totalSeconds;
+      // Calculate new total
+      const newSeconds = Math.max(0, currentManualTime + (isAdding ? totalSeconds : -totalSeconds));
 
       // Update with new total
       const { error: updateError } = await supabase
@@ -118,14 +156,16 @@ export default function ManualTimeDialog({
         : `${displayMinutes}m`;
 
       toast({
-        title: "Tijd Toegevoegd",
-        description: `${timeText} toegevoegd aan "${targetName}"`,
+        title: mode === 'add' ? "Tijd Toegevoegd" : "Tijd Verwijderd",
+        description: `${timeText} ${mode === 'add' ? 'toegevoegd aan' : 'verwijderd van'} "${targetName}"`,
       });
 
-      // Reset form
+      // Reset form and fetch updated time
       setHours(0);
       setMinutes(0);
       setDescription('');
+      setMode('add');
+      await fetchCurrentManualTime();
       
       // Trigger refresh
       onTimeAdded();
@@ -148,6 +188,7 @@ export default function ManualTimeDialog({
       setHours(0);
       setMinutes(0);
       setDescription('');
+      setMode('add');
       onClose();
     }
   };
@@ -170,14 +211,48 @@ export default function ManualTimeDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Tijd Toevoegen
+            {mode === 'add' ? 'Tijd Toevoegen' : 'Tijd Verwijderen'}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="text-sm text-muted-foreground">
-            Voor: <span className="font-medium text-foreground">{targetName}</span>
-            <span className="text-xs ml-2 bg-muted px-2 py-1 rounded">{targetTypeLabel}</span>
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Voor: <span className="font-medium text-foreground">{targetName}</span>
+              <span className="text-xs ml-2 bg-muted px-2 py-1 rounded">{targetTypeLabel}</span>
+            </div>
+            
+            {currentManualTime > 0 && (
+              <Badge variant="outline" className="text-xs">
+                Handmatig: {formatTime(currentManualTime)}
+              </Badge>
+            )}
+          </div>
+
+          {/* Mode Toggle */}
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={mode === 'add' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setMode('add')}
+              className="flex-1"
+              disabled={isLoading}
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Toevoegen
+            </Button>
+            <Button
+              type="button"
+              variant={mode === 'remove' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setMode('remove')}
+              className="flex-1"
+              disabled={isLoading || currentManualTime === 0}
+            >
+              <Minus className="h-4 w-4 mr-1" />
+              Verwijderen
+            </Button>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -266,7 +341,7 @@ export default function ManualTimeDialog({
                   Bezig...
                 </div>
               ) : (
-                'Tijd Toevoegen'
+                mode === 'add' ? 'Tijd Toevoegen' : 'Tijd Verwijderen'
               )}
             </Button>
           </DialogFooter>
