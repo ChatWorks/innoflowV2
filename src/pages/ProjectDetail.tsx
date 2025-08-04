@@ -13,7 +13,8 @@ import {
   Clock,
   CheckCircle,
   Circle,
-  PlayCircle
+  PlayCircle,
+  RotateCcw
 } from 'lucide-react';
 import { Project, Deliverable, TimeEntry, Task, Phase } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
@@ -249,6 +250,76 @@ export default function ProjectDetail() {
     }
   };
 
+  const resetAllTimeEntries = async () => {
+    if (!id) return;
+    
+    try {
+      console.log('Starting reset of all time entries for project:', id);
+      
+      // 1. Delete all time entries for this project
+      const { error: timeEntriesError } = await supabase
+        .from('time_entries')
+        .delete()
+        .eq('project_id', id);
+      
+      if (timeEntriesError) throw timeEntriesError;
+      
+      // 2. Skip manual time entries table as it doesn't exist in schema
+      console.log('Skipping manual time entries table (not in schema)');
+      
+      // 3. Reset manual_time_seconds to 0 for all tasks in this project
+      const taskIds = tasks.map(t => t.id);
+      if (taskIds.length > 0) {
+        const { error: tasksError } = await supabase
+          .from('tasks')
+          .update({ manual_time_seconds: 0 } as any)
+          .in('id', taskIds);
+        
+        if (tasksError) throw tasksError;
+      }
+      
+      // 4. Reset manual_time_seconds to 0 for all deliverables in this project
+      const deliverableIds = deliverables.map(d => d.id);
+      if (deliverableIds.length > 0) {
+        const { error: deliverablesError } = await supabase
+          .from('deliverables')
+          .update({ manual_time_seconds: 0 } as any)
+          .in('id', deliverableIds);
+        
+        if (deliverablesError) throw deliverablesError;
+      }
+      
+      // 5. Reset manual_time_seconds to 0 for all phases in this project
+      const phaseIds = phases.map(p => p.id);
+      if (phaseIds.length > 0) {
+        const { error: phasesError } = await supabase
+          .from('phases')
+          .update({ manual_time_seconds: 0 } as any)
+          .in('id', phaseIds);
+        
+        if (phasesError) throw phasesError;
+      }
+      
+      console.log('All time data reset successfully');
+      
+      // Refresh project data to show updated state
+      await fetchProjectData();
+      
+      toast({
+        title: "Alle tijd gereset",
+        description: "Alle timer data en handmatige tijd is succesvol gereset naar 0",
+      });
+      
+    } catch (error) {
+      console.error('Error resetting time entries:', error);
+      toast({
+        title: "Error",
+        description: "Kon tijdgegevens niet resetten",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -388,7 +459,18 @@ export default function ProjectDetail() {
           
           <Card>
             <CardContent className="p-4">
-              <div className="text-sm text-muted-foreground mb-3">Werkelijk Besteed</div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-sm text-muted-foreground">Werkelijk Besteed</div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetAllTimeEntries}
+                  className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                  title="Reset alle tijd naar 0"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                </Button>
+              </div>
               <div className="text-2xl font-bold mb-2">{formatTimeToHours(totalProjectTimeSpent)}h</div>
               <div className="w-full bg-orange-100 dark:bg-orange-900/20 rounded-full h-2">
                 <div 
