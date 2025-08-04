@@ -55,6 +55,13 @@ export default function ClientPortal() {
       // Set portal data
       setPortalData({ portal: parsedPortalData.portal } as PortalData);
 
+      // Track access separately (don't wait for this)
+      try {
+        await supabase.rpc('update_portal_access', { portal_hash_param: hash });
+      } catch (err) {
+        console.error('Failed to update portal access:', err);
+      }
+
       // Extract data from the function result
       const phasesData = parsedPortalData.phases || [];
       const deliverablesData = parsedPortalData.deliverables || [];

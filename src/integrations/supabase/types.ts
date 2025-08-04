@@ -632,6 +632,10 @@ export type Database = {
         Args: { portal_hash_param: string }
         Returns: Json
       }
+      update_portal_access: {
+        Args: { portal_hash_param: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
