@@ -140,7 +140,9 @@ export default function IntegratedProjectTimeline({
     const times: Record<string, number> = {};
     
     localTasks.forEach(task => {
-      times[task.id] = getTaskTimeSpent(task.id, timeEntries);
+      const timerTime = getTaskTimeSpent(task.id, timeEntries);
+      const manualTime = (task as any).manual_time_seconds || 0;
+      times[task.id] = timerTime + manualTime; // Include manual time in total
     });
     
     setTaskTimeSpent(times);
