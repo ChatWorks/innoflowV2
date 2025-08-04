@@ -214,25 +214,39 @@ export default function ProjectDetail() {
   };
 
   const updateProjectTotalHours = async (newValue: string) => {
+    console.log('Starting updateProjectTotalHours with value:', newValue);
     const numericValue = parseFloat(newValue) || 0;
     
-    // Update the project's total_hours field
-    const { error } = await supabase
-      .from('projects')
-      .update({ total_hours: numericValue })
-      .eq('id', id);
-    
-    if (error) throw error;
-    
-    setProject(prev => prev ? { ...prev, total_hours: numericValue } : null);
-    
-    // Refresh project data to ensure consistency
-    await fetchProjectData();
-    
-    toast({
-      title: "Totaal uren bijgewerkt",
-      description: `Nieuwe waarde: ${numericValue}h`,
-    });
+    try {
+      console.log('Updating project total hours in database...');
+      // Update the project's total_hours field
+      const { error } = await supabase
+        .from('projects')
+        .update({ total_hours: numericValue })
+        .eq('id', id);
+      
+      if (error) throw error;
+      console.log('Database update successful');
+      
+      setProject(prev => prev ? { ...prev, total_hours: numericValue } : null);
+      console.log('Local state updated');
+      
+      // ❌ REMOVED: This fetchProjectData() call can cause refresh loops
+      // await fetchProjectData();
+      
+      toast({
+        title: "Totaal uren bijgewerkt",
+        description: `Nieuwe waarde: ${numericValue}h`,
+      });
+      console.log('updateProjectTotalHours completed successfully');
+    } catch (error) {
+      console.error('Error in updateProjectTotalHours:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update total hours",
+        variant: "destructive",
+      });
+    }
   };
 
   if (loading) {
