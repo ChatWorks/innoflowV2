@@ -223,13 +223,13 @@ export const ClientPortalDialog = ({
         <div className="space-y-6">
           {/* Portal Settings */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Portal Settings</h3>
+            <h3 className="text-lg font-medium">Portal Instellingen</h3>
             
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Show Team Names</Label>
+                <Label>Toon Teamnamen</Label>
                 <div className="text-sm text-muted-foreground">
-                  Display team member names in the portal
+                  Toon teamnamen in de portal
                 </div>
               </div>
               <Switch
@@ -240,9 +240,9 @@ export const ClientPortalDialog = ({
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Password Protection</Label>
+                <Label>Wachtwoordbeveiliging</Label>
                 <div className="text-sm text-muted-foreground">
-                  Require password to access portal
+                  Wachtwoord vereist voor toegang tot portal
                 </div>
               </div>
               <Switch
@@ -253,14 +253,14 @@ export const ClientPortalDialog = ({
 
             {passwordProtected && (
               <div className="space-y-2">
-                <Label htmlFor="password">Portal Password</Label>
+                <Label htmlFor="password">Portal Wachtwoord</Label>
                 <div className="relative">
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter portal password"
+                    placeholder="Voer portal wachtwoord in"
                   />
                   <Button
                     type="button"
@@ -276,7 +276,7 @@ export const ClientPortalDialog = ({
             )}
 
             <div className="space-y-2">
-              <Label>Expiry Date (Optional)</Label>
+              <Label>Vervaldatum (Optioneel)</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
