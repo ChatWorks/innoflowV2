@@ -215,182 +215,211 @@ export const ClientPortalDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Client Portal - {projectName}</DialogTitle>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-2xl font-semibold text-foreground">
+            Client portal voor {projectName}
+          </DialogTitle>
+          <div className="text-sm text-muted-foreground">
+            Configureer en beheer de toegang voor {clientName}
+          </div>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-8 pt-4">
           {/* Portal Settings */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Portal Instellingen</h3>
+          <div className="space-y-6">
+            <div className="border-b pb-3">
+              <h3 className="text-lg font-medium text-foreground">Instellingen</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Pas de portal aan voor jouw client
+              </p>
+            </div>
             
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Toon Teamnamen</Label>
-                <div className="text-sm text-muted-foreground">
-                  Toon teamnamen in de portal
+            <div className="grid gap-6">
+              <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="space-y-1">
+                  <Label className="text-base font-medium">Teamnamen tonen</Label>
+                  <div className="text-sm text-muted-foreground">
+                    Laat teamnamen zien in de portal voor transparantie
+                  </div>
                 </div>
+                <Switch
+                  checked={showTeamNames}
+                  onCheckedChange={setShowTeamNames}
+                />
               </div>
-              <Switch
-                checked={showTeamNames}
-                onCheckedChange={setShowTeamNames}
-              />
-            </div>
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Wachtwoordbeveiliging</Label>
-                <div className="text-sm text-muted-foreground">
-                  Wachtwoord vereist voor toegang tot portal
+              <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="space-y-1">
+                  <Label className="text-base font-medium">Wachtwoordbeveiliging</Label>
+                  <div className="text-sm text-muted-foreground">
+                    Extra beveiliging met wachtwoord voor toegang
+                  </div>
                 </div>
+                <Switch
+                  checked={passwordProtected}
+                  onCheckedChange={setPasswordProtected}
+                />
               </div>
-              <Switch
-                checked={passwordProtected}
-                onCheckedChange={setPasswordProtected}
-              />
-            </div>
 
-            {passwordProtected && (
-              <div className="space-y-2">
-                <Label htmlFor="password">Portal Wachtwoord</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Voer portal wachtwoord in"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
+              {passwordProtected && (
+                <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
+                  <Label htmlFor="password" className="text-base font-medium">Wachtwoord instellen</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Kies een sterk wachtwoord"
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            <div className="space-y-2">
-              <Label>Vervaldatum (Optioneel)</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !expiryDate && "text-muted-foreground"
+              <div className="p-4 border rounded-lg space-y-3">
+                <Label className="text-base font-medium">Vervaldatum</Label>
+                <div className="text-sm text-muted-foreground mb-3">
+                  Optioneel: stel een vervaldatum in voor de portal
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !expiryDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {expiryDate ? format(expiryDate, "d MMMM yyyy") : "Geen vervaldatum"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={expiryDate}
+                      onSelect={setExpiryDate}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                      className="pointer-events-auto"
+                    />
+                    {expiryDate && (
+                      <div className="p-3 border-t">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setExpiryDate(undefined)}
+                          className="w-full"
+                        >
+                          Vervaldatum verwijderen
+                        </Button>
+                      </div>
                     )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {expiryDate ? format(expiryDate, "PPP") : "No expiry"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={expiryDate}
-                    onSelect={setExpiryDate}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                  />
-                  {expiryDate && (
-                    <div className="p-3 border-t">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setExpiryDate(undefined)}
-                      >
-                        Clear date
-                      </Button>
-                    </div>
-                  )}
-                </PopoverContent>
-              </Popover>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           </div>
 
           {/* Portal URL Section */}
           {portal && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Portal Access</h3>
+            <div className="space-y-6">
+              <div className="border-b pb-3">
+                <h3 className="text-lg font-medium text-foreground">Portal toegang</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Deel deze link met jouw client
+                </p>
+              </div>
               
-              <div className="space-y-2">
-                <Label>Portal URL</Label>
-                <div className="flex gap-2">
-                  <Input 
-                    value={portalUrl} 
-                    readOnly 
-                    className="font-mono text-sm"
-                  />
+              <div className="space-y-4">
+                <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                  <Label className="text-base font-medium">Portal link</Label>
+                  <div className="flex gap-2">
+                    <Input 
+                      value={portalUrl} 
+                      readOnly 
+                      className="font-mono text-sm bg-background"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => copyToClipboard(portalUrl)}
+                      className="shrink-0"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
                   <Button
                     variant="outline"
-                    size="icon"
-                    onClick={() => copyToClipboard(portalUrl)}
+                    onClick={sendEmailToClient}
+                    className="h-12"
                   >
-                    <Copy className="h-4 w-4" />
+                    <Mail className="mr-2 h-4 w-4" />
+                    E-mail versturen
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => window.open(portalUrl, '_blank')}
+                    className="h-12"
+                  >
+                    <QrCode className="mr-2 h-4 w-4" />
+                    Portal bekijken
                   </Button>
                 </div>
-              </div>
 
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={sendEmailToClient}
-                  className="flex-1"
-                >
-                  <Mail className="mr-2 h-4 w-4" />
-                  Email Client
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => window.open(portalUrl, '_blank')}
-                  className="flex-1"
-                >
-                  <QrCode className="mr-2 h-4 w-4" />
-                  Preview Portal
-                </Button>
+                {portal.access_count > 0 && (
+                  <div className="p-3 bg-muted/30 rounded-lg">
+                    <div className="text-sm text-muted-foreground">
+                      Portal is {portal.access_count} keer bezocht
+                      {portal.last_accessed && ` • Laatst bezocht: ${format(new Date(portal.last_accessed), 'd MMM yyyy, HH:mm')}`}
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {portal.access_count > 0 && (
-                <div className="text-sm text-muted-foreground">
-                  Portal accessed {portal.access_count} times
-                  {portal.last_accessed && ` • Last accessed: ${format(new Date(portal.last_accessed), 'MMM d, yyyy HH:mm')}`}
-                </div>
-              )}
             </div>
           )}
 
           {/* Action Buttons */}
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center pt-6 border-t">
             <div>
               {portal && (
                 <Button
                   variant="destructive"
                   onClick={deactivatePortal}
                   disabled={loading}
+                  className="h-10"
                 >
-                  Deactivate Portal
+                  Portal deactiveren
                 </Button>
               )}
             </div>
             
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={onClose}>
-                Close
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={onClose} className="h-10 px-6">
+                Sluiten
               </Button>
               
               {portal ? (
-                <Button onClick={updatePortal} disabled={loading}>
-                  Update Portal
+                <Button onClick={updatePortal} disabled={loading} className="h-10 px-6">
+                  {loading ? 'Bijwerken...' : 'Portal bijwerken'}
                 </Button>
               ) : (
-                <Button onClick={generatePortal} disabled={loading}>
-                  {loading ? 'Generating...' : 'Generate Portal'}
+                <Button onClick={generatePortal} disabled={loading} className="h-10 px-6">
+                  {loading ? 'Genereren...' : 'Portal genereren'}
                 </Button>
               )}
             </div>
