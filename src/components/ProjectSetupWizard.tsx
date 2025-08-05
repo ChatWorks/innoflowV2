@@ -335,7 +335,10 @@ export default function ProjectSetupWizard() {
 
   // AI Proposal Analysis
   const handleAnalyzeProposal = async () => {
+    console.log('handleAnalyzeProposal called with:', proposalText.trim());
+    
     if (!proposalText.trim()) {
+      console.log('No proposal text entered');
       toast({
         title: "Geen tekst ingevoerd",
         description: "Voer eerst een projectvoorstel in om te analyseren.",
@@ -348,9 +351,13 @@ export default function ProjectSetupWizard() {
     try {
       console.log('Analyzing proposal:', proposalText);
       
+      console.log('Calling supabase.functions.invoke...');
+      
       const { data, error } = await supabase.functions.invoke('analyze-proposal', {
         body: { proposalText }
       });
+
+      console.log('Supabase function response:', { data, error });
 
       if (error) {
         console.error('Supabase function error:', error);
