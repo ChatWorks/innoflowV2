@@ -8,246 +8,189 @@ import SpotlightCard from '@/components/ui/SpotlightCard';
 export default function HomePage() {
   const navigate = useNavigate();
 
-  const navigationCards = [
-    {
-      title: 'Projecten',
-      description: 'Beheer en volg de voortgang van al je projecten',
-      icon: Briefcase,
-      href: '/projecten',
-      color: 'bg-blue-500',
-      stats: 'Project management'
-    },
-    {
-      title: 'Leads',
-      description: 'Volg potentiële klanten en zet ze om naar projecten',
-      icon: Users,
-      href: '/leads',
-      color: 'bg-green-500',
-      stats: 'Lead tracking'
-    },
-    {
-      title: 'Doelen',
-      description: 'Stel doelen in en track je vooruitgang',
-      icon: Target,
-      href: '/goals',
-      color: 'bg-purple-500',
-      stats: 'Goal tracking'
-    }
-  ];
-
   return (
     <Layout>
-      <div className="container mx-auto p-6">
-        {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tight mb-4">
-            Welkom bij Innoflow
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Streamline je werkprocessen met onze geïntegreerde projectmanagement, 
-            lead tracking en doelen dashboard.
-          </p>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-4">
-                <TrendingUp className="h-6 w-6 text-blue-600" />
-              </div>
-              <h3 className="text-2xl font-bold mb-2">Efficiëntie</h3>
-              <p className="text-muted-foreground">
-                Verhoog je productiviteit met geïntegreerde tools
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mx-auto mb-4">
-                <Target className="h-6 w-6 text-green-600" />
-              </div>
-              <h3 className="text-2xl font-bold mb-2">Focus</h3>
-              <p className="text-muted-foreground">
-                Houd je doelen in het vizier en bereik meer
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mx-auto mb-4">
-                <Briefcase className="h-6 w-6 text-purple-600" />
-              </div>
-              <h3 className="text-2xl font-bold mb-2">Overzicht</h3>
-              <p className="text-muted-foreground">
-                Behoud het overzicht over al je projecten
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Navigation Cards */}
-        <div className="space-y-6">
-          {/* Projects - Full Width */}
-          <SpotlightCard 
-            className="cursor-pointer transition-all duration-300 group hover:scale-[1.02]"
-            spotlightColor="hsl(var(--primary) / 0.3)"
-            onClick={() => navigate('/projecten')}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Briefcase className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-3xl font-bold mb-2">Projecten</h3>
-                  <p className="text-muted-foreground text-lg">
-                    Beheer en volg de voortgang van al je projecten
-                  </p>
-                </div>
-              </div>
-              <ArrowRight className="h-6 w-6 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
+      <div className="min-h-screen bg-gradient-to-br from-[hsl(240_25%_96%)] via-[hsl(250_30%_98%)] to-[hsl(240_35%_95%)]">
+        <div className="container mx-auto px-6 py-16">
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 bg-white/60 backdrop-blur-sm border border-white/40 rounded-full text-sm text-muted-foreground mb-6">
+              🎯 Beheer je tijd efficiënt
             </div>
-          </SpotlightCard>
+            <h1 className="text-5xl font-bold tracking-tight mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              Sluit je aan bij de rijen van onze gebruikers
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-lg mx-auto mb-8">
+              Probeer 30 dagen gratis zonder risico
+            </p>
+            
+            {/* Tab Navigation */}
+            <div className="flex justify-center mb-12">
+              <div className="bg-white/80 backdrop-blur-sm rounded-full p-1 border border-white/40">
+                <button className="px-6 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium">
+                  Maandelijks
+                </button>
+                <button className="px-6 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground">
+                  Team
+                </button>
+              </div>
+            </div>
+          </div>
 
-          {/* Second Row: Leads + Project Stat */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Leads */}
+          {/* Pricing Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Monthly Plan */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/40 hover:bg-white/90 transition-all duration-300 shadow-lg hover:shadow-xl">
+              <div className="text-center">
+                <div className="text-4xl font-bold text-gray-900 mb-2">
+                  €98 <span className="text-lg font-normal text-muted-foreground">/ maand</span>
+                </div>
+                <h3 className="text-2xl font-bold mb-4">Maandelijks</h3>
+                <p className="text-muted-foreground mb-8">
+                  Betaling van €98 elke maand
+                </p>
+                <Button 
+                  className="w-full bg-primary hover:bg-primary-hover text-white font-medium"
+                  size="lg"
+                  onClick={() => navigate('/projecten')}
+                >
+                  Start met een maandelijks plan
+                </Button>
+              </div>
+            </div>
+
+            {/* Quarterly Plan - Most Popular */}
+            <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 text-white transform scale-105 shadow-2xl">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <div className="bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 text-sm font-medium border border-white/30">
+                  De meest populaire
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold mb-2">
+                  €92 <span className="text-lg font-normal opacity-80">/ maand</span>
+                </div>
+                <h3 className="text-2xl font-bold mb-4">Kwartaal</h3>
+                <p className="opacity-80 mb-8">
+                  Betaling van €276 elke 3 maanden
+                </p>
+                <Button 
+                  className="w-full bg-white text-blue-600 hover:bg-gray-50 font-medium"
+                  size="lg"
+                  onClick={() => navigate('/projecten')}
+                >
+                  Start met een maandelijks plan
+                </Button>
+              </div>
+            </div>
+
+            {/* Annual Plan */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/40 hover:bg-white/90 transition-all duration-300 shadow-lg hover:shadow-xl">
+              <div className="text-center">
+                <div className="text-4xl font-bold text-gray-900 mb-2">
+                  €83 <span className="text-lg font-normal text-muted-foreground">/ maand</span>
+                </div>
+                <h3 className="text-2xl font-bold mb-4">Jaarlijks</h3>
+                <p className="text-muted-foreground mb-8">
+                  Betaling van €996 elk jaar
+                </p>
+                <Button 
+                  className="w-full bg-primary hover:bg-primary-hover text-white font-medium"
+                  size="lg"
+                  onClick={() => navigate('/projecten')}
+                >
+                  Start met een maandelijks plan
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Features Section */}
+          <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Briefcase className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Project Management</h3>
+              <p className="text-muted-foreground">
+                Beheer en volg al je projecten op één centrale plek
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Users className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Lead Tracking</h3>
+              <p className="text-muted-foreground">
+                Converteer potentiële klanten naar succesvolle projecten
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Target className="h-8 w-8 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Goal Setting</h3>
+              <p className="text-muted-foreground">
+                Stel doelen en track je vooruitgang met gedetailleerde analytics
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Access Cards */}
+          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
             <SpotlightCard 
-              className="cursor-pointer transition-all duration-300 group hover:scale-[1.02]"
+              className="cursor-pointer transition-all duration-300 group hover:scale-[1.02] bg-white/60 backdrop-blur-sm border-white/40"
+              spotlightColor="hsl(var(--primary) / 0.3)"
+              onClick={() => navigate('/projecten')}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Briefcase className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold">Projecten</h3>
+                  <p className="text-sm text-muted-foreground">Ga naar projecten</p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
+              </div>
+            </SpotlightCard>
+
+            <SpotlightCard 
+              className="cursor-pointer transition-all duration-300 group hover:scale-[1.02] bg-white/60 backdrop-blur-sm border-white/40"
               spotlightColor="hsl(142 76% 36% / 0.3)"
               onClick={() => navigate('/leads')}
             >
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Users className="h-7 w-7 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold">Leads</h3>
-                  <p className="text-muted-foreground">
-                    Potentiële klanten beheren
-                  </p>
-                </div>
-              </div>
-              <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300 ml-auto" />
-            </SpotlightCard>
-
-            {/* Project Statistics */}
-            <SpotlightCard className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/50 border-purple-200 dark:border-purple-800">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <TrendingUp className="h-7 w-7 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-purple-700 dark:text-purple-300">Project Status</h3>
-                  <p className="text-purple-600 dark:text-purple-400">
-                    Huidige projectvoortgang
-                  </p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white/60 dark:bg-purple-900/30 rounded-lg p-3 text-center">
-                  <div className="text-xl font-bold text-purple-700 dark:text-purple-300">85%</div>
-                  <div className="text-sm text-purple-600 dark:text-purple-400">Gemiddelde voortgang</div>
-                </div>
-                <div className="bg-white/60 dark:bg-purple-900/30 rounded-lg p-3 text-center">
-                  <div className="text-xl font-bold text-purple-700 dark:text-purple-300">12</div>
-                  <div className="text-sm text-purple-600 dark:text-purple-400">Actieve projecten</div>
-                </div>
-              </div>
-            </SpotlightCard>
-          </div>
-
-          {/* Third Row: Goals Stat + Leads Stat + Goals */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Goals Statistics */}
-            <SpotlightCard className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/50 dark:to-orange-900/50 border-orange-200 dark:border-orange-800">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
-                  <Target className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold text-orange-700 dark:text-orange-300">Doel Voortgang</h4>
-                  <p className="text-sm text-orange-600 dark:text-orange-400">Maandelijkse targets</p>
-                </div>
-              </div>
-              <div className="bg-white/60 dark:bg-orange-900/30 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-orange-700 dark:text-orange-300">67%</div>
-                <div className="text-sm text-orange-600 dark:text-orange-400">Bereikt dit kwartaal</div>
-              </div>
-            </SpotlightCard>
-
-            {/* Leads Statistics */}
-            <SpotlightCard className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 border-green-200 dark:border-green-800">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
                   <Users className="h-6 w-6 text-white" />
                 </div>
-                <div>
-                  <h4 className="text-lg font-bold text-green-700 dark:text-green-300">Lead Conversie</h4>
-                  <p className="text-sm text-green-600 dark:text-green-400">Deze maand</p>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold">Leads</h3>
+                  <p className="text-sm text-muted-foreground">Beheer leads</p>
                 </div>
-              </div>
-              <div className="bg-white/60 dark:bg-green-900/30 rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-green-700 dark:text-green-300">24</div>
-                <div className="text-sm text-green-600 dark:text-green-400">Nieuwe prospects</div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
               </div>
             </SpotlightCard>
 
-            {/* Goals */}
             <SpotlightCard 
-              className="cursor-pointer transition-all duration-300 group hover:scale-[1.02]"
+              className="cursor-pointer transition-all duration-300 group hover:scale-[1.02] bg-white/60 backdrop-blur-sm border-white/40"
               spotlightColor="hsl(25 95% 53% / 0.3)"
               onClick={() => navigate('/goals')}
             >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                   <Target className="h-6 w-6 text-white" />
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold">Doelen</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Stel doelen in en track vooruitgang
-                  </p>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold">Doelen</h3>
+                  <p className="text-sm text-muted-foreground">Track doelen</p>
                 </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
               </div>
-              <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300 ml-auto" />
             </SpotlightCard>
           </div>
-        </div>
-
-        {/* Call to Action */}
-        <div className="text-center mt-12">
-          <Card className="bg-primary text-primary-foreground">
-            <CardContent className="pt-6 pb-6">
-              <h2 className="text-2xl font-bold mb-4">Klaar om te beginnen?</h2>
-              <p className="text-lg mb-6 opacity-90">
-                Start met het beheren van je projecten, leads en doelen in één centrale plek.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  variant="secondary" 
-                  size="lg"
-                  onClick={() => navigate('/projecten')}
-                  className="gap-2"
-                >
-                  <Briefcase className="h-5 w-5" />
-                  Bekijk Projecten
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  onClick={() => navigate('/leads')}
-                  className="gap-2 bg-transparent border-white text-white hover:bg-white hover:text-primary"
-                >
-                  <Users className="h-5 w-5" />
-                  Beheer Leads
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </Layout>
