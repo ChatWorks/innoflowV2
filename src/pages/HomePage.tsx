@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Target, Users, Briefcase, TrendingUp, ArrowRight } from 'lucide-react';
 import Layout from '@/components/Layout';
+import StarBorder from '@/components/ui/StarBorder';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -132,24 +133,38 @@ export default function HomePage() {
                 Start met het beheren van je projecten, leads en doelen in één centrale plek.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button 
-                  variant="secondary" 
-                  size="lg"
-                  onClick={() => navigate('/projecten')}
-                  className="gap-2"
+                <StarBorder
+                  as="div"
+                  color="hsl(var(--secondary))"
+                  speed="8s"
+                  className="inline-block"
                 >
-                  <Briefcase className="h-5 w-5" />
-                  Bekijk Projecten
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  onClick={() => navigate('/leads')}
-                  className="gap-2 bg-transparent border-white text-white hover:bg-white hover:text-primary"
+                  <Button 
+                    variant="secondary" 
+                    size="lg"
+                    onClick={() => navigate('/projecten')}
+                    className="gap-2"
+                  >
+                    <Briefcase className="h-5 w-5" />
+                    Bekijk Projecten
+                  </Button>
+                </StarBorder>
+                <StarBorder
+                  as="div"
+                  color="rgba(255, 255, 255, 0.8)"
+                  speed="10s"
+                  className="inline-block"
                 >
-                  <Users className="h-5 w-5" />
-                  Beheer Leads
-                </Button>
+                  <Button 
+                    variant="outline" 
+                    size="lg"
+                    onClick={() => navigate('/leads')}
+                    className="gap-2 bg-transparent border-white text-white hover:bg-white hover:text-primary"
+                  >
+                    <Users className="h-5 w-5" />
+                    Beheer Leads
+                  </Button>
+                </StarBorder>
               </div>
             </CardContent>
           </Card>
