@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Lock } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Eye, EyeOff, Lock, MessageCircle, Send } from 'lucide-react';
 import type { PortalData, PortalProgress } from '@/types/clientPortal';
 import type { Deliverable, Phase, Task } from '@/types/project';
 import { 
@@ -33,6 +34,14 @@ export default function ClientPortal() {
   
   // Simple mobile detection - MUST be before any conditional returns
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Client message state
+  const [messageSubject, setMessageSubject] = useState('');
+  const [messageContent, setMessageContent] = useState('');
+  const [senderName, setSenderName] = useState('');
+  const [senderEmail, setSenderEmail] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [messageSuccess, setMessageSuccess] = useState('');
   
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -196,6 +205,51 @@ export default function ClientPortal() {
       setError('Fout bij het laden van portal data: ' + error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const sendClientMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!messageSubject.trim() || !messageContent.trim() || !senderName.trim()) {
+      return;
+    }
+
+    if (!portalData?.portal.project_id) {
+      return;
+    }
+
+    setSendingMessage(true);
+    setMessageSuccess('');
+
+    try {
+      const { error } = await supabase
+        .from('project_messages')
+        .insert({
+          project_id: portalData.portal.project_id,
+          sender_type: 'client',
+          sender_name: senderName.trim(),
+          sender_email: senderEmail.trim() || null,
+          subject: messageSubject.trim(),
+          message: messageContent.trim(),
+          is_read: false
+        });
+
+      if (error) throw error;
+
+      setMessageSubject('');
+      setMessageContent('');
+      setSenderName('');
+      setSenderEmail('');
+      setMessageSuccess('Uw bericht is succesvol verzonden!');
+
+      // Clear success message after 5 seconds
+      setTimeout(() => setMessageSuccess(''), 5000);
+
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -601,17 +655,86 @@ export default function ClientPortal() {
               </div>
             </div>
 
-            {/* Contact Card */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 p-6">
-              <h3 className="text-lg font-semibold text-blue-800 mb-3">💬 Vragen of Feedback?</h3>
-              <p className="text-blue-700 text-sm mb-4">
-                Heeft u vragen over de voortgang of wilt u feedback geven? 
-                Neem direct contact op met uw projectteam.
-              </p>
-              <div className="flex flex-col gap-2 text-sm text-blue-600">
-                <span>📞 Altijd bereikbaar</span>
-                <span>⚡ Snelle response</span>
-                <span>🤝 Persoonlijke service</span>
+            {/* Client Message Form */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                <MessageCircle className="h-5 w-5 text-blue-600" />
+                Bericht naar projectteam
+              </h3>
+              
+              {messageSuccess && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-700">{messageSuccess}</p>
+                </div>
+              )}
+              
+              <form onSubmit={sendClientMessage} className="space-y-4">
+                <div>
+                  <Label htmlFor="sender-name" className="text-sm font-medium">Naam</Label>
+                  <Input
+                    id="sender-name"
+                    value={senderName}
+                    onChange={(e) => setSenderName(e.target.value)}
+                    placeholder="Uw naam"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="sender-email" className="text-sm font-medium">E-mail (optioneel)</Label>
+                  <Input
+                    id="sender-email"
+                    type="email"
+                    value={senderEmail}
+                    onChange={(e) => setSenderEmail(e.target.value)}
+                    placeholder="uw.email@example.com"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="message-subject" className="text-sm font-medium">Onderwerp</Label>
+                  <Input
+                    id="message-subject"
+                    value={messageSubject}
+                    onChange={(e) => setMessageSubject(e.target.value)}
+                    placeholder="Waar gaat uw bericht over?"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="message-content" className="text-sm font-medium">Bericht</Label>
+                  <Textarea
+                    id="message-content"
+                    value={messageContent}
+                    onChange={(e) => setMessageContent(e.target.value)}
+                    placeholder="Typ hier uw vraag, feedback of opmerking..."
+                    rows={4}
+                    required
+                  />
+                </div>
+                
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={sendingMessage || !messageSubject.trim() || !messageContent.trim() || !senderName.trim()}
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  {sendingMessage ? 'Verzenden...' : 'Bericht verzenden'}
+                </Button>
+              </form>
+              
+              <div className="mt-4 pt-4 border-t border-slate-200">
+                <div className="flex flex-col gap-2 text-sm text-slate-600">
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                    Snelle response gegarandeerd
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    Direct naar uw projectteam
+                  </span>
+                </div>
               </div>
             </div>
           </div>
