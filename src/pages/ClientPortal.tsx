@@ -264,7 +264,7 @@ export default function ClientPortal() {
               </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
-                  INNOFLOW
+                  Innoflow
                 </h1>
                 <p className="text-slate-600 text-sm">Project Dashboard</p>
               </div>
