@@ -482,15 +482,21 @@ export default function ProjectSetupWizard() {
         {currentStep === 1 && (
           <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* AI Proposal Parser */}
-            <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
-              <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2">
-                  <Bot className="h-5 w-5 text-primary" />
-                  Genereer project van voorstel (AI) 🤖
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Plak de tekst van je projectvoorstel hieronder en laat AI automatisch alle projectdetails invullen.
-                </p>
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-secondary/5 to-primary/10 h-fit">
+              <CardHeader className="pb-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Bot className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl font-semibold">
+                      AI Project Generator
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Automatisch projectdetails invullen vanuit voorstel
+                    </p>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Textarea
