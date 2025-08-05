@@ -864,19 +864,51 @@ export default function IntegratedProjectTimeline({
                                            }}
                                          />
                                          
-                                         {/* Manual time add button for deliverable */}
-                                         <Button
-                                           variant="ghost"
-                                           size="sm"
-                                           className="h-8 w-8 p-0 hover:bg-primary/10"
-                                           onClick={(e) => {
-                                             e.stopPropagation();
-                                             openManualTimeDialog('deliverable', deliverable.id, deliverable.title);
-                                           }}
-                                           title="Handmatige tijd toevoegen aan deliverable"
-                                         >
-                                           <PlusCircle className="h-4 w-4 text-muted-foreground hover:text-primary" />
-                                         </Button>
+                                          {/* Manual time add button for deliverable */}
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 p-0 hover:bg-primary/10"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              openManualTimeDialog('deliverable', deliverable.id, deliverable.title);
+                                            }}
+                                            title="Handmatige tijd toevoegen aan deliverable"
+                                          >
+                                            <PlusCircle className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                                          </Button>
+                                          
+                                          {/* Delete deliverable button */}
+                                          <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 hover:bg-destructive/10"
+                                                onClick={(e) => e.stopPropagation()}
+                                                title="Deliverable verwijderen"
+                                              >
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                              </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                              <AlertDialogHeader>
+                                                <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                  Deze actie kan niet ongedaan worden gemaakt. Dit zal het deliverable "{deliverable.title}" permanent verwijderen, inclusief alle taken die erbij horen.
+                                                </AlertDialogDescription>
+                                              </AlertDialogHeader>
+                                              <AlertDialogFooter>
+                                                <AlertDialogCancel>Annuleren</AlertDialogCancel>
+                                                <AlertDialogAction
+                                                  onClick={() => deleteDeliverable(deliverable.id, deliverable.title)}
+                                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                >
+                                                  Verwijderen
+                                                </AlertDialogAction>
+                                              </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                          </AlertDialog>
                                          
                                          <span className="text-sm font-medium text-foreground min-w-[60px]">
                                            <div className="flex flex-col items-end">
