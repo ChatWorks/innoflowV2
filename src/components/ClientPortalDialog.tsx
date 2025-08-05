@@ -34,7 +34,7 @@ export const ClientPortalDialog = ({
 }: ClientPortalDialogProps) => {
   const [portal, setPortal] = useState<ClientPortal | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showTeamNames, setShowTeamNames] = useState(false);
+  
   const [passwordProtected, setPasswordProtected] = useState(false);
   const [password, setPassword] = useState('');
   const [expiryDate, setExpiryDate] = useState<Date | undefined>();
@@ -75,7 +75,6 @@ export const ClientPortalDialog = ({
       
       if (data) {
         setPortal(data);
-        setShowTeamNames(data.show_team_names);
         setPasswordProtected(!!data.password_hash);
         setExpiryDate(data.expires_at ? new Date(data.expires_at) : undefined);
       }
@@ -156,7 +155,7 @@ export const ClientPortalDialog = ({
       const portalData = {
         project_id: projectId,
         portal_hash: hashData,
-        show_team_names: showTeamNames,
+        show_team_names: false,
         password_hash: passwordProtected && password ? await hashPassword(password) : null,
         expires_at: expiryDate ? expiryDate.toISOString() : null,
       };
@@ -193,7 +192,7 @@ export const ClientPortalDialog = ({
     setLoading(true);
     try {
       const updateData = {
-        show_team_names: showTeamNames,
+        show_team_names: false,
         password_hash: passwordProtected && password ? await hashPassword(password) : 
                       passwordProtected ? portal.password_hash : null,
         expires_at: expiryDate ? expiryDate.toISOString() : null,
@@ -444,19 +443,6 @@ export const ClientPortalDialog = ({
               </div>
             
               <div className="grid gap-6">
-                <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="space-y-1">
-                    <Label className="text-base font-medium">Teamnamen tonen</Label>
-                    <div className="text-sm text-muted-foreground">
-                      Laat teamnamen zien in de portal voor transparantie
-                    </div>
-                  </div>
-                  <Switch
-                    checked={showTeamNames}
-                    onCheckedChange={setShowTeamNames}
-                  />
-                </div>
-
                 <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                   <div className="space-y-1">
                     <Label className="text-base font-medium">Wachtwoordbeveiliging</Label>
