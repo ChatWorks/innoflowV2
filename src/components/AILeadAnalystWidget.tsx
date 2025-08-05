@@ -151,26 +151,31 @@ Wat wil je weten over je leads?`,
 
       {/* Messages */}
       <ScrollArea className="flex-1 p-4">
-        <div className="space-y-4">
+        <div className="space-y-4 max-w-full">
           {messages.map((message) => (
             <div
               key={message.id}
               className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[80%] rounded-2xl p-3 ${
+                className={`${isFullscreenView ? 'max-w-[70%]' : 'max-w-[85%]'} rounded-2xl p-4 ${
                   message.type === 'user'
                     ? 'bg-emerald-500 text-white'
                     : 'bg-muted text-foreground'
                 }`}
               >
-                <div className="text-sm">
+                <div className={`text-sm leading-relaxed ${isFullscreenView ? 'text-base' : ''}`}>
                   <ReactMarkdown 
                     components={{
                       strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                      ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2">{children}</ul>,
-                      li: ({ children }) => <li>{children}</li>,
-                      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>
+                      ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-3 pl-2">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 my-3 pl-2">{children}</ol>,
+                      li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                      p: ({ children }) => <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>,
+                      h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-sm font-bold mb-2">{children}</h3>,
+                      code: ({ children }) => <code className="bg-background/20 px-1 py-0.5 rounded text-xs">{children}</code>
                     }}
                   >
                     {message.content}
