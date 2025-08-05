@@ -53,6 +53,8 @@ export default function ProjectSetupWizard() {
   // AI proposal parser state
   const [proposalText, setProposalText] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisStep, setAnalysisStep] = useState(0);
+  const [analysisMessage, setAnalysisMessage] = useState('');
 
   // Step 1 data
   const [projectData, setProjectData] = useState<ProjectData>({
@@ -333,7 +335,19 @@ export default function ProjectSetupWizard() {
     }
   };
 
-  // AI Proposal Analysis
+  // Fake progress animation steps
+  const progressSteps = [
+    { step: 1, message: "Tekstanalyse starten...", delay: 500 },
+    { step: 2, message: "AI model wordt opgestart...", delay: 800 },
+    { step: 3, message: "Projectscope wordt gedetecteerd...", delay: 1200 },
+    { step: 4, message: "Fases en deliverables identificeren...", delay: 1500 },
+    { step: 5, message: "Taken en toewijzingen genereren...", delay: 1800 },
+    { step: 6, message: "Budget en tijdschattingen berekenen...", delay: 2000 },
+    { step: 7, message: "Projectstructuur optimaliseren...", delay: 2200 },
+    { step: 8, message: "Resultaat wordt voorbereid...", delay: 2400 }
+  ];
+
+  // AI Proposal Analysis with cool animation
   const handleAnalyzeProposal = async () => {
     console.log('handleAnalyzeProposal called with:', proposalText.trim());
     
@@ -348,6 +362,21 @@ export default function ProjectSetupWizard() {
     }
 
     setIsAnalyzing(true);
+    setAnalysisStep(0);
+    setAnalysisMessage('');
+
+    // Start fake progress animation
+    const startFakeProgress = () => {
+      progressSteps.forEach((stepData, index) => {
+        setTimeout(() => {
+          setAnalysisStep(stepData.step);
+          setAnalysisMessage(stepData.message);
+        }, stepData.delay);
+      });
+    };
+
+    startFakeProgress();
+
     try {
       console.log('Analyzing proposal:', proposalText);
       
@@ -370,57 +399,69 @@ export default function ProjectSetupWizard() {
 
       console.log('Analysis result:', data);
 
-      // Map the AI response to our state
-      if (data.project_info) {
-        console.log('Mapping project_info:', data.project_info);
-        setProjectData({
-          name: data.project_info.name || '',
-          client: data.project_info.client || '',
-          totalHours: data.project_info.totalHours || 0,
-          projectValue: data.project_info.projectValue || 0,
-          numberOfPhases: data.project_info.numberOfPhases || 1
-        });
-      }
+      // Wait for animation to complete before showing results
+      setTimeout(() => {
+        setAnalysisStep(9);
+        setAnalysisMessage('Klaar! Formulieren worden ingevuld...');
 
-      if (data.phases && Array.isArray(data.phases)) {
-        console.log('Mapping phases:', data.phases);
-        const mappedPhases = data.phases.map((phase: any, phaseIndex: number) => {
-          console.log(`Mapping phase ${phaseIndex + 1}:`, phase);
-          return {
-            id: `phase-${phaseIndex + 1}`,
-            name: phase.name || `Fase ${phaseIndex + 1}`,
-            targetDate: phase.targetDate || '',
-            deliverables: phase.deliverables?.map((deliverable: any, deliverableIndex: number) => {
-              console.log(`Mapping deliverable ${deliverableIndex + 1}:`, deliverable);
-              return {
-                id: `deliverable-${phaseIndex + 1}-${deliverableIndex + 1}`,
-                name: deliverable.name || '',
-                hours: deliverable.hours || '',
-                targetDate: deliverable.targetDate || '',
-                tasks: deliverable.tasks?.map((task: any, taskIndex: number) => {
-                  console.log(`Mapping task ${taskIndex + 1}:`, task);
-                  return {
-                    id: `task-${phaseIndex + 1}-${deliverableIndex + 1}-${taskIndex + 1}`,
-                    name: task.name || '',
-                    assignedTo: task.assignedTo || ''
-                  };
-                }) || []
-              };
-            }) || []
-          };
-        });
+        // Map the AI response to our state
+        if (data.project_info) {
+          console.log('Mapping project_info:', data.project_info);
+          setProjectData({
+            name: data.project_info.name || '',
+            client: data.project_info.client || '',
+            totalHours: data.project_info.totalHours || 0,
+            projectValue: data.project_info.projectValue || 0,
+            numberOfPhases: data.project_info.numberOfPhases || 1
+          });
+        }
 
-        console.log('Final mapped phases:', mappedPhases);
-        setPhases(mappedPhases);
-      }
+        if (data.phases && Array.isArray(data.phases)) {
+          console.log('Mapping phases:', data.phases);
+          const mappedPhases = data.phases.map((phase: any, phaseIndex: number) => {
+            console.log(`Mapping phase ${phaseIndex + 1}:`, phase);
+            return {
+              id: `phase-${phaseIndex + 1}`,
+              name: phase.name || `Fase ${phaseIndex + 1}`,
+              targetDate: phase.targetDate || '',
+              deliverables: phase.deliverables?.map((deliverable: any, deliverableIndex: number) => {
+                console.log(`Mapping deliverable ${deliverableIndex + 1}:`, deliverable);
+                return {
+                  id: `deliverable-${phaseIndex + 1}-${deliverableIndex + 1}`,
+                  name: deliverable.name || '',
+                  hours: deliverable.hours || '',
+                  targetDate: deliverable.targetDate || '',
+                  tasks: deliverable.tasks?.map((task: any, taskIndex: number) => {
+                    console.log(`Mapping task ${taskIndex + 1}:`, task);
+                    return {
+                      id: `task-${phaseIndex + 1}-${deliverableIndex + 1}-${taskIndex + 1}`,
+                      name: task.name || '',
+                      assignedTo: task.assignedTo || ''
+                    };
+                  }) || []
+                };
+              }) || []
+            };
+          });
 
-      toast({
-        title: "Voorstel geanalyseerd! 🎉",
-        description: "Het projectvoorstel is succesvol geanalyseerd en de formulieren zijn ingevuld."
-      });
+          console.log('Final mapped phases:', mappedPhases);
+          setPhases(mappedPhases);
+        }
 
-      // Clear the proposal text after successful analysis
-      setProposalText('');
+        setTimeout(() => {
+          toast({
+            title: "Voorstel geanalyseerd! 🎉",
+            description: "Het projectvoorstel is succesvol geanalyseerd en de formulieren zijn ingevuld."
+          });
+
+          // Clear the proposal text after successful analysis
+          setProposalText('');
+          setIsAnalyzing(false);
+          setAnalysisStep(0);
+          setAnalysisMessage('');
+        }, 800);
+
+      }, Math.max(0, 2800 - Date.now() + performance.now())); // Ensure animation completes
 
     } catch (error) {
       console.error('Error analyzing proposal:', error);
@@ -429,8 +470,9 @@ export default function ProjectSetupWizard() {
         description: error instanceof Error ? error.message : "Er ging iets mis bij het analyseren van het voorstel. Probeer het opnieuw.",
         variant: "destructive"
       });
-    } finally {
       setIsAnalyzing(false);
+      setAnalysisStep(0);
+      setAnalysisMessage('');
     }
   };
 
@@ -506,24 +548,69 @@ export default function ProjectSetupWizard() {
                   rows={8}
                   className="resize-none"
                 />
-                <Button 
-                  onClick={handleAnalyzeProposal} 
-                  disabled={isAnalyzing || !proposalText.trim()}
-                  className="w-full gap-2"
-                  size="lg"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Analyseren...
-                    </>
-                  ) : (
-                    <>
-                      <Bot className="h-4 w-4" />
-                      Analyseer Voorstel
-                    </>
-                  )}
-                </Button>
+                {isAnalyzing ? (
+                  <div className="space-y-4">
+                    {/* Cool Loading Animation */}
+                    <div className="relative">
+                      <div className="flex items-center justify-center gap-3 p-6 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl border">
+                        <div className="relative">
+                          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary"></div>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Bot className="h-6 w-6 text-primary animate-pulse" />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-lg">AI Analyse Bezig</h3>
+                            <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full animate-pulse">
+                              Stap {analysisStep}/8
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground animate-fade-in">
+                            {analysisMessage || "Voorbereiden..."}
+                          </p>
+                          <div className="mt-3">
+                            <Progress 
+                              value={(analysisStep / 8) * 100} 
+                              className="h-2 animate-pulse"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Analysis Steps Indicator */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {progressSteps.map((step, index) => (
+                        <div 
+                          key={step.step}
+                          className={`flex items-center gap-2 p-2 rounded-lg transition-all duration-300 ${
+                            analysisStep >= step.step 
+                              ? 'bg-primary/10 text-primary animate-scale-in' 
+                              : 'text-muted-foreground'
+                          }`}
+                        >
+                          <div className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                            analysisStep >= step.step 
+                              ? 'bg-primary animate-pulse' 
+                              : 'bg-muted-foreground/30'
+                          }`} />
+                          <span className="truncate">{step.message.replace('...', '')}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <Button 
+                    onClick={handleAnalyzeProposal} 
+                    disabled={!proposalText.trim()}
+                    className="w-full gap-2 bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
+                    size="lg"
+                  >
+                    <Bot className="h-5 w-5" />
+                    <span className="font-medium">Analyseer Voorstel</span>
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
