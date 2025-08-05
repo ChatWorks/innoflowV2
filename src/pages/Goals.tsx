@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Goal, GoalCategory, GoalStatus } from '@/types/goal';
 import { GoalCreationDialog } from '@/components/GoalCreationDialog';
 import { GoalCard } from '@/components/GoalCard';
+import { GoalAnalytics } from '@/components/GoalAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Target, TrendingUp, CheckCircle, AlertTriangle, Search, Filter } from 'lucide-react';
@@ -119,6 +120,9 @@ export default function Goals() {
       </div>
 
       {/* Stats Cards */}
+      <GoalAnalytics goals={goals} />
+
+      {/* Advanced Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -127,6 +131,10 @@ export default function Goals() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{goals.length}</div>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              Active goals tracking
+            </div>
           </CardContent>
         </Card>
         
@@ -137,6 +145,10 @@ export default function Goals() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{completedGoals.length}</div>
+            <div className="flex items-center gap-1 text-xs text-green-600 mt-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              {completionRate}% completion rate
+            </div>
           </CardContent>
         </Card>
         
@@ -147,16 +159,24 @@ export default function Goals() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">{inProgressGoals.length}</div>
+            <div className="flex items-center gap-1 text-xs text-blue-600 mt-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              Active progress
+            </div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Voltooiingspercentage</CardTitle>
+            <CardTitle className="text-sm font-medium">Overdue</CardTitle>
             <AlertTriangle className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completionRate}%</div>
+            <div className="text-2xl font-bold text-orange-600">{overdueGoals.length}</div>
+            <div className="flex items-center gap-1 text-xs text-orange-600 mt-1">
+              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+              Needs attention
+            </div>
           </CardContent>
         </Card>
       </div>
