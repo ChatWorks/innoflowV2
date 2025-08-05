@@ -116,7 +116,6 @@ export default function Goals() {
             Track je vooruitgang en bereik je doelen met focus en discipline.
           </p>
         </div>
-        <GoalCreationDialog onGoalCreated={fetchGoals} />
       </div>
 
       {/* Stats Cards */}
