@@ -10,7 +10,7 @@ import { Plus, Euro, TrendingUp, Users, Target, Settings, AlertTriangle, Calenda
 import { useToast } from '@/hooks/use-toast';
 import { LeadCreationDialog } from '@/components/LeadCreationDialog';
 import { SmartAssistantSettingsDialog } from '@/components/SmartAssistantSettingsDialog';
-import { AILeadAnalyst } from '@/components/AILeadAnalyst';
+import { AILeadAnalystWidget } from '@/components/AILeadAnalystWidget';
 
 export default function Leads() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -294,7 +294,7 @@ export default function Leads() {
           })}
         </div>
 
-        <AILeadAnalyst leads={leads} />
+        <AILeadAnalystWidget leads={leads} />
 
         <LeadCreationDialog 
           isOpen={isCreationDialogOpen}
