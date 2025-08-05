@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Euro, TrendingUp, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Clock, Euro, TrendingUp, Calendar, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
 import { Deliverable, Task } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import DeliverableCreationDialog from './DeliverableCreationDialog';
 
 interface DeliverableDashboardProps {
@@ -26,6 +29,7 @@ interface DeliverableStats {
 
 export default function DeliverableDashboard({ projectId, deliverables, tasks, onRefresh }: DeliverableDashboardProps) {
   const [deliverableStats, setDeliverableStats] = useState<Record<string, DeliverableStats>>({});
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchDeliverableStats();
@@ -143,6 +147,64 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
     }).format(hours * hourlyRate);
   };
 
+  const deleteDeliverable = async (deliverableId: string, deliverableTitle: string) => {
+    try {
+      // Get all tasks for this deliverable
+      const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverableId);
+      
+      // Delete related time entries for all tasks
+      for (const task of deliverableTasks) {
+        await supabase
+          .from('time_entries')
+          .delete()
+          .eq('task_id', task.id);
+
+        await supabase
+          .from('manual_time_entries')
+          .delete()
+          .eq('task_id', task.id);
+      }
+
+      // Delete deliverable's own time entries
+      await supabase
+        .from('time_entries')
+        .delete()
+        .eq('deliverable_id', deliverableId);
+
+      await supabase
+        .from('manual_time_entries')
+        .delete()
+        .eq('deliverable_id', deliverableId);
+
+      // Delete all tasks
+      await supabase
+        .from('tasks')
+        .delete()
+        .eq('deliverable_id', deliverableId);
+
+      // Delete the deliverable
+      const { error } = await supabase
+        .from('deliverables')
+        .delete()
+        .eq('id', deliverableId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Deliverable verwijderd",
+        description: `${deliverableTitle} en alle gerelateerde taken zijn succesvol verwijderd`,
+      });
+
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Kon deliverable niet verwijderen",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -189,6 +251,35 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
                         )}
                       </div>
                     </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-destructive/10"
+                          title="Deliverable verwijderen"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Deze actie kan niet ongedaan worden gemaakt. Dit zal het deliverable "{deliverable.title}" permanent verwijderen, inclusief alle taken die erbij horen.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuleren</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteDeliverable(deliverable.id, deliverable.title)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Verwijderen
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </CardHeader>
                 

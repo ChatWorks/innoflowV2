@@ -364,7 +364,6 @@ export type Database = {
       phases: {
         Row: {
           created_at: string
-          declarable_hours: number | null
           id: string
           manual_time_seconds: number | null
           name: string
@@ -376,7 +375,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          declarable_hours?: number | null
           id?: string
           manual_time_seconds?: number | null
           name: string
@@ -388,7 +386,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          declarable_hours?: number | null
           id?: string
           manual_time_seconds?: number | null
           name?: string

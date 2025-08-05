@@ -637,21 +637,6 @@ export default function IntegratedProjectTimeline({
     }
   };
 
-  const updatePhaseHours = async (phaseId: string, newHours: string) => {
-    const hoursValue = parseFloat(newHours) || 0;
-    const { error } = await supabase
-      .from('phases')
-      .update({ declarable_hours: hoursValue })
-      .eq('id', phaseId);
-    
-    if (error) throw error;
-    
-    onPhaseUpdate(phaseId, { declarable_hours: hoursValue });
-    toast({
-      title: "Fase uren bijgewerkt",
-      description: `Nieuwe uren: ${hoursValue}h`,
-    });
-  };
 
   // Use imported formatTime function from utils
 
@@ -802,25 +787,19 @@ export default function IntegratedProjectTimeline({
                                <PlusCircle className="h-5 w-5 text-muted-foreground hover:text-primary" />
                              </Button>
                              
-                              <span className="text-base font-medium text-foreground min-w-[80px]">
-                                <div className="flex flex-col items-end">
-                                  <span>
-                                    {formatTime(getPhaseTotalTime(phase, localDeliverables, localTasks, timeEntries))}/
-                                    <InlineEditField
-                                      value={`${(phase as any).declarable_hours || 0}h`}
-                                      onSave={(newHours) => updatePhaseHours(phase.id, newHours.replace('h', ''))}
-                                      placeholder="0h"
-                                      className="text-base font-medium inline ml-0"
-                                      type="text"
-                                    />
-                                  </span>
-                                  {(phase as any).manual_time_seconds > 0 && (
-                                    <span className="text-xs text-blue-600 dark:text-blue-400">
-                                      +{formatTime((phase as any).manual_time_seconds || 0)}
-                                    </span>
-                                  )}
-                                </div>
-                              </span>
+                               <span className="text-base font-medium text-foreground min-w-[80px]">
+                                 <div className="flex flex-col items-end">
+                                   <span>
+                                     {formatTime(getPhaseTotalTime(phase, localDeliverables, localTasks, timeEntries))}/
+                                     {getPhaseDeclarableHours(phase, localDeliverables)}h
+                                   </span>
+                                   {(phase as any).manual_time_seconds > 0 && (
+                                     <span className="text-xs text-blue-600 dark:text-blue-400">
+                                       +{formatTime((phase as any).manual_time_seconds || 0)}
+                                     </span>
+                                   )}
+                                 </div>
+                               </span>
                            </div>
                           
                           <InlineDateEdit
