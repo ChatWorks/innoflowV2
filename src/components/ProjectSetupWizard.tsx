@@ -480,7 +480,7 @@ export default function ProjectSetupWizard() {
 
         {/* Step 1: Project Basic Info */}
         {currentStep === 1 && (
-          <div className="max-w-2xl mx-auto space-y-6">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* AI Proposal Parser */}
             <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
               <CardHeader>
