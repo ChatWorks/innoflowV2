@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, ArrowRight, Plus, Trash2, GripVertical, User, Clock } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft, ArrowRight, Plus, Trash2, GripVertical, User, Clock, Bot, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -48,6 +49,10 @@ export default function ProjectSetupWizard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // AI proposal parser state
+  const [proposalText, setProposalText] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Step 1 data
   const [projectData, setProjectData] = useState<ProjectData>({
@@ -328,6 +333,88 @@ export default function ProjectSetupWizard() {
     }
   };
 
+  // AI Proposal Analysis
+  const handleAnalyzeProposal = async () => {
+    if (!proposalText.trim()) {
+      toast({
+        title: "Geen tekst ingevoerd",
+        description: "Voer eerst een projectvoorstel in om te analyseren.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      console.log('Analyzing proposal:', proposalText);
+      
+      const { data, error } = await supabase.functions.invoke('analyze-proposal', {
+        body: { proposalText }
+      });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to analyze proposal');
+      }
+
+      if (!data) {
+        throw new Error('No data received from analysis');
+      }
+
+      console.log('Analysis result:', data);
+
+      // Map the AI response to our state
+      if (data.project_info) {
+        setProjectData({
+          name: data.project_info.name || '',
+          client: data.project_info.client || '',
+          totalHours: data.project_info.totalHours || 0,
+          projectValue: data.project_info.projectValue || 0,
+          numberOfPhases: data.project_info.numberOfPhases || 1
+        });
+      }
+
+      if (data.phases && Array.isArray(data.phases)) {
+        const mappedPhases = data.phases.map((phase: any, phaseIndex: number) => ({
+          id: `phase-${phaseIndex + 1}`,
+          name: phase.name || `Fase ${phaseIndex + 1}`,
+          targetDate: phase.targetDate || '',
+          deliverables: phase.deliverables?.map((deliverable: any, deliverableIndex: number) => ({
+            id: `deliverable-${phaseIndex + 1}-${deliverableIndex + 1}`,
+            name: deliverable.name || '',
+            hours: deliverable.hours || '',
+            targetDate: deliverable.targetDate || '',
+            tasks: deliverable.tasks?.map((task: any, taskIndex: number) => ({
+              id: `task-${phaseIndex + 1}-${deliverableIndex + 1}-${taskIndex + 1}`,
+              name: task.name || '',
+              assignedTo: task.assignedTo || ''
+            })) || []
+          })) || []
+        }));
+
+        setPhases(mappedPhases);
+      }
+
+      toast({
+        title: "Voorstel geanalyseerd! 🎉",
+        description: "Het projectvoorstel is succesvol geanalyseerd en de formulieren zijn ingevuld."
+      });
+
+      // Clear the proposal text after successful analysis
+      setProposalText('');
+
+    } catch (error) {
+      console.error('Error analyzing proposal:', error);
+      toast({
+        title: "Analyse mislukt",
+        description: error instanceof Error ? error.message : "Er ging iets mis bij het analyseren van het voorstel. Probeer het opnieuw.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   // Get all tasks for step 3 overview
   const getAllTasks = () => {
     const allTasks: Array<{ phase: string; deliverable: string; task: Task }> = [];
@@ -374,11 +461,56 @@ export default function ProjectSetupWizard() {
 
         {/* Step 1: Project Basic Info */}
         {currentStep === 1 && (
-          <Card className="max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle className="text-2xl">Project Basis Informatie</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <div className="max-w-2xl mx-auto space-y-6">
+            {/* AI Proposal Parser */}
+            <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-primary" />
+                  Genereer project van voorstel (AI) 🤖
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Plak de tekst van je projectvoorstel hieronder en laat AI automatisch alle projectdetails invullen.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Textarea
+                  placeholder="Plak hier de volledige tekst van het projectvoorstel..."
+                  value={proposalText}
+                  onChange={(e) => setProposalText(e.target.value)}
+                  rows={8}
+                  className="resize-none"
+                />
+                <Button 
+                  onClick={handleAnalyzeProposal} 
+                  disabled={isAnalyzing || !proposalText.trim()}
+                  className="w-full gap-2"
+                  size="lg"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Analyseren...
+                    </>
+                  ) : (
+                    <>
+                      <Bot className="h-4 w-4" />
+                      Analyseer Voorstel
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Project Basic Info */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">Project Basis Informatie</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Vul handmatig de projectdetails in of gebruik de AI-analyse hierboven.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="projectName">Project Naam *</Label>
                 <Input
@@ -457,6 +589,7 @@ export default function ProjectSetupWizard() {
               </div>
             </CardContent>
           </Card>
+          </div>
         )}
 
         {/* Step 2: Interactive Phases & Deliverables Builder */}
