@@ -6,6 +6,10 @@ export interface NotificationSettings {
   enabled: boolean;
   frequency: 'daily' | 'weekly' | 'monthly' | 'custom';
   time: string; // HH:MM format
+  customMessage?: string;
+  deadlineWarnings?: boolean;
+  progressReminders?: boolean;
+  motivationalBoosts?: boolean;
   [key: string]: any; // Allow for additional properties to match Json type
 }
 

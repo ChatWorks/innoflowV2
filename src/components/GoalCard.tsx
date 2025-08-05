@@ -4,11 +4,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
-import { Calendar, CheckCircle, Edit, MoreHorizontal, Target, TrendingUp } from 'lucide-react';
+import { Calendar, CheckCircle, Edit, MoreHorizontal, Target, TrendingUp, Bell } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Goal } from '@/types/goal';
+import { NotificationSettingsDialog } from '@/components/NotificationSettingsDialog';
 import { cn } from '@/lib/utils';
 
 interface GoalCardProps {
@@ -42,6 +43,7 @@ const statusLabels = {
 
 export function GoalCard({ goal, onUpdate }: GoalCardProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const [currentValue, setCurrentValue] = useState(goal.current_value.toString());
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -198,6 +200,10 @@ export function GoalCard({ goal, onUpdate }: GoalCardProps) {
                 <Edit className="h-4 w-4 mr-2" />
                 Voortgang bijwerken
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowNotificationSettings(true)}>
+                <Bell className="h-4 w-4 mr-2" />
+                Notificatie instellingen
+              </DropdownMenuItem>
               {!goal.is_completed && (
                 <DropdownMenuItem onClick={handleMarkComplete}>
                   <CheckCircle className="h-4 w-4 mr-2" />
@@ -323,6 +329,14 @@ export function GoalCard({ goal, onUpdate }: GoalCardProps) {
           </div>
         )}
       </CardContent>
+
+      {/* Notification Settings Dialog */}
+      <NotificationSettingsDialog
+        goal={goal}
+        open={showNotificationSettings}
+        onOpenChange={setShowNotificationSettings}
+        onUpdate={onUpdate}
+      />
     </Card>
   );
 }
