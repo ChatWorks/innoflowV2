@@ -35,7 +35,9 @@ export default function Layout({ children }: LayoutProps) {
                   Leads
                 </Button>
                 <span className="text-gray-400">Kosten</span>
-                <span className="text-gray-400">Doelen</span>
+                <Button variant="ghost" onClick={() => navigate('/goals')} className="text-gray-600 hover:text-gray-900">
+                  Doelen
+                </Button>
                 <span className="text-gray-400">AI Advies</span>
               </nav>
             </div>

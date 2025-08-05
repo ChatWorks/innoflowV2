@@ -12,6 +12,7 @@ import ProjectDetail from "./pages/ProjectDetail";
 import ProjectSetupWizard from "./components/ProjectSetupWizard";
 import Leads from "./pages/Leads";
 import LeadDetail from "./pages/LeadDetail";
+import Goals from "./pages/Goals";
 import Auth from "./pages/Auth";
 import ClientPortal from "./pages/ClientPortal";
 import NotFound from "./pages/NotFound";
@@ -51,6 +52,11 @@ const App = () => (
               <Route path="/leads/:id" element={
                 <ProtectedRoute>
                   <LeadDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/goals" element={
+                <ProtectedRoute>
+                  <Goals />
                 </ProtectedRoute>
               } />
               {/* Public route for client portal - no auth required */}

@@ -151,6 +151,63 @@ export type Database = {
           },
         ]
       }
+      goals: {
+        Row: {
+          category: Database["public"]["Enums"]["goal_category"]
+          completed_at: string | null
+          created_at: string
+          current_value: number | null
+          deadline: string | null
+          description: string | null
+          goal_type: Database["public"]["Enums"]["goal_type"]
+          id: string
+          is_completed: boolean | null
+          notification_settings: Json | null
+          status: Database["public"]["Enums"]["goal_status"]
+          target_unit: string | null
+          target_value: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["goal_category"]
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number | null
+          deadline?: string | null
+          description?: string | null
+          goal_type?: Database["public"]["Enums"]["goal_type"]
+          id?: string
+          is_completed?: boolean | null
+          notification_settings?: Json | null
+          status?: Database["public"]["Enums"]["goal_status"]
+          target_unit?: string | null
+          target_value?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["goal_category"]
+          completed_at?: string | null
+          created_at?: string
+          current_value?: number | null
+          deadline?: string | null
+          description?: string | null
+          goal_type?: Database["public"]["Enums"]["goal_type"]
+          id?: string
+          is_completed?: boolean | null
+          notification_settings?: Json | null
+          status?: Database["public"]["Enums"]["goal_status"]
+          target_unit?: string | null
+          target_value?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       lead_activities: {
         Row: {
           activity_date: string
@@ -680,7 +737,14 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      goal_category: "sales" | "projects" | "personal" | "team" | "financial"
+      goal_status:
+        | "not_started"
+        | "in_progress"
+        | "completed"
+        | "overdue"
+        | "paused"
+      goal_type: "numeric" | "percentage" | "boolean" | "milestone"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -807,6 +871,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      goal_category: ["sales", "projects", "personal", "team", "financial"],
+      goal_status: [
+        "not_started",
+        "in_progress",
+        "completed",
+        "overdue",
+        "paused",
+      ],
+      goal_type: ["numeric", "percentage", "boolean", "milestone"],
+    },
   },
 } as const
