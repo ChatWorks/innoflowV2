@@ -597,7 +597,14 @@ export default function ProjectSetupWizard() {
                 <Button
                   onClick={() => {
                     // Only initialize phases if they haven't been set by AI analysis
-                    if (phases.length === 0) {
+                    // Check if phases are truly empty (no deliverables with content)
+                    const hasAIGeneratedContent = phases.some(phase => 
+                      phase.deliverables.some(deliverable => 
+                        deliverable.name.trim() !== '' || deliverable.hours !== ''
+                      )
+                    );
+                    
+                    if (phases.length === 0 || !hasAIGeneratedContent) {
                       initializePhases();
                     }
                     setCurrentStep(2);
