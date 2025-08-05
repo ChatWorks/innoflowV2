@@ -108,9 +108,11 @@ export const getPhaseEfficiency = (phase: Phase, deliverables: Deliverable[], ta
     totalDeclarableSeconds += (deliverable.declarable_hours || 0) * 3600;
   });
   
-  // Add phase's own manual time
+  // Add phase's own manual time and declarable hours
   const phaseManualTime = (phase as any).manual_time_seconds || 0;
+  const phaseDeclarableSeconds = ((phase as any).declarable_hours || 0) * 3600;
   totalActualSeconds += phaseManualTime;
+  totalDeclarableSeconds += phaseDeclarableSeconds;
   
   return totalDeclarableSeconds > 0 ? (totalActualSeconds / totalDeclarableSeconds) * 100 : 0;
 };
@@ -128,9 +130,15 @@ export const getProjectEfficiency = (deliverables: Deliverable[], tasks: Task[],
   
   const totalActualSeconds = totalTimerSeconds + totalTaskManualTime + totalDeliverableManualTime + totalPhaseManualTime;
   
-  const totalDeclarableSeconds = deliverables.reduce((sum, d) => {
+  const deliverableDeclarableSeconds = deliverables.reduce((sum, d) => {
     return sum + ((d.declarable_hours || 0) * 3600);
   }, 0);
+  
+  const phaseDeclarableSeconds = phases.reduce((sum, p) => {
+    return sum + (((p as any).declarable_hours || 0) * 3600);
+  }, 0);
+  
+  const totalDeclarableSeconds = deliverableDeclarableSeconds + phaseDeclarableSeconds;
   
   return totalDeclarableSeconds > 0 ? (totalActualSeconds / totalDeclarableSeconds) * 100 : 0;
 };
@@ -145,7 +153,9 @@ export const getDeliverableDeclarableHours = (deliverable: Deliverable): number 
 // Get declarable hours voor phase
 export const getPhaseDeclarableHours = (phase: Phase, deliverables: Deliverable[]): number => {
   const phaseDeliverables = deliverables.filter(d => d.phase_id === phase.id);
-  return phaseDeliverables.reduce((sum, d) => sum + (d.declarable_hours || 0), 0);
+  const deliverableHours = phaseDeliverables.reduce((sum, d) => sum + (d.declarable_hours || 0), 0);
+  const phaseHours = (phase as any).declarable_hours || 0;
+  return deliverableHours + phaseHours;
 };
 
 // Get timer time voor deliverable (only timer, no manual)
@@ -312,8 +322,10 @@ export const getTotalProjectTimeSpent = (
 };
 
 // Calculate total declarable hours for project
-export const getTotalProjectDeclarable = (deliverables: Deliverable[]): number => {
-  return deliverables.reduce((sum, d) => sum + (d.declarable_hours || 0), 0);
+export const getTotalProjectDeclarable = (deliverables: Deliverable[], phases: Phase[] = []): number => {
+  const deliverableHours = deliverables.reduce((sum, d) => sum + (d.declarable_hours || 0), 0);
+  const phaseHours = phases.reduce((sum, p) => sum + ((p as any).declarable_hours || 0), 0);
+  return deliverableHours + phaseHours;
 };
 
 // Calculate project contract value

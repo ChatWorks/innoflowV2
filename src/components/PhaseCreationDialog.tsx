@@ -21,7 +21,8 @@ interface PhaseCreationDialogProps {
 export default function PhaseCreationDialog({ projectId, onPhaseCreated }: PhaseCreationDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
-    name: ''
+    name: '',
+    declarableHours: ''
   });
   const [targetDate, setTargetDate] = useState<Date | undefined>(undefined);
   const [isCreating, setIsCreating] = useState(false);
@@ -49,7 +50,8 @@ export default function PhaseCreationDialog({ projectId, onPhaseCreated }: Phase
         .insert([{
           project_id: projectId,
           name: formData.name,
-          target_date: targetDate?.toISOString().split('T')[0] || null
+          target_date: targetDate?.toISOString().split('T')[0] || null,
+          declarable_hours: formData.declarableHours ? parseFloat(formData.declarableHours) : 0
         }]);
 
       if (error) throw error;
@@ -60,7 +62,8 @@ export default function PhaseCreationDialog({ projectId, onPhaseCreated }: Phase
       });
 
       setFormData({
-        name: ''
+        name: '',
+        declarableHours: ''
       });
       setTargetDate(undefined);
       setIsOpen(false);
@@ -100,6 +103,22 @@ export default function PhaseCreationDialog({ projectId, onPhaseCreated }: Phase
                 placeholder="Bijv. Ontwerp Fase"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="h-11"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="declarableHours" className="text-sm font-medium">
+                Declarabele Uren
+              </Label>
+              <Input
+                id="declarableHours"
+                type="number"
+                step="0.5"
+                min="0"
+                placeholder="0"
+                value={formData.declarableHours}
+                onChange={(e) => setFormData({ ...formData, declarableHours: e.target.value })}
                 className="h-11"
               />
             </div>

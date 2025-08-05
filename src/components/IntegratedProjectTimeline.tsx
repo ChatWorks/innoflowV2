@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -17,7 +18,8 @@ import {
   Plus,
   PlusCircle,
   BarChart3,
-  List 
+  List,
+  Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -429,6 +431,228 @@ export default function IntegratedProjectTimeline({
     });
   };
 
+  // Deletion handlers
+  const deleteTask = async (taskId: string, taskTitle: string) => {
+    try {
+      // Delete related time entries first
+      await supabase
+        .from('time_entries')
+        .delete()
+        .eq('task_id', taskId);
+
+      await supabase
+        .from('manual_time_entries')
+        .delete()
+        .eq('task_id', taskId);
+
+      // Delete the task
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Taak verwijderd",
+        description: `${taskTitle} is succesvol verwijderd`,
+      });
+
+      // Update local state
+      const updatedTasks = localTasks.filter(t => t.id !== taskId);
+      setLocalTasks(updatedTasks);
+
+      // Update deliverable status after task deletion
+      const task = localTasks.find(t => t.id === taskId);
+      if (task) {
+        await updateDeliverableStatus(task.deliverable_id, updatedTasks);
+        
+        // Update phase status cascade
+        const deliverable = localDeliverables.find(d => d.id === task.deliverable_id);
+        if (deliverable?.phase_id) {
+          await updatePhaseStatus(deliverable.phase_id);
+        }
+      }
+
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Kon taak niet verwijderen",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteDeliverable = async (deliverableId: string, deliverableTitle: string) => {
+    try {
+      // Get all tasks for this deliverable
+      const deliverableTasks = localTasks.filter(t => t.deliverable_id === deliverableId);
+      
+      // Delete related time entries for all tasks
+      for (const task of deliverableTasks) {
+        await supabase
+          .from('time_entries')
+          .delete()
+          .eq('task_id', task.id);
+
+        await supabase
+          .from('manual_time_entries')
+          .delete()
+          .eq('task_id', task.id);
+      }
+
+      // Delete deliverable's own time entries
+      await supabase
+        .from('time_entries')
+        .delete()
+        .eq('deliverable_id', deliverableId);
+
+      await supabase
+        .from('manual_time_entries')
+        .delete()
+        .eq('deliverable_id', deliverableId);
+
+      // Delete all tasks
+      await supabase
+        .from('tasks')
+        .delete()
+        .eq('deliverable_id', deliverableId);
+
+      // Delete the deliverable
+      const { error } = await supabase
+        .from('deliverables')
+        .delete()
+        .eq('id', deliverableId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Deliverable verwijderd",
+        description: `${deliverableTitle} en alle gerelateerde taken zijn succesvol verwijderd`,
+      });
+
+      // Update local state
+      setLocalTasks(prev => prev.filter(t => t.deliverable_id !== deliverableId));
+      setLocalDeliverables(prev => prev.filter(d => d.id !== deliverableId));
+
+      // Update phase status after deliverable deletion
+      const deliverable = localDeliverables.find(d => d.id === deliverableId);
+      if (deliverable?.phase_id) {
+        await updatePhaseStatus(deliverable.phase_id);
+      }
+
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Kon deliverable niet verwijderen",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deletePhase = async (phaseId: string, phaseName: string) => {
+    try {
+      // Get all deliverables for this phase
+      const phaseDeliverables = localDeliverables.filter(d => d.phase_id === phaseId);
+      
+      // Delete all tasks and time entries for each deliverable
+      for (const deliverable of phaseDeliverables) {
+        const deliverableTasks = localTasks.filter(t => t.deliverable_id === deliverable.id);
+        
+        // Delete task time entries
+        for (const task of deliverableTasks) {
+          await supabase
+            .from('time_entries')
+            .delete()
+            .eq('task_id', task.id);
+
+          await supabase
+            .from('manual_time_entries')
+            .delete()
+            .eq('task_id', task.id);
+        }
+
+        // Delete deliverable time entries
+        await supabase
+          .from('time_entries')
+          .delete()
+          .eq('deliverable_id', deliverable.id);
+
+        await supabase
+          .from('manual_time_entries')
+          .delete()
+          .eq('deliverable_id', deliverable.id);
+
+        // Delete tasks
+        await supabase
+          .from('tasks')
+          .delete()
+          .eq('deliverable_id', deliverable.id);
+      }
+
+      // Delete phase time entries
+      await supabase
+        .from('time_entries')
+        .delete()
+        .eq('project_id', project.id)
+        .in('deliverable_id', phaseDeliverables.map(d => d.id));
+
+      await supabase
+        .from('manual_time_entries')
+        .delete()
+        .eq('phase_id', phaseId);
+
+      // Delete all deliverables
+      await supabase
+        .from('deliverables')
+        .delete()
+        .eq('phase_id', phaseId);
+
+      // Delete the phase
+      const { error } = await supabase
+        .from('phases')
+        .delete()
+        .eq('id', phaseId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Fase verwijderd",
+        description: `${phaseName} en alle gerelateerde deliverables en taken zijn succesvol verwijderd`,
+      });
+
+      // Update local state
+      setLocalTasks(prev => prev.filter(t => !phaseDeliverables.some(d => d.id === t.deliverable_id)));
+      setLocalDeliverables(prev => prev.filter(d => d.phase_id !== phaseId));
+
+      onRefresh();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Kon fase niet verwijderen",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updatePhaseHours = async (phaseId: string, newHours: string) => {
+    const hoursValue = parseFloat(newHours) || 0;
+    const { error } = await supabase
+      .from('phases')
+      .update({ declarable_hours: hoursValue })
+      .eq('id', phaseId);
+    
+    if (error) throw error;
+    
+    onPhaseUpdate(phaseId, { declarable_hours: hoursValue });
+    toast({
+      title: "Fase uren bijgewerkt",
+      description: `Nieuwe uren: ${hoursValue}h`,
+    });
+  };
+
   // Use imported formatTime function from utils
 
   const calculateDeliverableStats = (deliverable: Deliverable) => {
@@ -503,17 +727,48 @@ export default function IntegratedProjectTimeline({
                           ) : (
                             <ChevronRight className="h-6 w-6 text-foreground transition-transform" />
                           )}
-                          <div className="flex items-center gap-3">
-                            <InlineEditField
-                              value={phase.name}
-                              onSave={(newName) => updatePhaseName(phase.id, newName)}
-                              placeholder="Fase naam"
-                              className="text-[22px] font-bold text-foreground"
-                            />
-                            <span className="text-lg font-medium text-muted-foreground">
-                              {getCompactStatusBadge(getLocalPhaseStatus(phaseDeliverables), phaseProgressPercentage)}
-                            </span>
-                          </div>
+                           <div className="flex items-center gap-3">
+                             <InlineEditField
+                               value={phase.name}
+                               onSave={(newName) => updatePhaseName(phase.id, newName)}
+                               placeholder="Fase naam"
+                               className="text-[22px] font-bold text-foreground"
+                             />
+                             <span className="text-lg font-medium text-muted-foreground">
+                               {getCompactStatusBadge(getLocalPhaseStatus(phaseDeliverables), phaseProgressPercentage)}
+                             </span>
+                             
+                             <AlertDialog>
+                               <AlertDialogTrigger asChild>
+                                 <Button
+                                   variant="ghost"
+                                   size="sm"
+                                   className="h-8 w-8 p-0 hover:bg-destructive/10"
+                                   onClick={(e) => e.stopPropagation()}
+                                   title="Fase verwijderen"
+                                 >
+                                   <Trash2 className="h-4 w-4 text-destructive" />
+                                 </Button>
+                               </AlertDialogTrigger>
+                               <AlertDialogContent>
+                                 <AlertDialogHeader>
+                                   <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
+                                   <AlertDialogDescription>
+                                     Deze actie kan niet ongedaan worden gemaakt. Dit zal de fase "{phase.name}" permanent verwijderen, inclusief alle deliverables en taken die erbij horen.
+                                   </AlertDialogDescription>
+                                 </AlertDialogHeader>
+                                 <AlertDialogFooter>
+                                   <AlertDialogCancel>Annuleren</AlertDialogCancel>
+                                   <AlertDialogAction
+                                     onClick={() => deletePhase(phase.id, phase.name)}
+                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                   >
+                                     Verwijderen
+                                   </AlertDialogAction>
+                                 </AlertDialogFooter>
+                               </AlertDialogContent>
+                             </AlertDialog>
+                           </div>
                         </div>
                         
                          <div className="flex items-center gap-6">
@@ -547,18 +802,25 @@ export default function IntegratedProjectTimeline({
                                <PlusCircle className="h-5 w-5 text-muted-foreground hover:text-primary" />
                              </Button>
                              
-                             <span className="text-base font-medium text-foreground min-w-[80px]">
-                               <div className="flex flex-col items-end">
-                                 <span>
-                                   {formatTime(getPhaseTotalTime(phase, localDeliverables, localTasks, timeEntries))}/{getPhaseDeclarableHours(phase, localDeliverables)}h
-                                 </span>
-                                 {(phase as any).manual_time_seconds > 0 && (
-                                   <span className="text-xs text-blue-600 dark:text-blue-400">
-                                     +{formatTime((phase as any).manual_time_seconds || 0)}
-                                   </span>
-                                 )}
-                               </div>
-                             </span>
+                              <span className="text-base font-medium text-foreground min-w-[80px]">
+                                <div className="flex flex-col items-end">
+                                  <span>
+                                    {formatTime(getPhaseTotalTime(phase, localDeliverables, localTasks, timeEntries))}/
+                                    <InlineEditField
+                                      value={`${(phase as any).declarable_hours || 0}h`}
+                                      onSave={(newHours) => updatePhaseHours(phase.id, newHours.replace('h', ''))}
+                                      placeholder="0h"
+                                      className="text-base font-medium inline ml-0"
+                                      type="text"
+                                    />
+                                  </span>
+                                  {(phase as any).manual_time_seconds > 0 && (
+                                    <span className="text-xs text-blue-600 dark:text-blue-400">
+                                      +{formatTime((phase as any).manual_time_seconds || 0)}
+                                    </span>
+                                  )}
+                                </div>
+                              </span>
                            </div>
                           
                           <InlineDateEdit
@@ -783,16 +1045,46 @@ export default function IntegratedProjectTimeline({
                                                     </Button>
                                                     
                                                     {/* Time display with manual time indication */}
-                                                    <div className="text-sm font-medium text-foreground min-w-[80px] text-right shrink-0">
-                                                      <div className="flex flex-col items-end">
-                                                        <span>{formatTime(taskTimeSpent[task.id] || 0)}</span>
-                                                        {(task as any).manual_time_seconds > 0 && (
-                                                          <span className="text-xs text-blue-600 dark:text-blue-400">
-                                                            +{formatTime((task as any).manual_time_seconds || 0)}
-                                                          </span>
-                                                        )}
-                                                      </div>
-                                                    </div>
+                                                     <AlertDialog>
+                                                       <AlertDialogTrigger asChild>
+                                                         <Button
+                                                           variant="ghost"
+                                                           size="sm"
+                                                           className="h-8 w-8 p-0 hover:bg-destructive/10"
+                                                           title="Taak verwijderen"
+                                                         >
+                                                           <Trash2 className="h-4 w-4 text-destructive" />
+                                                         </Button>
+                                                       </AlertDialogTrigger>
+                                                       <AlertDialogContent>
+                                                         <AlertDialogHeader>
+                                                           <AlertDialogTitle>Weet je het zeker?</AlertDialogTitle>
+                                                           <AlertDialogDescription>
+                                                             Deze actie kan niet ongedaan worden gemaakt. Dit zal de taak "{task.title}" permanent verwijderen.
+                                                           </AlertDialogDescription>
+                                                         </AlertDialogHeader>
+                                                         <AlertDialogFooter>
+                                                           <AlertDialogCancel>Annuleren</AlertDialogCancel>
+                                                           <AlertDialogAction
+                                                             onClick={() => deleteTask(task.id, task.title)}
+                                                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                           >
+                                                             Verwijderen
+                                                           </AlertDialogAction>
+                                                         </AlertDialogFooter>
+                                                       </AlertDialogContent>
+                                                     </AlertDialog>
+
+                                                     <div className="text-sm font-medium text-foreground min-w-[80px] text-right shrink-0">
+                                                       <div className="flex flex-col items-end">
+                                                         <span>{formatTime(taskTimeSpent[task.id] || 0)}</span>
+                                                         {(task as any).manual_time_seconds > 0 && (
+                                                           <span className="text-xs text-blue-600 dark:text-blue-400">
+                                                             +{formatTime((task as any).manual_time_seconds || 0)}
+                                                           </span>
+                                                         )}
+                                                       </div>
+                                                     </div>
                                                  </div>
                                                ))}
                                            </div>

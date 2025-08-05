@@ -48,6 +48,8 @@ export interface Phase {
   project_id: string;
   name: string;
   target_date?: string;
+  declarable_hours?: number;
+  status?: string;
   created_at: string;
   updated_at: string;
 }
