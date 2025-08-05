@@ -12,8 +12,6 @@ import {
 } from '@/utils/progressCalculations';
 import { MagicBento } from '@/components/MagicBento';
 import { PortalCard } from '@/components/PortalCard';
-import { useIsMobile } from '@/hooks/use-mobile';
-import '@/styles/portal-bento.css';
 
 export default function ClientPortal() {
   const { hash } = useParams<{ hash: string }>();
@@ -133,8 +131,16 @@ export default function ClientPortal() {
       </div>
     );
   }
-
-  const isMobile = useIsMobile();
+  
+  // Simple mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Transform data into Magic Bento card format
   const createPortalCardData = () => {

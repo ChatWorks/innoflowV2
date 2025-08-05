@@ -191,3 +191,101 @@ All colors MUST be HSL for proper theming.
     width: 100%;
   }
 }
+
+/* Portal Bento Grid Styles */
+@layer components {
+  .portal-bento-grid {
+    @apply grid gap-6 p-8 max-w-7xl mx-auto;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(auto-fit, 200px);
+  }
+
+  /* Card Sizes */
+  .portal-card--large {
+    @apply col-span-2 row-span-2;
+  }
+
+  .portal-card--medium {
+    @apply col-span-2 row-span-1;
+  }
+
+  .portal-card--small {
+    @apply col-span-1 row-span-1;
+  }
+
+  /* Status-based Styling */
+  .portal-card--completed {
+    @apply border-2;
+    border-color: rgb(16 185 129);
+    background: linear-gradient(135deg, rgb(6 95 70) 0%, rgb(4 120 87) 100%);
+  }
+
+  .portal-card--active {
+    @apply border-2;
+    border-color: rgb(59 130 246);
+    background: linear-gradient(135deg, rgb(30 64 175) 0%, rgb(37 99 235) 100%);
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  .portal-card--pending {
+    @apply border-2 opacity-90;
+    border-color: rgb(107 114 128);
+    background: linear-gradient(135deg, rgb(55 65 81) 0%, rgb(75 85 99) 100%);
+  }
+
+  .portal-card--highlight {
+    @apply border-2;
+    border-color: rgb(124 58 237);
+    background: linear-gradient(135deg, rgb(91 33 182) 0%, rgb(124 58 237) 100%);
+  }
+
+  .portal-card--support {
+    @apply border-2;
+    border-color: rgb(5 150 105);
+    background: linear-gradient(135deg, rgb(4 120 87) 0%, rgb(5 150 105) 100%);
+  }
+
+  /* Mobile Responsive Grid */
+  @media (max-width: 768px) {
+    .portal-bento-grid {
+      @apply grid-cols-1 gap-4 p-4;
+      grid-template-rows: auto;
+    }
+    
+    .portal-card--large,
+    .portal-card--medium,
+    .portal-card--small {
+      @apply col-span-1 row-span-1;
+      min-height: 180px;
+    }
+  }
+
+  /* Tablet: 2 columns */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .portal-bento-grid {
+      @apply grid-cols-2;
+      gap: 1.25rem;
+    }
+    
+    .portal-card--large {
+      @apply col-span-2 row-span-2;
+    }
+    
+    .portal-card--medium {
+      @apply col-span-1 row-span-2;
+    }
+    
+    .portal-card--small {
+      @apply col-span-1 row-span-1;
+    }
+  }
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(59, 130, 246, 0.1);
+  }
+  50% { 
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.5), 0 0 60px rgba(59, 130, 246, 0.2);
+  }
