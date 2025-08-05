@@ -70,7 +70,7 @@ export default function HomePage() {
               onClick={() => navigate('/projecten')}
             >
               <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <div className="bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 text-sm font-medium border border-white/30">
+                <div className="bg-white text-blue-600 rounded-full px-6 py-2 text-sm font-bold border-2 border-white shadow-lg">
                   Meest gebruikt
                 </div>
               </div>
