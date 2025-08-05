@@ -69,11 +69,6 @@ export default function HomePage() {
               spotlightColor="rgba(59, 130, 246, 0.3)"
               onClick={() => navigate('/projecten')}
             >
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10">
-                <div className="bg-white text-blue-600 rounded-full px-6 py-2 text-sm font-bold border-2 border-white shadow-lg">
-                  Meest gebruikt
-                </div>
-              </div>
               <div className="text-center">
                 <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Briefcase className="h-8 w-8 text-white" />
