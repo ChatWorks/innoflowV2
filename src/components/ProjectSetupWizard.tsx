@@ -596,7 +596,10 @@ export default function ProjectSetupWizard() {
               <div className="flex justify-end pt-4">
                 <Button
                   onClick={() => {
-                    initializePhases();
+                    // Only initialize phases if they haven't been set by AI analysis
+                    if (phases.length === 0) {
+                      initializePhases();
+                    }
                     setCurrentStep(2);
                   }}
                   disabled={!isStep1Valid()}
