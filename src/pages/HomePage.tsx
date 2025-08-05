@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Target, Users, Briefcase, TrendingUp, ArrowRight } from 'lucide-react';
 import Layout from '@/components/Layout';
 import SpotlightCard from '@/components/ui/SpotlightCard';
+import { InnoflowLogo } from '@/components/ui/InnoflowLogo';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -17,9 +18,12 @@ export default function HomePage() {
             <div className="inline-flex items-center px-4 py-2 bg-white/60 backdrop-blur-sm border border-white/40 rounded-full text-sm text-muted-foreground mb-6">
               🎯 Beheer je tijd efficiënt
             </div>
-            <h1 className="text-5xl font-bold tracking-tight mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-              Sluit je aan bij de rijen van onze gebruikers
-            </h1>
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <InnoflowLogo className="h-12 w-12" />
+              <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                Welkom bij Innoflow
+              </h1>
+            </div>
             <p className="text-lg text-muted-foreground max-w-lg mx-auto mb-8">
               Probeer 30 dagen gratis zonder risico
             </p>
