@@ -417,7 +417,7 @@ export default function ProjectDetail() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-end justify-end">
                   <Button
                     variant="outline"
                     onClick={() => setShowPortalDialog(true)}
@@ -426,17 +426,6 @@ export default function ProjectDetail() {
                     <Globe className="mr-2 h-4 w-4" />
                     Client Portal
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowUpdateDialog(true)}
-                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Update
-                  </Button>
-                  <Badge className="bg-white/20 text-white border-white/30 px-4 py-2 text-sm font-medium">
-                    {project.status}
-                  </Badge>
                 </div>
               </div>
             </div>
