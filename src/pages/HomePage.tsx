@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Target, Users, Briefcase, TrendingUp, ArrowRight } from 'lucide-react';
 import Layout from '@/components/Layout';
+import SpotlightCard from '@/components/ui/SpotlightCard';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -88,39 +89,106 @@ export default function HomePage() {
         </div>
 
         {/* Navigation Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {navigationCards.map((card) => (
-            <Card 
-              key={card.title} 
-              className="cursor-pointer hover:shadow-lg transition-all duration-200 group"
-              onClick={() => navigate(card.href)}
+        <div className="space-y-6">
+          {/* Projects - Full Width */}
+          <SpotlightCard 
+            className="cursor-pointer transition-all duration-200 group"
+            spotlightColor="hsl(var(--primary) / 0.2)"
+            onClick={() => navigate('/projecten')}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                <Briefcase className="h-6 w-6 text-white" />
+              </div>
+              <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </div>
+            <h3 className="text-2xl font-semibold mb-2">Projecten</h3>
+            <p className="text-muted-foreground mb-6">
+              Beheer en volg de voortgang van al je projecten
+            </p>
+            <Button 
+              variant="outline" 
+              className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/projecten');
+              }}
             >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className={`w-12 h-12 ${card.color} rounded-lg flex items-center justify-center`}>
-                    <card.icon className="h-6 w-6 text-white" />
-                  </div>
-                  <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-                </div>
-                <CardTitle className="text-xl">{card.title}</CardTitle>
-                <CardDescription className="text-base">
-                  {card.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  variant="outline" 
-                  className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(card.href);
-                  }}
-                >
-                  Ga naar {card.title}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+              Ga naar Projecten
+            </Button>
+          </SpotlightCard>
+
+          {/* Leads - Full Width with 1 Stat */}
+          <SpotlightCard 
+            className="cursor-pointer transition-all duration-200 group"
+            spotlightColor="hsl(var(--primary) / 0.2)"
+            onClick={() => navigate('/leads')}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                <Users className="h-6 w-6 text-white" />
+              </div>
+              <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </div>
+            <h3 className="text-2xl font-semibold mb-2">Leads</h3>
+            <p className="text-muted-foreground mb-4">
+              Volg potentiële klanten en zet ze om naar projecten
+            </p>
+            <div className="bg-background/50 rounded-lg p-4 mb-6">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">Lead tracking</div>
+                <div className="text-sm text-muted-foreground">Actieve leads beheer</div>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/leads');
+              }}
+            >
+              Ga naar Leads
+            </Button>
+          </SpotlightCard>
+
+          {/* Goals - Full Width with 2 Stats Side by Side */}
+          <SpotlightCard 
+            className="cursor-pointer transition-all duration-200 group"
+            spotlightColor="hsl(var(--primary) / 0.2)"
+            onClick={() => navigate('/goals')}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                <Target className="h-6 w-6 text-white" />
+              </div>
+              <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </div>
+            <h3 className="text-2xl font-semibold mb-2">Doelen</h3>
+            <p className="text-muted-foreground mb-4">
+              Stel doelen in en track je vooruitgang
+            </p>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-background/50 rounded-lg p-4 text-center">
+                <div className="text-xl font-bold text-purple-600">Goal tracking</div>
+                <div className="text-sm text-muted-foreground">Doelen beheer</div>
+              </div>
+              <div className="bg-background/50 rounded-lg p-4 text-center">
+                <div className="text-xl font-bold text-purple-600">Voortgang</div>
+                <div className="text-sm text-muted-foreground">Progress tracking</div>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/goals');
+              }}
+            >
+              Ga naar Doelen
+            </Button>
+          </SpotlightCard>
         </div>
 
         {/* Call to Action */}
