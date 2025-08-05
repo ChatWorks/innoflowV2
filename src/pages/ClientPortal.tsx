@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { InnoflowLogo } from '@/components/ui/InnoflowLogo';
 import type { PortalData, PortalProgress } from '@/types/clientPortal';
 import type { Deliverable, Phase, Task } from '@/types/project';
 import { 
@@ -259,9 +260,7 @@ export default function ClientPortal() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md">
-                  <span className="text-xl text-white">🚀</span>
-                </div>
+                <InnoflowLogo size="lg" showText={false} />
               </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
