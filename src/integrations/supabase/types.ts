@@ -448,6 +448,48 @@ export type Database = {
         }
         Relationships: []
       }
+      project_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          project_id: string
+          sender_email: string | null
+          sender_name: string | null
+          sender_type: string
+          subject: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          project_id: string
+          sender_email?: string | null
+          sender_name?: string | null
+          sender_type: string
+          subject: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          project_id?: string
+          sender_email?: string | null
+          sender_name?: string | null
+          sender_type?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       projects: {
         Row: {
           budget: number | null
