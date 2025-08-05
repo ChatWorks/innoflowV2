@@ -7,7 +7,8 @@ import { TimerProvider } from "@/contexts/TimerContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import FloatingTimer from "@/components/FloatingTimer";
-import Index from "./pages/Index";
+import HomePage from "./pages/HomePage";
+import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import ProjectSetupWizard from "./components/ProjectSetupWizard";
 import Leads from "./pages/Leads";
@@ -31,7 +32,12 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={
                 <ProtectedRoute>
-                  <Index />
+                  <HomePage />
+                </ProtectedRoute>
+              } />
+              <Route path="/projecten" element={
+                <ProtectedRoute>
+                  <Projects />
                 </ProtectedRoute>
               } />
               <Route path="/project/new" element={

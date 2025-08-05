@@ -31,6 +31,9 @@ export default function Layout({ children }: LayoutProps) {
                 <Button variant="ghost" onClick={() => navigate('/')} className="text-gray-600 hover:text-gray-900">
                   Dashboard
                 </Button>
+                <Button variant="ghost" onClick={() => navigate('/projecten')} className="text-gray-600 hover:text-gray-900">
+                  Projecten
+                </Button>
                 <Button variant="ghost" onClick={() => navigate('/leads')} className="text-gray-600 hover:text-gray-900">
                   Leads
                 </Button>
