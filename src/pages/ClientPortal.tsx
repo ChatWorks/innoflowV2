@@ -10,7 +10,6 @@ import {
   getDeliverableProgress,
   getPhaseStatus 
 } from '@/utils/progressCalculations';
-import MagicBento from '@/components/MagicBento';
 
 export default function ClientPortal() {
   const { hash } = useParams<{ hash: string }>();
@@ -128,10 +127,10 @@ export default function ClientPortal() {
   if (loading) {
     console.log('Rendering loading state');
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-border border-t-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground text-lg">Portal laden...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-300 border-t-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 text-lg">Portal laden...</p>
         </div>
       </div>
     );
@@ -140,14 +139,14 @@ export default function ClientPortal() {
   if (error || !portalData || !progress) {
     console.log('Rendering error state:', error);
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
-          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">⚠️</span>
           </div>
-          <h1 className="text-2xl font-bold text-card-foreground mb-4">Portal Niet Gevonden</h1>
-          <p className="text-muted-foreground mb-2">Deze portal link is mogelijk verlopen of niet meer actief.</p>
-          {error && <p className="text-muted-foreground text-sm">Error: {error}</p>}
+          <h1 className="text-2xl font-bold text-slate-800 mb-4">Portal Niet Gevonden</h1>
+          <p className="text-slate-600 mb-2">Deze portal link is mogelijk verlopen of niet meer actief.</p>
+          {error && <p className="text-slate-500 text-sm">Error: {error}</p>}
         </div>
       </div>
     );
@@ -165,9 +164,9 @@ export default function ClientPortal() {
     const upcomingDeliverables = progress.deliverables.filter(d => d.status === 'Pending');
 
     // 1. HERO CARD - Overall Progress (Most Prominent)
-    const progressColor = progress.overall_progress >= 75 ? "hsl(var(--success))" : 
-                         progress.overall_progress >= 50 ? "hsl(var(--primary))" : 
-                         progress.overall_progress >= 25 ? "hsl(var(--warning))" : "hsl(var(--destructive))";
+    const progressColor = progress.overall_progress >= 75 ? "#10B981" : 
+                         progress.overall_progress >= 50 ? "#3B82F6" : 
+                         progress.overall_progress >= 25 ? "#F59E0B" : "#EF4444";
     
     const progressEmoji = progress.overall_progress >= 75 ? "🎉" : 
                          progress.overall_progress >= 50 ? "🚀" : 
@@ -189,7 +188,7 @@ export default function ClientPortal() {
                         activePhase.progress >= 25 ? "⚡" : "🚀";
       
       cards.push({
-        color: "hsl(var(--primary))",
+        color: "#3B82F6",
         title: `🔄 ${activePhase.name}`,
         description: `${phaseEmoji} ${activePhase.progress}% voltooid • Actief in ontwikkeling${inProgressDeliverables.length > 0 ? ` • ${inProgressDeliverables.length} items in bewerking` : ''}`,
         label: "⚡ HUIDIGE ACTIVITEIT"
@@ -204,7 +203,7 @@ export default function ClientPortal() {
         'Planning wordt afgestemd';
 
       cards.push({
-        color: "hsl(var(--accent))",
+        color: "#8B5CF6",
         title: `📅 ${nextPhase.name}`,
         description: `🚀 Volgende fase • ${timelineText}${upcomingDeliverables.length > 0 ? ` • ${upcomingDeliverables.length} onderdelen gepland` : ''}`,
         label: "🗓️ VOLGENDE MIJLPAAL"
@@ -218,7 +217,7 @@ export default function ClientPortal() {
       const isRecent = updateAge < 3;
       
       cards.push({
-        color: isRecent ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))",
+        color: isRecent ? "#06B6D4" : "#64748B",
         title: `${isRecent ? '🆕 ' : '📋 '}${latestUpdate.title}`,
         description: `${latestUpdate.message.length > 70 ? latestUpdate.message.substring(0, 70) + "..." : latestUpdate.message}${isRecent ? ' • NET GEÜPDATET' : ` • ${updateAge} dag${updateAge > 1 ? 'en' : ''} geleden`}`,
         label: isRecent ? "🔥 LAATSTE NIEUWS" : "📈 RECENTE UPDATE"
@@ -230,7 +229,7 @@ export default function ClientPortal() {
       const completedDeliverables = progress.deliverables.filter(d => d.status === 'Completed');
       
       cards.push({
-        color: "hsl(var(--success))",
+        color: "#10B981",
         title: `✅ ${completedPhases.length} Fase${completedPhases.length > 1 ? 's' : ''} Afgerond`,
         description: `🎉 Geweldig werk! • ${completedDeliverables.length} deliverables opgeleverd • Alles volgens planning`,
         label: "🏆 BEHAALDE RESULTATEN"
@@ -239,7 +238,7 @@ export default function ClientPortal() {
 
     // 6. SUPPORT & CONTACT
     cards.push({
-      color: "hsl(var(--success))",
+      color: "#059669",
       title: "💬 Vragen of Feedback?",
       description: "📞 Rechtstreeks contact met je projectteam • Altijd beschikbaar voor ondersteuning",
       label: "🤝 PERSOONLIJK CONTACT"
@@ -253,35 +252,35 @@ export default function ClientPortal() {
 
   console.log('Rendering main portal interface');
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50">
       {/* Clean Header */}
-      <div className="bg-card border-b border-border shadow-sm">
+      <div className="bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center shadow-md">
-                  <span className="text-xl text-primary-foreground">🚀</span>
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md">
+                  <span className="text-xl text-white">🚀</span>
                 </div>
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-card-foreground">
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
                   INNOFLOW
                 </h1>
-                <p className="text-muted-foreground text-sm">Project Dashboard</p>
+                <p className="text-slate-600 text-sm">Project Dashboard</p>
               </div>
             </div>
             
             <div className="text-left md:text-right">
-              <h2 className="text-lg md:text-xl font-semibold text-card-foreground mb-1">
+              <h2 className="text-lg md:text-xl font-semibold text-slate-800 mb-1">
                 {portalData.portal.project_name}
               </h2>
               <div className="flex flex-col md:items-end gap-1">
-                <p className="text-muted-foreground text-sm">
+                <p className="text-slate-600 text-sm">
                   📋 {portalData.portal.client}
                 </p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="w-2 h-2 bg-success rounded-full animate-pulse"></span>
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
                   Live status
                 </div>
               </div>
@@ -290,60 +289,173 @@ export default function ClientPortal() {
         </div>
       </div>
 
-      {/* Magic Bento Dashboard */}
+      {/* Main Dashboard */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <MagicBento
-          cardData={portalCards}
-        />
-        
-        {/* Right Section - Deliverables Checklist */}
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Left Section - Progress Overview */}
+          <div className="lg:col-span-2 space-y-6">
+            
+            {/* Overall Progress Card */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-slate-800">Project Voortgang</h3>
+                <span className="text-2xl font-bold text-blue-600">{progress.overall_progress}%</span>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm text-slate-600 mb-2">
+                  <span>Totale voortgang</span>
+                  <span>{progress.overall_progress}% voltooid</span>
+                </div>
+                <div className="w-full bg-slate-200 rounded-full h-3">
+                  <div 
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${progress.overall_progress}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-xs text-slate-500">
+                  <span>🎯 {progress.phases.filter(p => p.status === 'Completed').length}/{progress.phases.length} fasen voltooid</span>
+                  <span>📋 {progress.deliverables.filter(d => d.status === 'Completed').length}/{progress.deliverables.length} items afgerond</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Phases Progress */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Fasen Overzicht</h3>
+              <div className="space-y-4">
+                {progress.phases.map((phase, index) => (
+                  <div key={phase.id} className="flex items-center gap-4 p-3 rounded-lg bg-slate-50">
+                    <div className="flex-shrink-0">
+                      {phase.status === 'Completed' ? (
+                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm">✓</span>
+                        </div>
+                      ) : phase.status === 'In Progress' ? (
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+                          <span className="text-white text-sm">{index + 1}</span>
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 bg-slate-300 rounded-full flex items-center justify-center">
+                          <span className="text-slate-600 text-sm">{index + 1}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium text-slate-800">{phase.name}</h4>
+                        <span className="text-sm font-medium text-slate-600">{phase.progress}%</span>
+                      </div>
+                      
+                      <div className="w-full bg-slate-200 rounded-full h-2 mb-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-500 ${
+                            phase.status === 'Completed' ? 'bg-green-500' :
+                            phase.status === 'In Progress' ? 'bg-blue-500' :
+                            'bg-slate-300'
+                          }`}
+                          style={{ width: `${phase.progress}%` }}
+                        ></div>
+                      </div>
+                      
+                      <div className="flex justify-between items-center text-xs text-slate-500">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          phase.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                          phase.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                          'bg-slate-100 text-slate-600'
+                        }`}>
+                          {phase.status === 'Completed' ? '✅ Voltooid' :
+                           phase.status === 'In Progress' ? '🔄 Bezig' :
+                           '⏳ Gepland'}
+                        </span>
+                        {phase.target_date && (
+                          <span>📅 {format(new Date(phase.target_date), 'dd MMM yyyy')}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Recent Updates */}
+            {progress.recent_updates.length > 0 && (
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Laatste Updates</h3>
+                <div className="space-y-3">
+                  {progress.recent_updates.slice(0, 3).map((update, index) => {
+                    const updateAge = Math.floor((Date.now() - new Date(update.date).getTime()) / (1000 * 60 * 60 * 24));
+                    const isRecent = updateAge < 3;
+                    
+                    return (
+                      <div key={index} className="flex gap-3 p-3 rounded-lg bg-slate-50">
+                        <div className="flex-shrink-0">
+                          <div className={`w-2 h-2 rounded-full mt-2 ${isRecent ? 'bg-blue-500 animate-pulse' : 'bg-slate-400'}`}></div>
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="font-medium text-slate-800 mb-1">{update.title}</h5>
+                          <p className="text-sm text-slate-600 mb-2">{update.message}</p>
+                          <span className="text-xs text-slate-500">
+                            {isRecent ? `🆕 ${updateAge === 0 ? 'Vandaag' : `${updateAge} dag${updateAge > 1 ? 'en' : ''} geleden`}` : 
+                             `📅 ${format(new Date(update.date), 'dd MMM yyyy')}`}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Section - Deliverables Checklist */}
           <div className="space-y-6">
-            <div className="bg-card rounded-xl border border-border shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-card-foreground mb-4">Deliverables Checklist</h3>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">Deliverables Checklist</h3>
               
               <div className="space-y-3">
                 {progress.deliverables.map((deliverable) => (
-                  <div key={deliverable.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                  <div key={deliverable.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors">
                     <div className="flex-shrink-0 mt-0.5">
                       {deliverable.status === 'Completed' ? (
-                        <div className="w-5 h-5 bg-success rounded border-2 border-success flex items-center justify-center">
-                          <span className="text-success-foreground text-xs">✓</span>
+                        <div className="w-5 h-5 bg-green-500 rounded border-2 border-green-500 flex items-center justify-center">
+                          <span className="text-white text-xs">✓</span>
                         </div>
                       ) : deliverable.status === 'In Progress' ? (
-                        <div className="w-5 h-5 bg-primary/10 border-2 border-primary rounded flex items-center justify-center">
-                          <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                        <div className="w-5 h-5 bg-blue-100 border-2 border-blue-500 rounded flex items-center justify-center">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                         </div>
                       ) : (
-                        <div className="w-5 h-5 bg-muted border-2 border-border rounded"></div>
+                        <div className="w-5 h-5 bg-slate-100 border-2 border-slate-300 rounded"></div>
                       )}
                     </div>
                     
                     <div className="flex-1">
                       <h5 className={`font-medium text-sm mb-1 ${
-                        deliverable.status === 'Completed' ? 'text-muted-foreground line-through' : 'text-card-foreground'
+                        deliverable.status === 'Completed' ? 'text-slate-600 line-through' : 'text-slate-800'
                       }`}>
                         {deliverable.title}
                       </h5>
                       
                       {deliverable.status !== 'Completed' && deliverable.progress > 0 && (
                         <div className="mb-2">
-                          <div className="w-full bg-muted rounded-full h-1.5">
+                          <div className="w-full bg-slate-200 rounded-full h-1.5">
                             <div 
-                              className="bg-primary h-1.5 rounded-full transition-all duration-300"
+                              className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
                               style={{ width: `${deliverable.progress}%` }}
                             ></div>
                           </div>
-                          <span className="text-xs text-muted-foreground mt-1">{deliverable.progress}%</span>
+                          <span className="text-xs text-slate-500 mt-1">{deliverable.progress}%</span>
                         </div>
                       )}
                       
                       <div className="flex items-center justify-between">
                         <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                          deliverable.status === 'Completed' ? 'bg-success/10 text-success' :
-                          deliverable.status === 'In Progress' ? 'bg-primary/10 text-primary' :
-                          'bg-muted text-muted-foreground'
+                          deliverable.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                          deliverable.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                          'bg-slate-100 text-slate-600'
                         }`}>
                           {deliverable.status === 'Completed' ? 'Afgerond' :
                            deliverable.status === 'In Progress' ? 'Bezig' :
@@ -351,7 +463,7 @@ export default function ClientPortal() {
                         </span>
                         
                         {deliverable.due_date && (
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-slate-500">
                             {format(new Date(deliverable.due_date), 'dd/MM')}
                           </span>
                         )}
@@ -363,13 +475,13 @@ export default function ClientPortal() {
             </div>
 
             {/* Contact Card */}
-            <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 p-6">
-              <h3 className="text-lg font-semibold text-primary mb-3">💬 Vragen of Feedback?</h3>
-              <p className="text-primary/80 text-sm mb-4">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 p-6">
+              <h3 className="text-lg font-semibold text-blue-800 mb-3">💬 Vragen of Feedback?</h3>
+              <p className="text-blue-700 text-sm mb-4">
                 Heeft u vragen over de voortgang of wilt u feedback geven? 
                 Neem direct contact op met uw projectteam.
               </p>
-              <div className="flex flex-col gap-2 text-sm text-primary/70">
+              <div className="flex flex-col gap-2 text-sm text-blue-600">
                 <span>📞 Altijd bereikbaar</span>
                 <span>⚡ Snelle response</span>
                 <span>🤝 Persoonlijke service</span>
@@ -379,22 +491,22 @@ export default function ClientPortal() {
         </div>
 
         {/* Clean Footer */}
-        <div className="text-center mt-12 pt-8 border-t border-border">
+        <div className="text-center mt-12 pt-8 border-t border-slate-200">
           <div className="flex flex-col items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span className="w-2 h-2 bg-success rounded-full animate-pulse"></span>
+            <div className="flex items-center gap-2 text-sm text-slate-600">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
               <span>Live dashboard • Laatste sync: {format(new Date(), 'HH:mm')}</span>
             </div>
             
-            <div className="flex flex-wrap justify-center gap-4 text-xs text-muted-foreground">
+            <div className="flex flex-wrap justify-center gap-4 text-xs text-slate-500">
               <span>📊 {progress.phases.length} projectfasen</span>
               <span>📋 {progress.deliverables.length} deliverables</span>
               <span>🔄 {progress.recent_updates.length} updates</span>
             </div>
             
-            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+            <p className="text-xs text-slate-500 mt-2 flex items-center gap-1">
               <span>Powered by</span>
-              <span className="font-semibold text-primary">INNOFLOW</span>
+              <span className="font-semibold text-blue-600">INNOFLOW</span>
               <span>✨</span>
             </p>
           </div>
