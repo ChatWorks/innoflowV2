@@ -217,14 +217,16 @@ export function GoalCreationDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Nieuw Doel
-          </Button>
-        )}
-      </DialogTrigger>
+      {(!goal || trigger) && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Nieuw Doel
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{goal ? 'Doel Bewerken' : 'Nieuw Doel Aanmaken'}</DialogTitle>
