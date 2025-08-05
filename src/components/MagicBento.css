@@ -1,12 +1,15 @@
 :root {
-  --hue: 27;
-  --sat: 69%;
-  --white: hsl(0, 0%, 100%);
-  --purple-primary: rgba(132, 0, 255, 1);
-  --purple-glow: rgba(132, 0, 255, 0.2);
-  --purple-border: rgba(132, 0, 255, 0.8);
-  --border-color: #392e4e;
-  --background-dark: #060010;
+  /* Magic Bento variables using design system colors */
+  --bento-background: hsl(var(--card));
+  --bento-foreground: hsl(var(--card-foreground));
+  --bento-border: hsl(var(--border));
+  --bento-primary: hsl(var(--primary));
+  --bento-primary-glow: hsl(var(--primary-glow));
+  --bento-muted: hsl(var(--muted));
+  --bento-muted-foreground: hsl(var(--muted-foreground));
+  --bento-accent: hsl(var(--accent));
+  --bento-success: hsl(var(--success));
+  --bento-warning: hsl(var(--warning));
   color-scheme: light dark;
 }
 
@@ -29,8 +32,8 @@
   max-width: 100%;
   padding: 1.25em;
   border-radius: 20px;
-  border: 1px solid var(--border-color);
-  background: var(--background-dark);
+  border: 1px solid var(--bento-border);
+  background: var(--bento-background);
   font-weight: 300;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -50,7 +53,7 @@
 .card__content {
   display: flex;
   position: relative;
-  color: var(--white);
+  color: var(--bento-foreground);
 }
 
 .card__header {
@@ -225,9 +228,9 @@
   position: absolute;
   inset: 0;
   padding: 6px;
-  background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
-      rgba(132, 0, 255, calc(var(--glow-intensity) * 0.8)) 0%,
-      rgba(132, 0, 255, calc(var(--glow-intensity) * 0.4)) 30%,
+    background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+      hsl(var(--primary) / calc(var(--glow-intensity) * 0.8)) 0%,
+      hsl(var(--primary) / calc(var(--glow-intensity) * 0.4)) 30%,
       transparent 60%);
   border-radius: inherit;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -244,7 +247,7 @@
 }
 
 .card--border-glow:hover {
-  box-shadow: 0 4px 20px rgba(46, 24, 78, 0.4), 0 0 30px var(--purple-glow);
+  box-shadow: 0 4px 20px hsl(var(--primary) / 0.2), 0 0 30px hsl(var(--primary) / 0.3);
 }
 
 .particle-container {
@@ -259,13 +262,13 @@
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: rgba(132, 0, 255, 0.2);
+  background: hsl(var(--primary) / 0.2);
   border-radius: 50%;
   z-index: -1;
 }
 
 .particle-container:hover {
-  box-shadow: 0 4px 20px rgba(46, 24, 78, 0.2), 0 0 30px var(--purple-glow);
+  box-shadow: 0 4px 20px hsl(var(--primary) / 0.1), 0 0 30px hsl(var(--primary) / 0.2);
 }
 
 /* Global spotlight styles */
@@ -334,7 +337,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #10B981, #3B82F6);
+  background: linear-gradient(90deg, var(--bento-success), var(--bento-primary));
   border-radius: 2px;
   transition: width 1s ease-out;
   animation: progress-shimmer 2s ease-in-out infinite;
@@ -351,16 +354,16 @@
 
 /* Status indicator styles */
 .status-completed {
-  color: #10B981;
+  color: var(--bento-success);
 }
 
 .status-in-progress {
-  color: #3B82F6;
+  color: var(--bento-primary);
   animation: gentle-pulse 2s ease-in-out infinite;
 }
 
 .status-pending {
-  color: #64748B;
+  color: var(--bento-muted-foreground);
 }
 
 @keyframes gentle-pulse {
