@@ -3,6 +3,11 @@ import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { InnoflowLogo } from '@/components/ui/InnoflowLogo';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Eye, EyeOff, Lock } from 'lucide-react';
 import type { PortalData, PortalProgress } from '@/types/clientPortal';
 import type { Deliverable, Phase, Task } from '@/types/project';
 import { 
@@ -18,6 +23,13 @@ export default function ClientPortal() {
   const [progress, setProgress] = useState<PortalProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Password verification state
+  const [requiresPassword, setRequiresPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
   
   // Simple mobile detection - MUST be before any conditional returns
   const [isMobile, setIsMobile] = useState(false);
@@ -43,14 +55,75 @@ export default function ClientPortal() {
     }
   }, [hash]);
 
-  const fetchPortalData = async () => {
+  const hashPassword = async (password: string): Promise<string> => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hash = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!password.trim()) {
+      setPasswordError('Voer een wachtwoord in');
+      return;
+    }
+    
+    setIsVerifying(true);
+    setPasswordError('');
+    await fetchPortalData(password);
+    setIsVerifying(false);
+  };
+
+  const fetchPortalData = async (providedPassword?: string) => {
     if (!hash) return;
 
     try {
       setLoading(true);
       setError(null);
+      setPasswordError('');
 
       console.log('Fetching portal data for hash:', hash);
+
+      // First check if portal exists and if it requires password
+      const { data: portalCheck, error: checkError } = await supabase
+        .from('client_portals')
+        .select('password_hash, is_active, expires_at')
+        .eq('portal_hash', hash)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+      if (!portalCheck) {
+        setError("Portal niet gevonden");
+        return;
+      }
+
+      if (!portalCheck.is_active) {
+        setError("Portal is gedeactiveerd");
+        return;
+      }
+
+      if (portalCheck.expires_at && new Date(portalCheck.expires_at) < new Date()) {
+        setError("Portal is verlopen");
+        return;
+      }
+
+      // Check if password is required
+      if (portalCheck.password_hash && !providedPassword) {
+        setRequiresPassword(true);
+        setLoading(false);
+        return;
+      }
+
+      // Verify password if provided
+      if (portalCheck.password_hash && providedPassword) {
+        const hashedPassword = await hashPassword(providedPassword);
+        if (hashedPassword !== portalCheck.password_hash) {
+          setPasswordError('Onjuist wachtwoord');
+          setIsVerifying(false);
+          return;
+        }
+      }
 
       // Get all portal data using the enhanced function
       const { data: portalResult, error: portalError } = await supabase
@@ -69,6 +142,7 @@ export default function ClientPortal() {
       
       // Set portal data
       setPortalData({ portal: parsedPortalData.portal } as PortalData);
+      setRequiresPassword(false);
 
       // Track access separately (don't wait for this)
       try {
@@ -132,6 +206,60 @@ export default function ClientPortal() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-slate-300 border-t-blue-600 mx-auto mb-4"></div>
           <p className="text-slate-600 text-lg">Portal laden...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (requiresPassword) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-full max-w-md mx-auto p-6">
+          <Card>
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lock className="h-8 w-8 text-blue-600" />
+              </div>
+              <CardTitle className="text-2xl font-bold text-slate-800">Portal Beveiligd</CardTitle>
+              <p className="text-slate-600">Voer het wachtwoord in om toegang te krijgen</p>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="portal-password">Wachtwoord</Label>
+                  <div className="relative">
+                    <Input
+                      id="portal-password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Voer wachtwoord in"
+                      className="pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                  {passwordError && (
+                    <p className="text-sm text-red-600 mt-1">{passwordError}</p>
+                  )}
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full" 
+                  disabled={isVerifying}
+                >
+                  {isVerifying ? 'Verifiëren...' : 'Toegang Verkrijgen'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );

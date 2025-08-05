@@ -142,6 +142,16 @@ export const ClientPortalDialog = ({
   };
 
   const generatePortal = async () => {
+    // Validatie voor wachtwoord
+    if (passwordProtected && !password) {
+      toast({
+        title: "Fout",
+        description: "Voer een wachtwoord in voor beveiliging",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
     try {
       // Generate portal hash
@@ -152,13 +162,21 @@ export const ClientPortalDialog = ({
 
       console.log('Generated hash:', hashData);
 
+      let passwordHash = null;
+      if (passwordProtected && password) {
+        passwordHash = await hashPassword(password);
+        console.log('Password hashed for new portal:', passwordHash ? 'Success' : 'Failed');
+      }
+
       const portalData = {
         project_id: projectId,
         portal_hash: hashData,
         show_team_names: false,
-        password_hash: passwordProtected && password ? await hashPassword(password) : null,
+        password_hash: passwordHash,
         expires_at: expiryDate ? expiryDate.toISOString() : null,
       };
+
+      console.log('Creating portal with:', portalData);
 
       const { data, error } = await supabase
         .from('client_portals')
@@ -173,9 +191,10 @@ export const ClientPortalDialog = ({
       
       toast({
         title: "Portal Aangemaakt!",
-        description: "Client portal is succesvol gegenereerd",
+        description: passwordProtected ? "Portal beveiligd met wachtwoord" : "Client portal is succesvol gegenereerd",
       });
     } catch (error: any) {
+      console.error('Portal creation error:', error);
       toast({
         title: "Fout",
         description: error.message || "Kon portal niet aanmaken",
@@ -189,14 +208,39 @@ export const ClientPortalDialog = ({
   const updatePortal = async () => {
     if (!portal) return;
     
+    // Validatie voor wachtwoord
+    if (passwordProtected && !password && !portal.password_hash) {
+      toast({
+        title: "Fout",
+        description: "Voer een wachtwoord in voor beveiliging",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setLoading(true);
     try {
+      let passwordHash = null;
+      
+      if (passwordProtected) {
+        if (password) {
+          // Nieuw wachtwoord hashen
+          passwordHash = await hashPassword(password);
+          console.log('New password hashed:', passwordHash ? 'Success' : 'Failed');
+        } else {
+          // Bestaand wachtwoord behouden
+          passwordHash = portal.password_hash;
+          console.log('Keeping existing password hash');
+        }
+      }
+
       const updateData = {
         show_team_names: false,
-        password_hash: passwordProtected && password ? await hashPassword(password) : 
-                      passwordProtected ? portal.password_hash : null,
+        password_hash: passwordHash,
         expires_at: expiryDate ? expiryDate.toISOString() : null,
       };
+
+      console.log('Updating portal with:', updateData);
 
       const { error } = await supabase
         .from('client_portals')
@@ -210,9 +254,10 @@ export const ClientPortalDialog = ({
       
       toast({
         title: "Portal Bijgewerkt!",
-        description: "Portal instellingen zijn bijgewerkt",
+        description: passwordProtected ? "Portal beveiligd met wachtwoord" : "Portal instellingen bijgewerkt",
       });
     } catch (error: any) {
+      console.error('Portal update error:', error);
       toast({
         title: "Fout",
         description: error.message || "Kon portal niet bijwerken",
@@ -458,14 +503,21 @@ export const ClientPortalDialog = ({
 
                 {passwordProtected && (
                   <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
-                    <Label htmlFor="password" className="text-base font-medium">Wachtwoord instellen</Label>
+                    <Label htmlFor="password" className="text-base font-medium">
+                      {portal?.password_hash ? 'Nieuw wachtwoord instellen (optioneel)' : 'Wachtwoord instellen'}
+                    </Label>
+                    {portal?.password_hash && (
+                      <div className="text-sm text-muted-foreground">
+                        Er is al een wachtwoord ingesteld. Laat leeg om het huidige wachtwoord te behouden.
+                      </div>
+                    )}
                     <div className="relative">
                       <Input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Kies een sterk wachtwoord"
+                        placeholder={portal?.password_hash ? "Nieuw wachtwoord (optioneel)" : "Kies een sterk wachtwoord"}
                         className="pr-10"
                       />
                       <Button
