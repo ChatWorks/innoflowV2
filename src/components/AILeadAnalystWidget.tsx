@@ -108,7 +108,7 @@ Wat wil je weten over je leads?`,
     <div className="flex flex-col h-full">
       {/* Header - only show in widget mode */}
       {!isFullscreenView && (
-        <div className="flex items-center justify-between p-4 border-b bg-white">
+        <div className="flex items-center justify-between p-4 border-b bg-white rounded-t-lg">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
               <Bot className="h-6 w-6 text-white" />
@@ -141,7 +141,7 @@ Wat wil je weten over je leads?`,
 
       {/* Fullscreen Header */}
       {isFullscreenView && (
-        <div className="flex items-center gap-3 p-4 border-b bg-white">
+        <div className="flex items-center gap-3 p-4 border-b bg-white rounded-t-lg">
           <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
             <Bot className="h-6 w-6 text-white" />
           </div>
@@ -272,7 +272,7 @@ Wat wil je weten over je leads?`,
 
       {/* Chat Widget */}
       {isOpen && !isFullscreen && (
-        <Card className="fixed bottom-6 right-6 w-96 h-[600px] z-50 shadow-2xl">
+        <Card className="fixed bottom-6 right-6 w-96 h-[600px] z-50 shadow-2xl rounded-lg overflow-hidden">
           <CardContent className="p-0 h-full">
             <ChatContent />
           </CardContent>
@@ -281,7 +281,7 @@ Wat wil je weten over je leads?`,
 
       {/* Fullscreen Dialog */}
       <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
-        <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0">
+        <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0 rounded-lg overflow-hidden">
           <DialogTitle className="sr-only">AI Lead Analyst Chat</DialogTitle>
           <ChatContent isFullscreenView={true} />
         </DialogContent>
