@@ -152,71 +152,97 @@ export default function ClientPortal() {
     );
   }
 
-  // Transform data into Magic Bento card format
+  // Transform data into advanced interactive card format
   const createPortalCardData = () => {
     if (!portalData || !progress) return [];
 
     const cards = [];
+    const activePhase = progress.phases.find(p => p.status === 'In Progress');
+    const nextPhase = progress.phases.find(p => p.status === 'Pending');
+    const completedPhases = progress.phases.filter(p => p.status === 'Completed');
+    const inProgressDeliverables = progress.deliverables.filter(d => d.status === 'In Progress');
+    const upcomingDeliverables = progress.deliverables.filter(d => d.status === 'Pending');
 
-    // Overall Progress Card
+    // 1. HERO CARD - Overall Progress (Most Prominent)
+    const progressColor = progress.overall_progress >= 75 ? "#10B981" : 
+                         progress.overall_progress >= 50 ? "#3B82F6" : 
+                         progress.overall_progress >= 25 ? "#F59E0B" : "#EF4444";
+    
+    const progressEmoji = progress.overall_progress >= 75 ? "🎉" : 
+                         progress.overall_progress >= 50 ? "🚀" : 
+                         progress.overall_progress >= 25 ? "⚡" : "🌱";
+
     cards.push({
-      color: "#0F172A",
-      title: `${progress.overall_progress}% Voltooid`,
-      description: "Geweldige vooruitgang! Op schema voor oplevering",
-      label: "🎯 Overall Progress"
+      color: progressColor,
+      title: `${progress.overall_progress}%`,
+      description: `${progressEmoji} ${progress.overall_progress >= 75 ? 'Bijna klaar!' : 
+                     progress.overall_progress >= 50 ? 'Geweldige voortgang!' : 
+                     progress.overall_progress >= 25 ? 'Goed bezig!' : 'Net gestart!'} • ${completedPhases.length}/${progress.phases.length} fasen voltooid`,
+      label: "🎯 PROJECT VOORTGANG"
     });
 
-    // Current Active Phase
-    const activePhase = progress.phases.find(p => p.status === 'In Progress');
+    // 2. CURRENT ACTIVITY - What's happening now (Second most important)
     if (activePhase) {
+      const phaseEmoji = activePhase.progress >= 75 ? "🏁" : 
+                        activePhase.progress >= 50 ? "🔥" : 
+                        activePhase.progress >= 25 ? "⚡" : "🚀";
+      
       cards.push({
-        color: "#1E293B",
-        title: activePhase.name,
-        description: `${activePhase.progress}% voltooid - Actief bezig`,
-        label: "⚡ Huidige Fase"
+        color: "#3B82F6",
+        title: `🔄 ${activePhase.name}`,
+        description: `${phaseEmoji} ${activePhase.progress}% voltooid • Actief in ontwikkeling${inProgressDeliverables.length > 0 ? ` • ${inProgressDeliverables.length} items in bewerking` : ''}`,
+        label: "⚡ HUIDIGE ACTIVITEIT"
       });
     }
 
-    // Next Milestone
-    const nextPhase = progress.phases.find(p => p.status === 'Pending');
+    // 3. TIMELINE CARD - Next milestone/deadline
     if (nextPhase) {
+      const daysUntil = nextPhase.target_date ? Math.ceil((new Date(nextPhase.target_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : null;
+      const timelineText = daysUntil ? 
+        (daysUntil > 0 ? `Over ${daysUntil} dag${daysUntil > 1 ? 'en' : ''}` : 'Start binnenkort') :
+        'Planning wordt afgestemd';
+
       cards.push({
-        color: "#334155",
-        title: nextPhase.name,
-        description: nextPhase.target_date ? `Verwacht: ${format(new Date(nextPhase.target_date), 'dd MMM yyyy')}` : "Binnenkort van start",
-        label: "🚀 Volgende Mijlpaal"
+        color: "#8B5CF6",
+        title: `📅 ${nextPhase.name}`,
+        description: `🚀 Volgende fase • ${timelineText}${upcomingDeliverables.length > 0 ? ` • ${upcomingDeliverables.length} onderdelen gepland` : ''}`,
+        label: "🗓️ VOLGENDE MIJLPAAL"
       });
     }
 
-    // Latest Update
+    // 4. RECENT UPDATE with pulse effect indicator
     if (progress.recent_updates.length > 0) {
       const latestUpdate = progress.recent_updates[0];
+      const updateAge = Math.floor((Date.now() - new Date(latestUpdate.date).getTime()) / (1000 * 60 * 60 * 24));
+      const isRecent = updateAge < 3;
+      
       cards.push({
-        color: "#7C3AED",
-        title: latestUpdate.title,
-        description: latestUpdate.message.length > 80 ? latestUpdate.message.substring(0, 80) + "..." : latestUpdate.message,
-        label: "📈 Laatste Update"
+        color: isRecent ? "#06B6D4" : "#64748B",
+        title: `${isRecent ? '🆕 ' : '📋 '}${latestUpdate.title}`,
+        description: `${latestUpdate.message.length > 70 ? latestUpdate.message.substring(0, 70) + "..." : latestUpdate.message}${isRecent ? ' • NET GEÜPDATET' : ` • ${updateAge} dag${updateAge > 1 ? 'en' : ''} geleden`}`,
+        label: isRecent ? "🔥 LAATSTE NIEUWS" : "📈 RECENTE UPDATE"
       });
     }
 
-    // Contact Info
-    cards.push({
-      color: "#059669",
-      title: "Hulp Nodig?",
-      description: "Neem contact op met je projectteam",
-      label: "💬 Support"
-    });
-
-    // Completed Phases
-    const completedPhases = progress.phases.filter(p => p.status === 'Completed');
+    // 5. ACHIEVEMENTS - Completed work
     if (completedPhases.length > 0) {
+      const completedDeliverables = progress.deliverables.filter(d => d.status === 'Completed');
+      
       cards.push({
         color: "#10B981",
-        title: `${completedPhases.length} Fase${completedPhases.length > 1 ? 's' : ''} Voltooid`,
-        description: "Succesvolle afronding van projectfases",
-        label: "✅ Afgerond"
+        title: `✅ ${completedPhases.length} Fase${completedPhases.length > 1 ? 's' : ''} Afgerond`,
+        description: `🎉 Geweldig werk! • ${completedDeliverables.length} deliverables opgeleverd • Alles volgens planning`,
+        label: "🏆 BEHAALDE RESULTATEN"
       });
     }
+
+    // 6. SUPPORT & CONTACT
+    cards.push({
+      color: "#059669",
+      title: "💬 Vragen of Feedback?",
+      description: "📞 Rechtstreeks contact met je projectteam • Altijd beschikbaar voor ondersteuning",
+      label: "🤝 PERSOONLIJK CONTACT"
+    });
 
     return cards;
   };
@@ -234,19 +260,55 @@ export default function ClientPortal() {
         <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
-      {/* Header */}
+      {/* Enhanced Header */}
       <div className="relative z-10 bg-black/20 backdrop-blur-sm border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                🚀 INNOFLOW
-              </h1>
-              <p className="text-white/70 mt-1">Interactive Project Portal</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                  <span className="text-xl">🚀</span>
+                </div>
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  INNOFLOW
+                </h1>
+                <p className="text-white/70 text-sm">Live Project Dashboard</p>
+              </div>
             </div>
-            <div className="text-right">
-              <h2 className="text-xl font-semibold text-white">{portalData.portal.project_name}</h2>
-              <p className="text-white/70">{portalData.portal.client}</p>
+            
+            <div className="text-left md:text-right">
+              <h2 className="text-lg md:text-xl font-semibold text-white mb-1">
+                {portalData.portal.project_name}
+              </h2>
+              <div className="flex flex-col md:items-end gap-1">
+                <p className="text-white/70 text-sm">
+                  👤 {portalData.portal.client}
+                </p>
+                <div className="flex items-center gap-2 text-xs text-white/50">
+                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                  Live status
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Quick Status Bar */}
+          <div className="mt-6 flex flex-wrap gap-3 text-xs">
+            <div className="bg-white/10 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-2">
+              <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+              <span className="text-white/80">{progress.overall_progress}% Voltooid</span>
+            </div>
+            {progress.phases.find(p => p.status === 'In Progress') && (
+              <div className="bg-white/10 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-2">
+                <span className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+                <span className="text-white/80">Actief bezig</span>
+              </div>
+            )}
+            <div className="bg-white/10 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-2">
+              <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+              <span className="text-white/80">{progress.phases.filter(p => p.status === 'Completed').length} fasen afgerond</span>
             </div>
           </div>
         </div>
@@ -268,14 +330,28 @@ export default function ClientPortal() {
           cardData={portalCards}
         />
 
-        {/* Footer */}
+        {/* Enhanced Footer with Real-time Indicators */}
         <div className="text-center mt-12 py-8 border-t border-white/10">
-          <p className="text-sm text-white/60">
-            Laatste update: {format(new Date(), 'dd MMMM yyyy, HH:mm')}
-          </p>
-          <p className="text-xs text-white/40 mt-1">
-            Powered by INNOFLOW Project Management ✨
-          </p>
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-2 text-sm text-white/60">
+              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+              <span>Live dashboard • Laatste sync: {format(new Date(), 'HH:mm')}</span>
+            </div>
+            
+            <div className="flex flex-wrap justify-center gap-4 text-xs text-white/40">
+              <span>📊 {progress.phases.length} projectfasen</span>
+              <span>📋 {progress.deliverables.length} deliverables</span>
+              <span>🔄 {progress.recent_updates.length} updates</span>
+            </div>
+            
+            <p className="text-xs text-white/40 mt-2 flex items-center gap-1">
+              <span>Powered by</span>
+              <span className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                INNOFLOW
+              </span>
+              <span>✨</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>
