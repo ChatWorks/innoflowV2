@@ -40,7 +40,12 @@ serve(async (req) => {
           id: "pmpt_6891dcc450408195bd0f42d5958046d3030a5fee7ef5fd47",
           version: "2"
         },
-        input: [proposalText],
+        input: [
+          {
+            role: "user",
+            content: proposalText
+          }
+        ],
         text: {
           format: {
             type: "json_schema",
