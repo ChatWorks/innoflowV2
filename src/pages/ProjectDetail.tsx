@@ -374,58 +374,58 @@ export default function ProjectDetail() {
                   <p className="text-white/90 text-lg mb-6">
                     Real-time overzicht van je project voortgang en taken
                   </p>
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-full" 
-                         style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
-                      <span className="text-base">👤</span>
-                      <InlineEditField
-                        value={project.client}
-                        onSave={updateProjectClient}
-                        placeholder="Client naam"
-                        className="text-white font-medium text-sm"
-                        iconClassName="!text-white hover:!bg-white/20"
-                        alwaysShowIcon={true}
-                        type="text"
-                      />
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-full" 
+                           style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
+                        <span className="text-base">👤</span>
+                        <InlineEditField
+                          value={project.client}
+                          onSave={updateProjectClient}
+                          placeholder="Client naam"
+                          className="text-white font-medium text-sm"
+                          iconClassName="!text-white hover:!bg-white/20"
+                          alwaysShowIcon={true}
+                          type="text"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-full" 
+                           style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
+                        <span className="text-base">💰</span>
+                        <InlineEditField
+                          value={project.project_value ? formatCurrency(project.project_value) : "€0"}
+                          onSave={(newValue) => updateProjectValue(newValue.replace(/[€.,\s]/g, ''))}
+                          placeholder="€0"
+                          className="text-white font-medium text-sm"
+                          iconClassName="!text-white hover:!bg-white/20"
+                          alwaysShowIcon={true}
+                          type="number"
+                          prefix="€"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-full" 
+                           style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
+                        <span className="text-base">⏰</span>
+                        <InlineEditField
+                          value={`${project.total_hours || 0}h`}
+                          onSave={(newValue) => updateProjectTotalHours(newValue.replace(/[h\s]/g, ''))}
+                          placeholder="0h"
+                          className="text-white font-medium text-sm"
+                          iconClassName="!text-white hover:!bg-white/20"
+                          alwaysShowIcon={true}
+                          type="number"
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-full" 
-                         style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
-                      <span className="text-base">💰</span>
-                      <InlineEditField
-                        value={project.project_value ? formatCurrency(project.project_value) : "€0"}
-                        onSave={(newValue) => updateProjectValue(newValue.replace(/[€.,\s]/g, ''))}
-                        placeholder="€0"
-                        className="text-white font-medium text-sm"
-                        iconClassName="!text-white hover:!bg-white/20"
-                        alwaysShowIcon={true}
-                        type="number"
-                        prefix="€"
-                      />
-                    </div>
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-full" 
-                         style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
-                      <span className="text-base">⏰</span>
-                      <InlineEditField
-                        value={`${project.total_hours || 0}h`}
-                        onSave={(newValue) => updateProjectTotalHours(newValue.replace(/[h\s]/g, ''))}
-                        placeholder="0h"
-                        className="text-white font-medium text-sm"
-                        iconClassName="!text-white hover:!bg-white/20"
-                        alwaysShowIcon={true}
-                        type="number"
-                      />
-                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowPortalDialog(true)}
+                      className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                    >
+                      <Globe className="mr-2 h-4 w-4" />
+                      Client Portal
+                    </Button>
                   </div>
-                </div>
-                <div className="flex items-end justify-end">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowPortalDialog(true)}
-                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                  >
-                    <Globe className="mr-2 h-4 w-4" />
-                    Client Portal
-                  </Button>
                 </div>
               </div>
             </div>
