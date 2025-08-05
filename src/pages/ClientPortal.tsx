@@ -18,6 +18,24 @@ export default function ClientPortal() {
   const [progress, setProgress] = useState<PortalProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Simple mobile detection - MUST be before any conditional returns
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Debug logging
+  console.log('ClientPortal rendered with hash:', hash);
+  console.log('Loading state:', loading);
+  console.log('Error state:', error);
+  console.log('PortalData:', portalData);
+  console.log('Progress:', progress);
+  console.log('IsMobile:', isMobile);
 
   useEffect(() => {
     if (hash) {
@@ -108,6 +126,7 @@ export default function ClientPortal() {
   };
 
   if (loading) {
+    console.log('Rendering loading state');
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-slate-900/20"></div>
@@ -120,26 +139,18 @@ export default function ClientPortal() {
   }
 
   if (error || !portalData || !progress) {
+    console.log('Rendering error state:', error);
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-slate-900/20"></div>
         <div className="relative z-10 text-center">
           <h1 className="text-3xl font-bold text-white mb-4">Portal Niet Gevonden</h1>
           <p className="text-white/60">Deze portal link is mogelijk verlopen of niet meer actief.</p>
+          <p className="text-white/40 text-sm mt-2">Error: {error}</p>
         </div>
       </div>
     );
   }
-  
-  // Simple mobile detection
-  const [isMobile, setIsMobile] = useState(false);
-  
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // Transform data into Magic Bento card format
   const createPortalCardData = () => {
@@ -211,7 +222,9 @@ export default function ClientPortal() {
   };
 
   const portalCards = createPortalCardData();
+  console.log('Portal cards generated:', portalCards);
 
+  console.log('Rendering main portal interface');
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
       {/* Animated background elements */}
