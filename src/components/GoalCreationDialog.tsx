@@ -9,11 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Target, TrendingUp, Users, DollarSign, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { CreateGoalData, GoalType, GoalCategory } from '@/types/goal';
+import { CreateGoalData, GoalType, GoalCategory, Goal } from '@/types/goal';
 
 interface GoalCreationDialogProps {
   onGoalCreated: () => void;
   trigger?: React.ReactNode;
+  goal?: Goal; // Optional goal for editing
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 const goalTemplates = [
@@ -67,17 +70,42 @@ const goalTemplates = [
   }
 ];
 
-export function GoalCreationDialog({ onGoalCreated, trigger }: GoalCreationDialogProps) {
-  const [open, setOpen] = useState(false);
+export function GoalCreationDialog({ 
+  onGoalCreated, 
+  trigger, 
+  goal, 
+  open: externalOpen, 
+  onOpenChange: externalOnOpenChange 
+}: GoalCreationDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [formData, setFormData] = useState<CreateGoalData>({
-    title: '',
-    description: '',
-    goal_type: 'numeric',
-    category: 'personal',
-    target_value: 0,
-    target_unit: '',
-    deadline: ''
+  
+  // Use external state if provided, otherwise use internal state
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = externalOnOpenChange || setInternalOpen;
+  
+  const [formData, setFormData] = useState<CreateGoalData>(() => {
+    if (goal) {
+      // Initialize with existing goal data for editing
+      return {
+        title: goal.title,
+        description: goal.description || '',
+        goal_type: goal.goal_type,
+        category: goal.category,
+        target_value: goal.target_value || 0,
+        target_unit: goal.target_unit || '',
+        deadline: goal.deadline || ''
+      };
+    }
+    return {
+      title: '',
+      description: '',
+      goal_type: 'numeric',
+      category: 'personal',
+      target_value: 0,
+      target_unit: '',
+      deadline: ''
+    };
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -115,42 +143,71 @@ export function GoalCreationDialog({ onGoalCreated, trigger }: GoalCreationDialo
         throw new Error('Gebruiker niet ingelogd');
       }
 
-      const { error } = await supabase
-        .from('goals')
-        .insert({
-          ...formData,
-          user_id: user.id,
-          notification_settings: formData.notification_settings || {
-            enabled: true,
-            frequency: 'daily',
-            time: '09:00'
-          }
+      if (goal) {
+        // Update existing goal
+        const { error } = await supabase
+          .from('goals')
+          .update({
+            title: formData.title,
+            description: formData.description,
+            goal_type: formData.goal_type,
+            category: formData.category,
+            target_value: formData.target_value,
+            target_unit: formData.target_unit,
+            deadline: formData.deadline
+          })
+          .eq('id', goal.id);
+
+        if (error) throw error;
+
+        toast({
+          title: 'Doel bijgewerkt',
+          description: 'Je doel is succesvol bijgewerkt!',
         });
+      } else {
+        // Create new goal
+        const { error } = await supabase
+          .from('goals')
+          .insert({
+            ...formData,
+            user_id: user.id,
+            notification_settings: formData.notification_settings || {
+              enabled: true,
+              frequency: 'daily',
+              time: '09:00'
+            }
+          });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: 'Doel aangemaakt',
-        description: 'Je nieuwe doel is succesvol aangemaakt!',
-      });
+        toast({
+          title: 'Doel aangemaakt',
+          description: 'Je nieuwe doel is succesvol aangemaakt!',
+        });
+      }
 
       setOpen(false);
-      setFormData({
-        title: '',
-        description: '',
-        goal_type: 'numeric',
-        category: 'personal',
-        target_value: 0,
-        target_unit: '',
-        deadline: ''
-      });
-      setSelectedTemplate(null);
+      if (!goal) {
+        // Only reset form when creating new goal
+        setFormData({
+          title: '',
+          description: '',
+          goal_type: 'numeric',
+          category: 'personal',
+          target_value: 0,
+          target_unit: '',
+          deadline: ''
+        });
+        setSelectedTemplate(null);
+      }
       onGoalCreated();
     } catch (error) {
-      console.error('Error creating goal:', error);
+      console.error('Error saving goal:', error);
       toast({
-        title: 'Fout bij aanmaken',
-        description: 'Er is een fout opgetreden bij het aanmaken van je doel.',
+        title: goal ? 'Fout bij bijwerken' : 'Fout bij aanmaken',
+        description: goal 
+          ? 'Er is een fout opgetreden bij het bijwerken van je doel.'
+          : 'Er is een fout opgetreden bij het aanmaken van je doel.',
         variant: 'destructive'
       });
     } finally {
@@ -170,17 +227,21 @@ export function GoalCreationDialog({ onGoalCreated, trigger }: GoalCreationDialo
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nieuw Doel Aanmaken</DialogTitle>
+          <DialogTitle>{goal ? 'Doel Bewerken' : 'Nieuw Doel Aanmaken'}</DialogTitle>
           <DialogDescription>
-            Kies een template of maak een aangepast doel om je voortgang te tracken.
+            {goal 
+              ? 'Pas je doel aan om je vooruitgang beter te kunnen tracken.'
+              : 'Kies een template of maak een aangepast doel om je voortgang te tracken.'
+            }
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Templates */}
-          <div className="space-y-3">
-            <Label className="text-base font-medium">Kies een Template</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Templates - Only show when creating new goal */}
+          {!goal && (
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Kies een Template</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {goalTemplates.map((template) => {
                 const IconComponent = template.icon;
                 return (
@@ -205,8 +266,9 @@ export function GoalCreationDialog({ onGoalCreated, trigger }: GoalCreationDialo
                   </Card>
                 );
               })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Goal Details */}
           <div className="space-y-4">
@@ -310,7 +372,10 @@ export function GoalCreationDialog({ onGoalCreated, trigger }: GoalCreationDialo
               Annuleren
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? 'Aanmaken...' : 'Doel Aanmaken'}
+              {isLoading 
+                ? (goal ? 'Bijwerken...' : 'Aanmaken...') 
+                : (goal ? 'Doel Bijwerken' : 'Doel Aanmaken')
+              }
             </Button>
           </div>
         </form>
