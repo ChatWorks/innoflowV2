@@ -10,8 +10,7 @@ import {
   getDeliverableProgress,
   getPhaseStatus 
 } from '@/utils/progressCalculations';
-import { MagicBento } from '@/components/MagicBento';
-import { PortalCard } from '@/components/PortalCard';
+import MagicBento from '@/components/MagicBento';
 
 export default function ClientPortal() {
   const { hash } = useParams<{ hash: string }>();
@@ -148,114 +147,65 @@ export default function ClientPortal() {
 
     const cards = [];
 
-    // Overall Progress Card (Large)
+    // Overall Progress Card
     cards.push({
-      id: "overall-progress",
       color: "#0F172A",
-      title: `${progress.overall_progress}% Complete`,
+      title: `${progress.overall_progress}% Voltooid`,
       description: "Geweldige vooruitgang! Op schema voor oplevering",
-      label: "Overall Progress",
-      icon: "🎯",
-      size: "large" as const,
-      status: progress.overall_progress > 80 ? "completed" : progress.overall_progress > 40 ? "active" : "pending" as const,
-      progressBar: true,
-      progressValue: progress.overall_progress
+      label: "🎯 Overall Progress"
     });
 
-    // Current Active Phase (Medium)
+    // Current Active Phase
     const activePhase = progress.phases.find(p => p.status === 'In Progress');
     if (activePhase) {
       cards.push({
-        id: "current-phase",
         color: "#1E293B",
         title: activePhase.name,
-        description: `${activePhase.progress}% voltooid`,
-        label: "Huidige Fase",
-        icon: "⚡",
-        size: "medium" as const,
-        status: "active" as const,
-        progressBar: true,
-        progressValue: activePhase.progress,
-        targetDate: activePhase.target_date ? format(new Date(activePhase.target_date), 'dd MMM yyyy') : undefined
+        description: `${activePhase.progress}% voltooid - Actief bezig`,
+        label: "⚡ Huidige Fase"
       });
     }
 
-    // Next Milestone (Medium)
+    // Next Milestone
     const nextPhase = progress.phases.find(p => p.status === 'Pending');
     if (nextPhase) {
       cards.push({
-        id: "next-milestone",
         color: "#334155",
         title: nextPhase.name,
         description: nextPhase.target_date ? `Verwacht: ${format(new Date(nextPhase.target_date), 'dd MMM yyyy')}` : "Binnenkort van start",
-        label: "Volgende Mijlpaal",
-        icon: "🚀",
-        size: "medium" as const,
-        status: "pending" as const
+        label: "🚀 Volgende Mijlpaal"
       });
     }
 
-    // Completed Phases (Small cards)
-    const completedPhases = progress.phases.filter(p => p.status === 'Completed');
-    completedPhases.slice(0, 2).forEach((phase, index) => {
-      cards.push({
-        id: `milestone-completed-${phase.id}`,
-        color: "#10B981",
-        title: phase.name,
-        description: phase.target_date ? `Afgerond ${format(new Date(phase.target_date), 'dd MMM')}` : "Voltooid",
-        label: "✅ Afgerond",
-        icon: "🎉",
-        size: "small" as const,
-        status: "completed" as const
-      });
-    });
-
-    // Latest Update (Medium)
+    // Latest Update
     if (progress.recent_updates.length > 0) {
       const latestUpdate = progress.recent_updates[0];
       cards.push({
-        id: "latest-update",
         color: "#7C3AED",
         title: latestUpdate.title,
         description: latestUpdate.message.length > 80 ? latestUpdate.message.substring(0, 80) + "..." : latestUpdate.message,
-        label: "Laatste Update",
-        icon: "📈",
-        size: "medium" as const,
-        status: "highlight" as const
+        label: "📈 Laatste Update"
       });
     }
 
-    // Contact Info (Small)
+    // Contact Info
     cards.push({
-      id: "contact-info",
       color: "#059669",
       title: "Hulp Nodig?",
       description: "Neem contact op met je projectteam",
-      label: "Support",
-      icon: "💬",
-      size: "small" as const,
-      status: "support" as const,
-      onClick: () => {
-        window.location.href = "mailto:support@innoflow.nl?subject=Project Support - " + portalData.portal.project_name;
-      }
+      label: "💬 Support"
     });
 
-    // Add any pending deliverables as small cards
-    const pendingDeliverables = progress.deliverables.filter(d => d.status !== 'Completed');
-    pendingDeliverables.slice(0, 2).forEach((deliverable) => {
+    // Completed Phases
+    const completedPhases = progress.phases.filter(p => p.status === 'Completed');
+    if (completedPhases.length > 0) {
       cards.push({
-        id: `deliverable-${deliverable.id}`,
-        color: "#3B82F6",
-        title: deliverable.title,
-        description: `${deliverable.progress}% voltooid`,
-        label: "Deliverable",
-        icon: "📦",
-        size: "small" as const,
-        status: deliverable.status === 'In Progress' ? "active" : "pending" as const,
-        progressBar: deliverable.status === 'In Progress',
-        progressValue: deliverable.progress
+        color: "#10B981",
+        title: `${completedPhases.length} Fase${completedPhases.length > 1 ? 's' : ''} Voltooid`,
+        description: "Succesvolle afronding van projectfases",
+        label: "✅ Afgerond"
       });
-    });
+    }
 
     return cards;
   };
@@ -292,7 +242,7 @@ export default function ClientPortal() {
       {/* Magic Bento Container */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
         <MagicBento
-          className="portal-grid"
+          textAutoHide={true}
           enableStars={!isMobile}
           enableSpotlight={!isMobile}
           enableBorderGlow={true}
@@ -302,20 +252,8 @@ export default function ClientPortal() {
           spotlightRadius={400}
           particleCount={isMobile ? 4 : 8}
           glowColor="59, 130, 246"
-        >
-          <div className="portal-bento-grid">
-            {portalCards.map((card, index) => (
-              <PortalCard
-                key={card.id}
-                card={card}
-                index={index}
-                enableTilt={!isMobile}
-                enableMagnetism={!isMobile}
-                clickEffect={true}
-              />
-            ))}
-          </div>
-        </MagicBento>
+          cardData={portalCards}
+        />
 
         {/* Footer */}
         <div className="text-center mt-12 py-8 border-t border-white/10">
