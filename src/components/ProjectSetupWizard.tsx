@@ -94,21 +94,21 @@ export default function ProjectSetupWizard() {
 
   // Step 1 validation
   const isStep1Valid = () => {
-    return projectData.name.trim() !== '' && 
-           projectData.client.trim() !== '' && 
-           projectData.totalHours > 0 && 
-           projectData.projectValue > 0 && 
+    return projectData.name.trim() !== '' &&
+           projectData.client.trim() !== '' &&
+           projectData.totalHours > 0 &&
+           projectData.projectValue > 0 &&
            projectData.numberOfPhases >= 1;
   };
 
   // Step 2 validation
   const isStep2Valid = () => {
-    return phases.every(phase => 
-      phase.deliverables.every(deliverable => 
-        deliverable.name.trim() !== '' && 
+    return phases.every(phase =>
+      phase.deliverables.every(deliverable =>
+        deliverable.name.trim() !== '' &&
         deliverable.hours.trim() !== '' &&
-        deliverable.tasks.every(task => 
-          task.name.trim() !== '' && 
+        deliverable.tasks.every(task =>
+          task.name.trim() !== '' &&
           task.assignedTo.trim() !== ''
         )
       )
@@ -118,8 +118,8 @@ export default function ProjectSetupWizard() {
   // Calculate budget stats
   const calculateBudgetStats = () => {
     const totalHours = projectData.totalHours;
-    const assignedHours = phases.reduce((total, phase) => 
-      total + phase.deliverables.reduce((phaseTotal, deliverable) => 
+    const assignedHours = phases.reduce((total, phase) =>
+      total + phase.deliverables.reduce((phaseTotal, deliverable) =>
         phaseTotal + (parseFloat(deliverable.hours) || 0), 0), 0);
     const remainingHours = totalHours - assignedHours;
     const percentage = totalHours > 0 ? (assignedHours / totalHours) * 100 : 0;
@@ -716,7 +716,7 @@ export default function ProjectSetupWizard() {
           </div>
         )}
 
-        {/* Step 2: Interactive Phases & Deliverables Builder */}
+        {/* Step 2: Phases and Deliverables */}
         {currentStep === 2 && (
           <div className="space-y-6">
             {/* Budget Tracking */}
@@ -746,108 +746,121 @@ export default function ProjectSetupWizard() {
             </Card>
 
             {/* Phases */}
-            <div className="space-y-6">
-              {phases.map((phase) => (
+            <div className="space-y-4">
+              {phases.map((phase, phaseIndex) => (
                 <Card key={phase.id} className="border-2">
                   <CardHeader>
-                    <div className="flex items-center gap-4">
-                      <CardTitle className="text-xl flex-1">{phase.name}</CardTitle>
-                      <div className="space-y-2">
-                        <Label htmlFor={`phase-date-${phase.id}`} className="text-sm">Target Datum</Label>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-secondary/20">
+                        <GripVertical className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <div className="flex-1">
                         <Input
-                          id={`phase-date-${phase.id}`}
-                          type="date"
-                          value={phase.targetDate}
+                          value={phase.name}
                           onChange={(e) => {
-                            setPhases(phases.map(p => 
-                              p.id === phase.id ? { ...p, targetDate: e.target.value } : p
-                            ));
+                            const newPhases = [...phases];
+                            newPhases[phaseIndex].name = e.target.value;
+                            setPhases(newPhases);
                           }}
-                          className="w-40"
+                          className="text-lg font-semibold border-0 bg-transparent p-0 h-auto focus-visible:ring-0"
+                          placeholder="Fase naam"
                         />
                       </div>
+                      <Input
+                        type="date"
+                        value={phase.targetDate}
+                        onChange={(e) => {
+                          const newPhases = [...phases];
+                          newPhases[phaseIndex].targetDate = e.target.value;
+                          setPhases(newPhases);
+                        }}
+                        className="w-40"
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (phases.length > 1) {
+                            setPhases(phases.filter((_, i) => i !== phaseIndex));
+                          }
+                        }}
+                        disabled={phases.length === 1}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {phase.deliverables.map((deliverable) => (
-                      <div key={deliverable.id} className="border rounded-lg p-4 bg-card">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div className="flex-1 space-y-2">
-                            <Label>Deliverable Naam *</Label>
+                    {/* Deliverables */}
+                    {phase.deliverables.map((deliverable, deliverableIndex) => (
+                      <div key={deliverable.id} className="border rounded-lg p-4 bg-muted/30">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="flex-1">
                             <Input
-                              placeholder="Bijv. Homepage Design"
                               value={deliverable.name}
                               onChange={(e) => updateDeliverable(phase.id, deliverable.id, 'name', e.target.value)}
+                              placeholder="Deliverable naam"
+                              className="font-medium"
                             />
                           </div>
-                          <div className="w-32 space-y-2">
-                            <Label>Uren *</Label>
-                            <Input
-                              type="number"
-                              placeholder="20"
-                              value={deliverable.hours}
-                              onChange={(e) => updateDeliverable(phase.id, deliverable.id, 'hours', e.target.value)}
-                            />
-                          </div>
-                          <div className="w-40 space-y-2">
-                            <Label>Target Datum</Label>
-                            <Input
-                              type="date"
-                              value={deliverable.targetDate}
-                              onChange={(e) => updateDeliverable(phase.id, deliverable.id, 'targetDate', e.target.value)}
-                            />
-                          </div>
-                          {phase.deliverables.length > 1 && (
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => removeDeliverable(phase.id, deliverable.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Input
+                            type="number"
+                            value={deliverable.hours}
+                            onChange={(e) => updateDeliverable(phase.id, deliverable.id, 'hours', e.target.value)}
+                            placeholder="Uren"
+                            className="w-20"
+                          />
+                          <Input
+                            type="date"
+                            value={deliverable.targetDate}
+                            onChange={(e) => updateDeliverable(phase.id, deliverable.id, 'targetDate', e.target.value)}
+                            className="w-40"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeDeliverable(phase.id, deliverable.id)}
+                            disabled={phase.deliverables.length === 1}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-
+                        
                         {/* Tasks */}
-                        <div className="space-y-3">
-                          <Label className="text-sm font-medium">Taken</Label>
+                        <div className="space-y-2 ml-4">
                           {deliverable.tasks.map((task, taskIndex) => (
-                            <div key={task.id} className="flex items-center gap-3 bg-background rounded-md p-3">
-                              <GripVertical className="h-4 w-4 text-muted-foreground" />
-                              <div className="flex-1 space-y-2">
-                                <Input
-                                  placeholder="Taak naam *"
-                                  value={task.name}
-                                  onChange={(e) => updateTask(phase.id, deliverable.id, task.id, 'name', e.target.value)}
-                                />
-                              </div>
-                              <div className="w-32 space-y-2">
-                                <Select
-                                  value={task.assignedTo}
-                                  onValueChange={(value) => updateTask(phase.id, deliverable.id, task.id, 'assignedTo', value)}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Toegewezen aan *" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="Tijn">Tijn</SelectItem>
-                                    <SelectItem value="Twan">Twan</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              {deliverable.tasks.length > 1 && (
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => removeTask(phase.id, deliverable.id, task.id)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              )}
+                            <div key={task.id} className="flex items-center gap-2">
+                              <Input
+                                value={task.name}
+                                onChange={(e) => updateTask(phase.id, deliverable.id, task.id, 'name', e.target.value)}
+                                placeholder="Taak beschrijving"
+                                className="flex-1"
+                              />
+                              <Select
+                                value={task.assignedTo}
+                                onValueChange={(value) => updateTask(phase.id, deliverable.id, task.id, 'assignedTo', value)}
+                              >
+                                <SelectTrigger className="w-32">
+                                  <SelectValue placeholder="Wie?" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Tijn">Tijn</SelectItem>
+                                  <SelectItem value="Twan">Twan</SelectItem>
+                                  <SelectItem value="Team">Team</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeTask(phase.id, deliverable.id, task.id)}
+                                disabled={deliverable.tasks.length === 1}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
                           ))}
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
                             onClick={() => addTask(phase.id, deliverable.id)}
                             className="gap-2"
@@ -862,7 +875,7 @@ export default function ProjectSetupWizard() {
                     <Button
                       variant="outline"
                       onClick={() => addDeliverable(phase.id)}
-                      className="gap-2"
+                      className="gap-2 w-full"
                     >
                       <Plus className="h-4 w-4" />
                       Deliverable Toevoegen
@@ -870,10 +883,42 @@ export default function ProjectSetupWizard() {
                   </CardContent>
                 </Card>
               ))}
+
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const newPhase: Phase = {
+                    id: `phase-${phases.length + 1}`,
+                    name: `Fase ${phases.length + 1}`,
+                    targetDate: '',
+                    deliverables: [{
+                      id: `deliverable-${Date.now()}`,
+                      name: '',
+                      hours: '',
+                      targetDate: '',
+                      tasks: [{
+                        id: `task-${Date.now()}`,
+                        name: '',
+                        assignedTo: ''
+                      }]
+                    }]
+                  };
+                  setPhases([...phases, newPhase]);
+                }}
+                className="gap-2 w-full"
+              >
+                <Plus className="h-4 w-4" />
+                Fase Toevoegen
+              </Button>
             </div>
 
-            <div className="flex justify-between pt-4">
-              <Button variant="outline" onClick={() => setCurrentStep(1)} className="gap-2">
+            {/* Navigation */}
+            <div className="flex justify-between pt-6">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep(1)}
+                className="gap-2"
+              >
                 <ArrowLeft className="h-4 w-4" />
                 Vorige Stap
               </Button>
@@ -889,78 +934,76 @@ export default function ProjectSetupWizard() {
           </div>
         )}
 
-        {/* Step 3: Project Overview & Confirmation */}
+        {/* Step 3: Overview */}
         {currentStep === 3 && (
-          <div className="space-y-6">
-            {/* Project Summary */}
+          <div className="max-w-4xl mx-auto space-y-6">
+            {/* Project Overview */}
             <Card>
               <CardHeader>
-                <CardTitle>Project Samenvatting</CardTitle>
+                <CardTitle className="text-2xl">Project Overzicht</CardTitle>
+                <p className="text-muted-foreground">
+                  Controleer alle details voordat je het project aanmaakt
+                </p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Project Naam</p>
-                    <p className="font-medium">{projectData.name}</p>
+                    <Label className="text-sm font-medium text-muted-foreground">Project Naam</Label>
+                    <p className="text-lg font-semibold">{projectData.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Klant</p>
-                    <p className="font-medium">{projectData.client}</p>
+                    <Label className="text-sm font-medium text-muted-foreground">Klant</Label>
+                    <p className="text-lg font-semibold">{projectData.client}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Totaal Uren</p>
-                    <p className="font-medium">{projectData.totalHours}h</p>
+                    <Label className="text-sm font-medium text-muted-foreground">Totaal Uren</Label>
+                    <p className="text-lg font-semibold">{projectData.totalHours}h</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Project Waarde</p>
-                    <p className="font-medium">€{projectData.projectValue.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Toegewezen Uren</p>
-                    <p className="font-medium">{budgetStats.assignedHours.toFixed(1)}h</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Aantal Fases</p>
-                    <p className="font-medium">{projectData.numberOfPhases}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Totaal Taken</p>
-                    <p className="font-medium">{getAllTasks().length}</p>
+                    <Label className="text-sm font-medium text-muted-foreground">Project Waarde</Label>
+                    <p className="text-lg font-semibold">€{projectData.projectValue.toLocaleString()}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Task List */}
+            {/* Tasks Chronological List */}
             <Card>
               <CardHeader>
-                <CardTitle>Chronologische Takenlijst</CardTitle>
+                <CardTitle className="text-xl">Chronologische Takenlijst</CardTitle>
+                <p className="text-muted-foreground">
+                  Alle taken in volgorde van uitvoering
+                </p>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {phases.map((phase) => (
-                    <div key={phase.id}>
-                      <h4 className="font-semibold text-lg mb-2">{phase.name}</h4>
-                      {phase.deliverables.map((deliverable) => (
-                        <div key={deliverable.id} className="ml-4 mb-3">
-                          <h5 className="font-medium text-muted-foreground mb-2">📋 {deliverable.name} ({deliverable.hours}h)</h5>
-                          {deliverable.tasks.map((task) => (
-                            <div key={task.id} className="ml-4 flex items-center gap-3 py-1">
-                              <span className="text-sm">✓</span>
-                              <span className="flex-1">{task.name}</span>
-                              <Badge variant="outline">{task.assignedTo}</Badge>
-                            </div>
-                          ))}
-                        </div>
-                      ))}
+                <div className="space-y-3">
+                  {getAllTasks().map((item, index) => (
+                    <div key={`${item.task.id}-${index}`} className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
+                      <Badge variant="outline" className="shrink-0">
+                        {index + 1}
+                      </Badge>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{item.task.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {item.phase} • {item.deliverable}
+                        </p>
+                      </div>
+                      <Badge variant="secondary" className="shrink-0">
+                        {item.task.assignedTo}
+                      </Badge>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
-            <div className="flex justify-between pt-4">
-              <Button variant="outline" onClick={() => setCurrentStep(2)} className="gap-2">
+            {/* Navigation */}
+            <div className="flex justify-between pt-6">
+              <Button
+                variant="outline"
+                onClick={() => setCurrentStep(2)}
+                className="gap-2"
+              >
                 <ArrowLeft className="h-4 w-4" />
                 Vorige Stap
               </Button>
@@ -970,7 +1013,14 @@ export default function ProjectSetupWizard() {
                 className="gap-2"
                 size="lg"
               >
-                {isCreating ? "Project Aanmaken..." : "Project Aanmaken"}
+                {isCreating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Project Aanmaken...
+                  </>
+                ) : (
+                  'Project Aanmaken'
+                )}
               </Button>
             </div>
           </div>
