@@ -11,6 +11,7 @@ import { GoalAnalytics } from '@/components/GoalAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Target, TrendingUp, CheckCircle, AlertTriangle, Search, Filter } from 'lucide-react';
+import Layout from '@/components/Layout';
 
 export default function Goals() {
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -95,19 +96,22 @@ export default function Goals() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Doelen laden...</p>
+      <Layout>
+        <div className="container mx-auto p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Doelen laden...</p>
+            </div>
           </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <Layout>
+      <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -296,6 +300,7 @@ export default function Goals() {
           </CardContent>
         </Card>
       )}
-    </div>
+      </div>
+    </Layout>
   );
 }
