@@ -38,8 +38,6 @@ export default function ClientPortal() {
   // Client message state
   const [messageSubject, setMessageSubject] = useState('');
   const [messageContent, setMessageContent] = useState('');
-  const [senderName, setSenderName] = useState('');
-  const [senderEmail, setSenderEmail] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   const [messageSuccess, setMessageSuccess] = useState('');
   
@@ -211,7 +209,7 @@ export default function ClientPortal() {
   const sendClientMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!messageSubject.trim() || !messageContent.trim() || !senderName.trim()) {
+    if (!messageSubject.trim() || !messageContent.trim()) {
       return;
     }
 
@@ -228,8 +226,6 @@ export default function ClientPortal() {
         .insert({
           project_id: portalData.portal.project_id,
           sender_type: 'client',
-          sender_name: senderName.trim(),
-          sender_email: senderEmail.trim() || null,
           subject: messageSubject.trim(),
           message: messageContent.trim(),
           is_read: false
@@ -239,8 +235,6 @@ export default function ClientPortal() {
 
       setMessageSubject('');
       setMessageContent('');
-      setSenderName('');
-      setSenderEmail('');
       setMessageSuccess('Uw bericht is succesvol verzonden!');
 
       // Clear success message after 5 seconds
@@ -670,28 +664,6 @@ export default function ClientPortal() {
               
               <form onSubmit={sendClientMessage} className="space-y-4">
                 <div>
-                  <Label htmlFor="sender-name" className="text-sm font-medium">Naam</Label>
-                  <Input
-                    id="sender-name"
-                    value={senderName}
-                    onChange={(e) => setSenderName(e.target.value)}
-                    placeholder="Uw naam"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="sender-email" className="text-sm font-medium">E-mail (optioneel)</Label>
-                  <Input
-                    id="sender-email"
-                    type="email"
-                    value={senderEmail}
-                    onChange={(e) => setSenderEmail(e.target.value)}
-                    placeholder="uw.email@example.com"
-                  />
-                </div>
-                
-                <div>
                   <Label htmlFor="message-subject" className="text-sm font-medium">Onderwerp</Label>
                   <Input
                     id="message-subject"
@@ -717,7 +689,7 @@ export default function ClientPortal() {
                 <Button 
                   type="submit" 
                   className="w-full"
-                  disabled={sendingMessage || !messageSubject.trim() || !messageContent.trim() || !senderName.trim()}
+                  disabled={sendingMessage || !messageSubject.trim() || !messageContent.trim()}
                 >
                   <Send className="mr-2 h-4 w-4" />
                   {sendingMessage ? 'Verzenden...' : 'Bericht verzenden'}
