@@ -1,9 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { CheckCircle, Clock, Calendar, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import type { PortalData, PortalProgress } from '@/types/clientPortal';
@@ -14,6 +10,10 @@ import {
   getDeliverableProgress,
   getPhaseStatus 
 } from '@/utils/progressCalculations';
+import { MagicBento } from '@/components/MagicBento';
+import { PortalCard } from '@/components/PortalCard';
+import { useIsMobile } from '@/hooks/use-mobile';
+import '@/styles/portal-bento.css';
 
 export default function ClientPortal() {
   const { hash } = useParams<{ hash: string }>();
@@ -112,209 +112,212 @@ export default function ClientPortal() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-slate-900/20"></div>
+        <div className="relative z-10 text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500/30 border-t-blue-500 mx-auto mb-4"></div>
+          <p className="text-white/60 text-lg">Loading portal...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !portalData || !progress) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Portal Niet Gevonden</h1>
-          <p className="text-gray-600">Deze portal link is mogelijk verlopen of niet meer actief.</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-slate-900/20"></div>
+        <div className="relative z-10 text-center">
+          <h1 className="text-3xl font-bold text-white mb-4">Portal Niet Gevonden</h1>
+          <p className="text-white/60">Deze portal link is mogelijk verlopen of niet meer actief.</p>
         </div>
       </div>
     );
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Completed':
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case 'In Progress':
-        return <Clock className="h-5 w-5 text-blue-600" />;
-      default:
-        return <Clock className="h-5 w-5 text-gray-400" />;
+  const isMobile = useIsMobile();
+
+  // Transform data into Magic Bento card format
+  const createPortalCardData = () => {
+    if (!portalData || !progress) return [];
+
+    const cards = [];
+
+    // Overall Progress Card (Large)
+    cards.push({
+      id: "overall-progress",
+      color: "#0F172A",
+      title: `${progress.overall_progress}% Complete`,
+      description: "Geweldige vooruitgang! Op schema voor oplevering",
+      label: "Overall Progress",
+      icon: "🎯",
+      size: "large" as const,
+      status: progress.overall_progress > 80 ? "completed" : progress.overall_progress > 40 ? "active" : "pending" as const,
+      progressBar: true,
+      progressValue: progress.overall_progress
+    });
+
+    // Current Active Phase (Medium)
+    const activePhase = progress.phases.find(p => p.status === 'In Progress');
+    if (activePhase) {
+      cards.push({
+        id: "current-phase",
+        color: "#1E293B",
+        title: activePhase.name,
+        description: `${activePhase.progress}% voltooid`,
+        label: "Huidige Fase",
+        icon: "⚡",
+        size: "medium" as const,
+        status: "active" as const,
+        progressBar: true,
+        progressValue: activePhase.progress,
+        targetDate: activePhase.target_date ? format(new Date(activePhase.target_date), 'dd MMM yyyy') : undefined
+      });
     }
+
+    // Next Milestone (Medium)
+    const nextPhase = progress.phases.find(p => p.status === 'Pending');
+    if (nextPhase) {
+      cards.push({
+        id: "next-milestone",
+        color: "#334155",
+        title: nextPhase.name,
+        description: nextPhase.target_date ? `Verwacht: ${format(new Date(nextPhase.target_date), 'dd MMM yyyy')}` : "Binnenkort van start",
+        label: "Volgende Mijlpaal",
+        icon: "🚀",
+        size: "medium" as const,
+        status: "pending" as const
+      });
+    }
+
+    // Completed Phases (Small cards)
+    const completedPhases = progress.phases.filter(p => p.status === 'Completed');
+    completedPhases.slice(0, 2).forEach((phase, index) => {
+      cards.push({
+        id: `milestone-completed-${phase.id}`,
+        color: "#10B981",
+        title: phase.name,
+        description: phase.target_date ? `Afgerond ${format(new Date(phase.target_date), 'dd MMM')}` : "Voltooid",
+        label: "✅ Afgerond",
+        icon: "🎉",
+        size: "small" as const,
+        status: "completed" as const
+      });
+    });
+
+    // Latest Update (Medium)
+    if (progress.recent_updates.length > 0) {
+      const latestUpdate = progress.recent_updates[0];
+      cards.push({
+        id: "latest-update",
+        color: "#7C3AED",
+        title: latestUpdate.title,
+        description: latestUpdate.message.length > 80 ? latestUpdate.message.substring(0, 80) + "..." : latestUpdate.message,
+        label: "Laatste Update",
+        icon: "📈",
+        size: "medium" as const,
+        status: "highlight" as const
+      });
+    }
+
+    // Contact Info (Small)
+    cards.push({
+      id: "contact-info",
+      color: "#059669",
+      title: "Hulp Nodig?",
+      description: "Neem contact op met je projectteam",
+      label: "Support",
+      icon: "💬",
+      size: "small" as const,
+      status: "support" as const,
+      onClick: () => {
+        window.location.href = "mailto:support@innoflow.nl?subject=Project Support - " + portalData.portal.project_name;
+      }
+    });
+
+    // Add any pending deliverables as small cards
+    const pendingDeliverables = progress.deliverables.filter(d => d.status !== 'Completed');
+    pendingDeliverables.slice(0, 2).forEach((deliverable) => {
+      cards.push({
+        id: `deliverable-${deliverable.id}`,
+        color: "#3B82F6",
+        title: deliverable.title,
+        description: `${deliverable.progress}% voltooid`,
+        label: "Deliverable",
+        icon: "📦",
+        size: "small" as const,
+        status: deliverable.status === 'In Progress' ? "active" : "pending" as const,
+        progressBar: deliverable.status === 'In Progress',
+        progressValue: deliverable.progress
+      });
+    });
+
+    return cards;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Completed':
-        return 'bg-green-100 text-green-800';
-      case 'In Progress':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const portalCards = createPortalCardData();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-slate-900/20"></div>
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-3/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+      </div>
+
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="relative z-10 bg-black/20 backdrop-blur-sm border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">🏢 INNOFLOW</h1>
-              <p className="text-gray-600 mt-1">Project Dashboard</p>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                🚀 INNOFLOW
+              </h1>
+              <p className="text-white/70 mt-1">Interactive Project Portal</p>
             </div>
             <div className="text-right">
-              <h2 className="text-xl font-semibold text-gray-900">{portalData.portal.project_name}</h2>
-              <p className="text-gray-600">{portalData.portal.client}</p>
+              <h2 className="text-xl font-semibold text-white">{portalData.portal.project_name}</h2>
+              <p className="text-white/70">{portalData.portal.client}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Overall Progress */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              🎯 OVERALL PROGRESS
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-2xl font-bold">{progress.overall_progress}% Complete</span>
-                  <Badge className={getStatusColor(portalData.portal.status)}>
-                    {portalData.portal.status}
-                  </Badge>
-                </div>
-                <Progress value={progress.overall_progress} className="h-3" />
-              </div>
-              
-              {portalData.portal.end_date && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Calendar className="h-4 w-4" />
-                  <span>Verwachte oplevering: {format(new Date(portalData.portal.end_date), 'dd MMMM yyyy')}</span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Milestones (Phases) */}
-          <Card>
-            <CardHeader>
-              <CardTitle>📋 MILESTONES</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {progress.phases.map((phase) => (
-                <div key={phase.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
-                  <div className="flex-shrink-0">
-                    {getStatusIcon(phase.status)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">{phase.name}</h4>
-                      <Badge variant="outline" className={getStatusColor(phase.status)}>
-                        {phase.status}
-                      </Badge>
-                    </div>
-                    
-                    {phase.status !== 'Completed' && (
-                      <div className="space-y-1">
-                        <Progress value={phase.progress} className="h-2" />
-                        <div className="flex justify-between text-xs text-gray-500">
-                          <span>{phase.progress}%</span>
-                          {phase.target_date && (
-                            <span>Target: {format(new Date(phase.target_date), 'dd MMM')}</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {phase.status === 'Completed' && phase.target_date && (
-                      <div className="text-xs text-green-600">
-                        Afgerond op {format(new Date(phase.target_date), 'dd MMMM')}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Recent Updates */}
-          <Card>
-            <CardHeader>
-              <CardTitle>📅 RECENT UPDATES</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {progress.recent_updates.length > 0 ? (
-                progress.recent_updates.map((update, index) => (
-                  <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-medium text-gray-900">{update.title}</h4>
-                      <span className="text-xs text-gray-500">
-                        {format(new Date(update.date), 'dd MMM')}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-600">{update.message}</p>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>No updates yet</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Deliverables */}
-        {progress.deliverables.length > 0 && (
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>📦 DELIVERABLES</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {progress.deliverables.map((deliverable) => (
-                  <div key={deliverable.id} className="p-4 border rounded-lg bg-white">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-sm">{deliverable.title}</h4>
-                      {getStatusIcon(deliverable.status)}
-                    </div>
-                    
-                    <Badge variant="outline" className={`${getStatusColor(deliverable.status)} text-xs mb-2`}>
-                      {deliverable.status}
-                    </Badge>
-                    
-                    {deliverable.status !== 'Completed' && (
-                      <div className="space-y-1">
-                        <Progress value={deliverable.progress} className="h-2" />
-                        <div className="text-xs text-gray-500">{deliverable.progress}% complete</div>
-                      </div>
-                    )}
-                    
-                    {deliverable.due_date && (
-                      <div className="text-xs text-gray-500 mt-2">
-                        Due: {format(new Date(deliverable.due_date), 'dd MMM yyyy')}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+      {/* Magic Bento Container */}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
+        <MagicBento
+          className="portal-grid"
+          enableStars={!isMobile}
+          enableSpotlight={!isMobile}
+          enableBorderGlow={true}
+          enableTilt={!isMobile}
+          enableMagnetism={!isMobile}
+          clickEffect={true}
+          spotlightRadius={400}
+          particleCount={isMobile ? 4 : 8}
+          glowColor="59, 130, 246"
+        >
+          <div className="portal-bento-grid">
+            {portalCards.map((card, index) => (
+              <PortalCard
+                key={card.id}
+                card={card}
+                index={index}
+                enableTilt={!isMobile}
+                enableMagnetism={!isMobile}
+                clickEffect={true}
+              />
+            ))}
+          </div>
+        </MagicBento>
 
         {/* Footer */}
-        <div className="text-center mt-12 py-8 border-t">
-          <p className="text-sm text-gray-500">
+        <div className="text-center mt-12 py-8 border-t border-white/10">
+          <p className="text-sm text-white/60">
             Laatste update: {format(new Date(), 'dd MMMM yyyy, HH:mm')}
           </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Powered by INNOFLOW Project Management
+          <p className="text-xs text-white/40 mt-1">
+            Powered by INNOFLOW Project Management ✨
           </p>
         </div>
       </div>
