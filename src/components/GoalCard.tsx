@@ -249,27 +249,88 @@ export function GoalCard({ goal, onUpdate, onDelete }: GoalCardProps) {
 
   const progressPercentage = getProgressPercentage();
   const isOverdue = goal.deadline && new Date(goal.deadline) < new Date() && !goal.is_completed;
-  const isMonetaryGoal = goal.target_unit === '€' || goal.target_unit === 'euro' || goal.category === 'financial';
+  const isMonetaryGoal = goal.target_unit === '€' || goal.target_unit === 'euro' || goal.target_unit === 'euros' || goal.category === 'financial';
+
+  // Get motivational colors based on progress
+  const getProgressColor = () => {
+    if (goal.is_completed) return 'from-green-500 to-emerald-600';
+    if (progressPercentage >= 75) return 'from-green-400 to-green-500';
+    if (progressPercentage >= 50) return 'from-yellow-400 to-orange-500';
+    if (progressPercentage >= 25) return 'from-orange-400 to-red-500';
+    return 'from-gray-400 to-gray-500';
+  };
+
+  const getCategoryStyle = () => {
+    const styles = {
+      sales: { 
+        gradient: 'from-green-500 to-emerald-600', 
+        icon: TrendingUp,
+        color: 'text-green-700',
+        bgColor: 'bg-green-50',
+        borderColor: 'border-green-200'
+      },
+      financial: { 
+        gradient: 'from-emerald-500 to-teal-600', 
+        icon: Euro,
+        color: 'text-emerald-700',
+        bgColor: 'bg-emerald-50',
+        borderColor: 'border-emerald-200'
+      },
+      projects: { 
+        gradient: 'from-blue-500 to-indigo-600', 
+        icon: Target,
+        color: 'text-blue-700',
+        bgColor: 'bg-blue-50',
+        borderColor: 'border-blue-200'
+      },
+      team: { 
+        gradient: 'from-purple-500 to-violet-600', 
+        icon: CheckCircle,
+        color: 'text-purple-700',
+        bgColor: 'bg-purple-50',
+        borderColor: 'border-purple-200'
+      },
+      personal: { 
+        gradient: 'from-indigo-500 to-purple-600', 
+        icon: CheckCircle,
+        color: 'text-indigo-700',
+        bgColor: 'bg-indigo-50',
+        borderColor: 'border-indigo-200'
+      }
+    };
+    return styles[goal.category] || styles.personal;
+  };
+
+  const categoryStyle = getCategoryStyle();
+  const CategoryIcon = categoryStyle.icon;
 
   return (
     <Card className={cn(
-      "transition-all hover:shadow-md",
-      goal.is_completed && "bg-green-50 border-green-200",
-      isOverdue && "bg-red-50 border-red-200"
+      "transition-all duration-300 hover:shadow-xl hover:scale-[1.02] min-h-[300px]",
+      goal.is_completed && "bg-gradient-to-br from-green-50 to-emerald-50 border-green-300 shadow-green-100",
+      isOverdue && "bg-gradient-to-br from-red-50 to-pink-50 border-red-300 shadow-red-100",
+      !goal.is_completed && !isOverdue && `${categoryStyle.bgColor} ${categoryStyle.borderColor}`
     )}>
-      <CardHeader className="pb-3">
+      {/* Header */}
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <div className={`p-2 rounded-lg ${statusColors[goal.status]} text-white`}>
-              <IconComponent className="h-4 w-4" />
+          <div className="flex items-center gap-3">
+            <div className={`p-3 rounded-xl bg-gradient-to-br ${categoryStyle.gradient} text-white shadow-lg`}>
+              <CategoryIcon className="h-6 w-6" />
             </div>
             <div>
-              <CardTitle className="text-base leading-tight">{goal.title}</CardTitle>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="secondary" className="text-xs">
+              <CardTitle className="text-lg font-bold leading-tight mb-1">{goal.title}</CardTitle>
+              <div className="flex items-center gap-2">
+                <Badge 
+                  variant={goal.is_completed ? "default" : "secondary"} 
+                  className={cn(
+                    "text-xs font-medium",
+                    goal.is_completed && "bg-green-100 text-green-800 border-green-300"
+                  )}
+                >
                   {statusLabels[goal.status]}
                 </Badge>
-                <Badge variant="outline" className="text-xs capitalize">
+                <Badge variant="outline" className="text-xs capitalize font-medium">
                   {goal.category}
                 </Badge>
               </div>
@@ -278,7 +339,7 @@ export function GoalCard({ goal, onUpdate, onDelete }: GoalCardProps) {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/70">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -335,107 +396,163 @@ export function GoalCard({ goal, onUpdate, onDelete }: GoalCardProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
         {goal.description && (
-          <p className="text-sm text-muted-foreground">{goal.description}</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{goal.description}</p>
         )}
 
-        {/* Monetary Goal Display */}
-        {isMonetaryGoal && (
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
-            <div className="text-center space-y-2">
-              <div className="flex items-center justify-center gap-2 text-green-700">
-                <Euro className="h-5 w-5" />
-                <span className="text-sm font-medium">Financieel Doel</span>
+        {/* Large Metric Display */}
+        <div className={cn(
+          "relative overflow-hidden rounded-2xl p-6 text-center",
+          `bg-gradient-to-br ${categoryStyle.gradient}`,
+          "text-white shadow-xl"
+        )}>
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-white rounded-full"></div>
+            <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-white rounded-full"></div>
+          </div>
+          
+          <div className="relative z-10 space-y-4">
+            {/* Metric Icon */}
+            <div className="flex justify-center">
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                <CategoryIcon className="h-8 w-8" />
               </div>
-              <div className="space-y-1">
-                <div className="text-3xl font-bold text-green-800">
-                  €{goal.current_value.toLocaleString()}
-                </div>
-                {goal.target_value && (
-                  <div className="text-sm text-green-600">
-                    van €{goal.target_value.toLocaleString()}
+            </div>
+
+            {/* Main Value Display */}
+            <div className="space-y-2">
+              {isMonetaryGoal ? (
+                <>
+                  <div className="text-4xl font-black tracking-tight">
+                    €{Math.round(goal.current_value).toLocaleString()}
+                  </div>
+                  {goal.target_value && (
+                    <div className="text-lg font-medium opacity-90">
+                      van €{Math.round(goal.target_value).toLocaleString()}
+                    </div>
+                  )}
+                </>
+              ) : goal.goal_type === 'percentage' ? (
+                <>
+                  <div className="text-4xl font-black tracking-tight">
+                    {Math.round(goal.current_value)}%
+                  </div>
+                  <div className="text-lg font-medium opacity-90">
+                    Voltooid
+                  </div>
+                </>
+              ) : goal.goal_type === 'boolean' ? (
+                <>
+                  <div className="text-4xl font-black tracking-tight">
+                    {goal.is_completed ? '✓' : '○'}
+                  </div>
+                  <div className="text-lg font-medium opacity-90">
+                    {goal.is_completed ? 'Voltooid!' : 'Te doen'}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-4xl font-black tracking-tight">
+                    {Math.round(goal.current_value).toLocaleString()}
+                    {goal.target_unit && <span className="text-2xl ml-1">{goal.target_unit}</span>}
+                  </div>
+                  {goal.target_value && (
+                    <div className="text-lg font-medium opacity-90">
+                      van {Math.round(goal.target_value).toLocaleString()} {goal.target_unit}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Progress Percentage */}
+            <div className="text-2xl font-bold">
+              {Math.round(progressPercentage)}% voltooid
+            </div>
+
+            {/* Quick Add for Monetary Goals */}
+            {isMonetaryGoal && !goal.is_completed && (
+              <div className="mt-4">
+                {!isQuickAdding ? (
+                  <Button 
+                    size="lg" 
+                    onClick={() => setIsQuickAdding(true)}
+                    className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm text-lg px-8 py-3"
+                    variant="outline"
+                  >
+                    <Plus className="h-5 w-5 mr-2" />
+                    Bedrag Toevoegen
+                  </Button>
+                ) : (
+                  <div className="flex gap-3">
+                    <Input
+                      type="number"
+                      placeholder="Bedrag"
+                      value={quickAddValue}
+                      onChange={(e) => setQuickAddValue(e.target.value)}
+                      className="bg-white/20 border-white/30 text-white placeholder:text-white/70 backdrop-blur-sm"
+                    />
+                    <Button 
+                      size="lg" 
+                      onClick={handleQuickAdd}
+                      disabled={isLoading || !quickAddValue}
+                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm px-6"
+                      variant="outline"
+                    >
+                      +
+                    </Button>
+                    <Button 
+                      size="lg" 
+                      variant="outline"
+                      onClick={() => {
+                        setIsQuickAdding(false);
+                        setQuickAddValue('');
+                      }}
+                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 backdrop-blur-sm px-6"
+                    >
+                      ×
+                    </Button>
                   </div>
                 )}
               </div>
-              {!goal.is_completed && (
-                <div className="flex gap-2 mt-3">
-                  {!isQuickAdding ? (
-                    <Button 
-                      size="sm" 
-                      onClick={() => setIsQuickAdding(true)}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Bedrag Toevoegen
-                    </Button>
-                  ) : (
-                    <div className="flex gap-2 w-full">
-                      <Input
-                        type="number"
-                        placeholder="Bedrag"
-                        value={quickAddValue}
-                        onChange={(e) => setQuickAddValue(e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button 
-                        size="sm" 
-                        onClick={handleQuickAdd}
-                        disabled={isLoading || !quickAddValue}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        +
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => {
-                          setIsQuickAdding(false);
-                          setQuickAddValue('');
-                        }}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            )}
           </div>
-        )}
+        </div>
 
-        {/* Progress Section */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Voortgang</span>
-            <span className="font-medium">
+        {/* Progress Bar */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between text-sm font-medium">
+            <span className={categoryStyle.color}>Voortgang</span>
+            <span className={cn("font-bold", categoryStyle.color)}>
               {Math.round(progressPercentage)}%
             </span>
           </div>
-          <Progress value={progressPercentage} className="h-2" />
-          
-          {goal.goal_type !== 'boolean' && !isMonetaryGoal && (
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>{formatValue(goal.current_value)}</span>
-              {goal.target_value && (
-                <span>van {formatValue(goal.target_value)}</span>
+          <div className="relative">
+            <Progress value={progressPercentage} className="h-3 bg-gray-200" />
+            <div 
+              className={cn(
+                "absolute top-0 left-0 h-3 rounded-full transition-all duration-500",
+                `bg-gradient-to-r ${getProgressColor()}`
               )}
-            </div>
-          )}
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
         </div>
 
         {/* Update Progress */}
         {isEditing && (
-          <div className="space-y-3 p-3 bg-muted rounded-lg">
+          <div className="space-y-4 p-4 bg-white/70 backdrop-blur-sm rounded-xl border border-white/50">
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <label className="text-sm font-semibold text-gray-700">
                 {goal.goal_type === 'boolean' ? 'Voltooid?' : 'Huidige waarde'}
               </label>
               {goal.goal_type === 'boolean' ? (
                 <select 
                   value={currentValue}
                   onChange={(e) => setCurrentValue(e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-3 border border-gray-300 rounded-lg bg-white"
                 >
                   <option value="0">Nee</option>
                   <option value="1">Ja</option>
@@ -446,26 +563,27 @@ export function GoalCard({ goal, onUpdate, onDelete }: GoalCardProps) {
                   value={currentValue}
                   onChange={(e) => setCurrentValue(e.target.value)}
                   placeholder="Voer nieuwe waarde in"
+                  className="text-lg p-3"
                 />
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <Button 
-                size="sm" 
+                size="lg" 
                 onClick={handleUpdateProgress}
                 disabled={isLoading}
-                className="flex-1"
+                className="flex-1 text-lg py-3"
               >
                 {isLoading ? 'Opslaan...' : 'Opslaan'}
               </Button>
               <Button 
-                size="sm" 
+                size="lg" 
                 variant="outline" 
                 onClick={() => {
                   setIsEditing(false);
                   setCurrentValue(goal.current_value.toString());
                 }}
-                className="flex-1"
+                className="flex-1 text-lg py-3"
               >
                 Annuleren
               </Button>
@@ -475,12 +593,17 @@ export function GoalCard({ goal, onUpdate, onDelete }: GoalCardProps) {
 
         {/* Deadline */}
         {goal.deadline && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Calendar className="h-4 w-4" />
-            <span>
+          <div className={cn(
+            "flex items-center gap-3 p-3 rounded-lg",
+            isOverdue 
+              ? "bg-red-100 text-red-700 border border-red-200" 
+              : "bg-gray-100 text-gray-700 border border-gray-200"
+          )}>
+            <Calendar className="h-5 w-5" />
+            <span className="font-medium">
               Deadline: {new Date(goal.deadline).toLocaleDateString('nl-NL')}
               {isOverdue && (
-                <Badge variant="destructive" className="ml-2 text-xs">
+                <Badge variant="destructive" className="ml-3">
                   Verlopen
                 </Badge>
               )}
@@ -490,7 +613,7 @@ export function GoalCard({ goal, onUpdate, onDelete }: GoalCardProps) {
 
         {/* Quick Progress Buttons */}
         {!isEditing && !goal.is_completed && goal.goal_type !== 'boolean' && !isMonetaryGoal && (
-          <div className="flex gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {[25, 50, 75, 100].map((percentage) => {
               const targetValue = goal.target_value || 100;
               const quickValue = Math.round((targetValue * percentage) / 100);
@@ -498,9 +621,12 @@ export function GoalCard({ goal, onUpdate, onDelete }: GoalCardProps) {
               return (
                 <Button
                   key={percentage}
-                  size="sm"
+                  size="lg"
                   variant="outline"
-                  className="flex-1 text-xs"
+                  className={cn(
+                    "text-sm font-bold py-3 transition-all hover:scale-105",
+                    `hover:bg-gradient-to-r ${categoryStyle.gradient} hover:text-white hover:border-transparent`
+                  )}
                   onClick={() => {
                     setCurrentValue(quickValue.toString());
                     setIsEditing(true);
