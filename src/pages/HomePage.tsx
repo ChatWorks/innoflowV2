@@ -41,8 +41,11 @@ export default function HomePage() {
           {/* Navigation Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {/* Doelen - Links */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/40 hover:bg-white/90 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer group"
-                 onClick={() => navigate('/goals')}>
+            <SpotlightCard 
+              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/40 hover:bg-white/90 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer group"
+              spotlightColor="rgba(168, 85, 247, 0.2)"
+              onClick={() => navigate('/goals')}
+            >
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Target className="h-8 w-8 text-white" />
@@ -58,11 +61,14 @@ export default function HomePage() {
                   Ga naar Doelen
                 </Button>
               </div>
-            </div>
+            </SpotlightCard>
 
             {/* Projecten - Midden (Highlighted) */}
-            <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 text-white transform scale-105 shadow-2xl cursor-pointer group"
-                 onClick={() => navigate('/projecten')}>
+            <SpotlightCard
+              className="relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 text-white transform scale-105 shadow-2xl cursor-pointer group"
+              spotlightColor="rgba(59, 130, 246, 0.3)"
+              onClick={() => navigate('/projecten')}
+            >
               <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                 <div className="bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 text-sm font-medium border border-white/30">
                   Meest gebruikt
@@ -83,11 +89,14 @@ export default function HomePage() {
                   Ga naar Projecten
                 </Button>
               </div>
-            </div>
+            </SpotlightCard>
 
             {/* Leads - Rechts */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/40 hover:bg-white/90 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer group"
-                 onClick={() => navigate('/leads')}>
+            <SpotlightCard
+              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/40 hover:bg-white/90 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer group"
+              spotlightColor="rgba(34, 197, 94, 0.2)"
+              onClick={() => navigate('/leads')}
+            >
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                   <Users className="h-8 w-8 text-white" />
@@ -103,7 +112,7 @@ export default function HomePage() {
                   Ga naar Leads
                 </Button>
               </div>
-            </div>
+            </SpotlightCard>
           </div>
 
           {/* Features Section */}
