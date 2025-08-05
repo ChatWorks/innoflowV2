@@ -772,21 +772,7 @@ export default function IntegratedProjectTimeline({
                                  timeRemaining: Math.max(0, getPhaseDeclarableHours(phase, localDeliverables) - formatTimeToHours(getPhaseTotalTime(phase, localDeliverables, localTasks, timeEntries)))
                                }}
                              />
-                             
-                             {/* Manual time add button for phase */}
-                             <Button
-                               variant="ghost"
-                               size="sm"
-                               className="h-8 w-8 p-0 hover:bg-primary/10"
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 openManualTimeDialog('phase', phase.id, phase.name);
-                               }}
-                               title="Handmatige tijd toevoegen aan fase"
-                             >
-                               <PlusCircle className="h-5 w-5 text-muted-foreground hover:text-primary" />
-                             </Button>
-                             
+                              
                                <span className="text-base font-medium text-foreground min-w-[80px]">
                                  <div className="flex flex-col items-end">
                                    <span>
