@@ -65,7 +65,7 @@ export default function HomePage() {
 
             {/* Projecten - Midden (Highlighted) */}
             <SpotlightCard
-              className="relative bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary-hover))] rounded-3xl p-8 text-white transform scale-115 shadow-2xl cursor-pointer group"
+              className="relative bg-[hsl(228_100%_18%)] hover:bg-[hsl(228_100%_15%)] rounded-3xl p-8 text-white transform scale-115 shadow-2xl cursor-pointer group"
               spotlightColor="rgba(59, 130, 246, 0.3)"
               onClick={() => navigate('/projecten')}
             >
