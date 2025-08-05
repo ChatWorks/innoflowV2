@@ -28,78 +28,78 @@ export default function HomePage() {
             <div className="flex justify-center mb-12">
               <div className="bg-white/80 backdrop-blur-sm rounded-full p-1 border border-white/40">
                 <button className="px-6 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium">
-                  Maandelijks
+                  Navigatie
                 </button>
                 <button className="px-6 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground">
-                  Team
+                  Overzicht
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Pricing Cards */}
+          {/* Navigation Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Monthly Plan */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/40 hover:bg-white/90 transition-all duration-300 shadow-lg hover:shadow-xl">
+            {/* Doelen - Links */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/40 hover:bg-white/90 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer group"
+                 onClick={() => navigate('/goals')}>
               <div className="text-center">
-                <div className="text-4xl font-bold text-gray-900 mb-2">
-                  €98 <span className="text-lg font-normal text-muted-foreground">/ maand</span>
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Target className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4">Maandelijks</h3>
+                <h3 className="text-2xl font-bold mb-4">Doelen</h3>
                 <p className="text-muted-foreground mb-8">
-                  Betaling van €98 elke maand
+                  Stel doelen in en track je vooruitgang met gedetailleerde analytics
                 </p>
                 <Button 
-                  className="w-full bg-primary hover:bg-primary-hover text-white font-medium"
+                  className="w-full bg-purple-500 hover:bg-purple-600 text-white font-medium group-hover:scale-105 transition-transform"
                   size="lg"
-                  onClick={() => navigate('/projecten')}
                 >
-                  Start met een maandelijks plan
+                  Ga naar Doelen
                 </Button>
               </div>
             </div>
 
-            {/* Quarterly Plan - Most Popular */}
-            <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 text-white transform scale-105 shadow-2xl">
+            {/* Projecten - Midden (Highlighted) */}
+            <div className="relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 text-white transform scale-105 shadow-2xl cursor-pointer group"
+                 onClick={() => navigate('/projecten')}>
               <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                 <div className="bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 text-sm font-medium border border-white/30">
-                  De meest populaire
+                  Meest gebruikt
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold mb-2">
-                  €92 <span className="text-lg font-normal opacity-80">/ maand</span>
+                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Briefcase className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4">Kwartaal</h3>
+                <h3 className="text-2xl font-bold mb-4">Projecten</h3>
                 <p className="opacity-80 mb-8">
-                  Betaling van €276 elke 3 maanden
+                  Beheer en volg al je projecten op één centrale plek
                 </p>
                 <Button 
-                  className="w-full bg-white text-blue-600 hover:bg-gray-50 font-medium"
+                  className="w-full bg-white text-blue-600 hover:bg-gray-50 font-medium group-hover:scale-105 transition-transform"
                   size="lg"
-                  onClick={() => navigate('/projecten')}
                 >
-                  Start met een maandelijks plan
+                  Ga naar Projecten
                 </Button>
               </div>
             </div>
 
-            {/* Annual Plan */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/40 hover:bg-white/90 transition-all duration-300 shadow-lg hover:shadow-xl">
+            {/* Leads - Rechts */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 border border-white/40 hover:bg-white/90 transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer group"
+                 onClick={() => navigate('/leads')}>
               <div className="text-center">
-                <div className="text-4xl font-bold text-gray-900 mb-2">
-                  €83 <span className="text-lg font-normal text-muted-foreground">/ maand</span>
+                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Users className="h-8 w-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold mb-4">Jaarlijks</h3>
+                <h3 className="text-2xl font-bold mb-4">Leads</h3>
                 <p className="text-muted-foreground mb-8">
-                  Betaling van €996 elk jaar
+                  Converteer potentiële klanten naar succesvolle projecten
                 </p>
                 <Button 
-                  className="w-full bg-primary hover:bg-primary-hover text-white font-medium"
+                  className="w-full bg-green-500 hover:bg-green-600 text-white font-medium group-hover:scale-105 transition-transform"
                   size="lg"
-                  onClick={() => navigate('/projecten')}
                 >
-                  Start met een maandelijks plan
+                  Ga naar Leads
                 </Button>
               </div>
             </div>
