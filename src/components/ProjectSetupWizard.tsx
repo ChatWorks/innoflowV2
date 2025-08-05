@@ -372,6 +372,7 @@ export default function ProjectSetupWizard() {
 
       // Map the AI response to our state
       if (data.project_info) {
+        console.log('Mapping project_info:', data.project_info);
         setProjectData({
           name: data.project_info.name || '',
           client: data.project_info.client || '',
@@ -382,23 +383,34 @@ export default function ProjectSetupWizard() {
       }
 
       if (data.phases && Array.isArray(data.phases)) {
-        const mappedPhases = data.phases.map((phase: any, phaseIndex: number) => ({
-          id: `phase-${phaseIndex + 1}`,
-          name: phase.name || `Fase ${phaseIndex + 1}`,
-          targetDate: phase.targetDate || '',
-          deliverables: phase.deliverables?.map((deliverable: any, deliverableIndex: number) => ({
-            id: `deliverable-${phaseIndex + 1}-${deliverableIndex + 1}`,
-            name: deliverable.name || '',
-            hours: deliverable.hours || '',
-            targetDate: deliverable.targetDate || '',
-            tasks: deliverable.tasks?.map((task: any, taskIndex: number) => ({
-              id: `task-${phaseIndex + 1}-${deliverableIndex + 1}-${taskIndex + 1}`,
-              name: task.name || '',
-              assignedTo: task.assignedTo || ''
-            })) || []
-          })) || []
-        }));
+        console.log('Mapping phases:', data.phases);
+        const mappedPhases = data.phases.map((phase: any, phaseIndex: number) => {
+          console.log(`Mapping phase ${phaseIndex + 1}:`, phase);
+          return {
+            id: `phase-${phaseIndex + 1}`,
+            name: phase.name || `Fase ${phaseIndex + 1}`,
+            targetDate: phase.targetDate || '',
+            deliverables: phase.deliverables?.map((deliverable: any, deliverableIndex: number) => {
+              console.log(`Mapping deliverable ${deliverableIndex + 1}:`, deliverable);
+              return {
+                id: `deliverable-${phaseIndex + 1}-${deliverableIndex + 1}`,
+                name: deliverable.name || '',
+                hours: deliverable.hours || '',
+                targetDate: deliverable.targetDate || '',
+                tasks: deliverable.tasks?.map((task: any, taskIndex: number) => {
+                  console.log(`Mapping task ${taskIndex + 1}:`, task);
+                  return {
+                    id: `task-${phaseIndex + 1}-${deliverableIndex + 1}-${taskIndex + 1}`,
+                    name: task.name || '',
+                    assignedTo: task.assignedTo || ''
+                  };
+                }) || []
+              };
+            }) || []
+          };
+        });
 
+        console.log('Final mapped phases:', mappedPhases);
         setPhases(mappedPhases);
       }
 
