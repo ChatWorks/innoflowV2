@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, ArrowRight, Plus, Trash2, GripVertical, User, Clock, Bot, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plus, Trash2, GripVertical, User, Clock, Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -335,16 +335,18 @@ export default function ProjectSetupWizard() {
     }
   };
 
-  // Fake progress animation steps
+  // Fake progress animation steps - spread over 35 seconds
   const progressSteps = [
-    { step: 1, message: "Tekstanalyse starten...", delay: 500 },
-    { step: 2, message: "AI model wordt opgestart...", delay: 800 },
-    { step: 3, message: "Projectscope wordt gedetecteerd...", delay: 1200 },
-    { step: 4, message: "Fases en deliverables identificeren...", delay: 1500 },
-    { step: 5, message: "Taken en toewijzingen genereren...", delay: 1800 },
-    { step: 6, message: "Budget en tijdschattingen berekenen...", delay: 2000 },
-    { step: 7, message: "Projectstructuur optimaliseren...", delay: 2200 },
-    { step: 8, message: "Resultaat wordt voorbereid...", delay: 2400 }
+    { step: 1, message: "Tekstanalyse starten...", delay: 1000 },
+    { step: 2, message: "AI model wordt opgestart...", delay: 3000 },
+    { step: 3, message: "Projectscope wordt gedetecteerd...", delay: 6000 },
+    { step: 4, message: "Documenten worden geïndexeerd...", delay: 9000 },
+    { step: 5, message: "Fases en deliverables identificeren...", delay: 13000 },
+    { step: 6, message: "Taken en toewijzingen genereren...", delay: 17000 },
+    { step: 7, message: "Budget en tijdschattingen berekenen...", delay: 22000 },
+    { step: 8, message: "Projectstructuur optimaliseren...", delay: 26000 },
+    { step: 9, message: "Kwaliteitscontrole uitvoeren...", delay: 30000 },
+    { step: 10, message: "Resultaat wordt voorbereid...", delay: 33000 }
   ];
 
   // AI Proposal Analysis with cool animation
@@ -401,7 +403,7 @@ export default function ProjectSetupWizard() {
 
       // Wait for animation to complete before showing results
       setTimeout(() => {
-        setAnalysisStep(9);
+        setAnalysisStep(11);
         setAnalysisMessage('Klaar! Formulieren worden ingevuld...');
 
         // Map the AI response to our state
@@ -461,7 +463,7 @@ export default function ProjectSetupWizard() {
           setAnalysisMessage('');
         }, 800);
 
-      }, Math.max(0, 2800 - Date.now() + performance.now())); // Ensure animation completes
+      }, Math.max(0, 35000 - Date.now() + performance.now())); // Ensure animation completes
 
     } catch (error) {
       console.error('Error analyzing proposal:', error);
@@ -528,7 +530,7 @@ export default function ProjectSetupWizard() {
               <CardHeader className="pb-4">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 rounded-lg bg-primary/10">
-                    <Bot className="h-6 w-6 text-primary" />
+                    <Sparkles className="h-6 w-6 text-primary" />
                   </div>
                   <div>
                     <CardTitle className="text-xl font-semibold">
@@ -556,14 +558,14 @@ export default function ProjectSetupWizard() {
                         <div className="relative">
                           <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary/20 border-t-primary"></div>
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <Bot className="h-6 w-6 text-primary animate-pulse" />
+                            <Sparkles className="h-6 w-6 text-primary animate-pulse" />
                           </div>
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <h3 className="font-semibold text-lg">AI Analyse Bezig</h3>
                             <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full animate-pulse">
-                              Stap {analysisStep}/8
+                              Stap {analysisStep}/10
                             </span>
                           </div>
                           <p className="text-sm text-muted-foreground animate-fade-in">
@@ -571,7 +573,7 @@ export default function ProjectSetupWizard() {
                           </p>
                           <div className="mt-3">
                             <Progress 
-                              value={(analysisStep / 8) * 100} 
+                              value={(analysisStep / 10) * 100} 
                               className="h-2 animate-pulse"
                             />
                           </div>
@@ -607,7 +609,7 @@ export default function ProjectSetupWizard() {
                     className="w-full gap-2 bg-gradient-to-r from-primary to-primary-hover hover:from-primary-hover hover:to-primary transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
                     size="lg"
                   >
-                    <Bot className="h-5 w-5" />
+                    <Sparkles className="h-5 w-5" />
                     <span className="font-medium">Analyseer Voorstel</span>
                   </Button>
                 )}
