@@ -18,12 +18,9 @@ export default function HomePage() {
             <div className="inline-flex items-center px-4 py-2 bg-white/60 backdrop-blur-sm border border-white/40 rounded-full text-sm text-muted-foreground mb-6">
               🎯 Beheer je tijd efficiënt
             </div>
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <InnoflowLogo className="h-12 w-12" />
-              <h1 className="text-5xl font-bold tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                Welkom bij Innoflow
-              </h1>
-            </div>
+            <h1 className="text-5xl font-bold tracking-tight mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              Welkom bij Innoflow
+            </h1>
             <p className="text-lg text-muted-foreground max-w-lg mx-auto mb-8">
               Probeer 30 dagen gratis zonder risico
             </p>
@@ -142,59 +139,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Quick Access Cards */}
-          <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <SpotlightCard 
-              className="cursor-pointer transition-all duration-300 group hover:scale-[1.02] bg-white/60 backdrop-blur-sm border-white/40"
-              spotlightColor="hsl(var(--primary) / 0.3)"
-              onClick={() => navigate('/projecten')}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Briefcase className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold">Projecten</h3>
-                  <p className="text-sm text-muted-foreground">Ga naar projecten</p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
-              </div>
-            </SpotlightCard>
-
-            <SpotlightCard 
-              className="cursor-pointer transition-all duration-300 group hover:scale-[1.02] bg-white/60 backdrop-blur-sm border-white/40"
-              spotlightColor="hsl(142 76% 36% / 0.3)"
-              onClick={() => navigate('/leads')}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Users className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold">Leads</h3>
-                  <p className="text-sm text-muted-foreground">Beheer leads</p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
-              </div>
-            </SpotlightCard>
-
-            <SpotlightCard 
-              className="cursor-pointer transition-all duration-300 group hover:scale-[1.02] bg-white/60 backdrop-blur-sm border-white/40"
-              spotlightColor="hsl(25 95% 53% / 0.3)"
-              onClick={() => navigate('/goals')}
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Target className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold">Doelen</h3>
-                  <p className="text-sm text-muted-foreground">Track doelen</p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
-              </div>
-            </SpotlightCard>
-          </div>
         </div>
       </div>
     </Layout>
