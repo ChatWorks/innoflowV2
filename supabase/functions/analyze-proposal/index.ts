@@ -315,19 +315,35 @@ Analyseer nu dit projectvoorstel: ${proposalText}`
     // Extract the JSON from the response
     let parsedData;
     try {
-      // The response format might be different, let's handle various structures
-      if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
-        parsedData = JSON.parse(data.choices[0].message.content);
-      } else if (data.content) {
-        parsedData = JSON.parse(data.content);
-      } else if (data.text) {
-        parsedData = JSON.parse(data.text);
-      } else {
-        // Direct response
-        parsedData = data;
+      // Handle the new OpenAI response structure
+      if (data.output && Array.isArray(data.output)) {
+        // Find the message output
+        const messageOutput = data.output.find((item: any) => item.type === 'message');
+        if (messageOutput && messageOutput.content && Array.isArray(messageOutput.content)) {
+          // Find the output_text content
+          const textContent = messageOutput.content.find((item: any) => item.type === 'output_text');
+          if (textContent && textContent.text) {
+            parsedData = JSON.parse(textContent.text);
+          }
+        }
+      }
+      
+      // Fallback for other response formats
+      if (!parsedData) {
+        if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+          parsedData = JSON.parse(data.choices[0].message.content);
+        } else if (data.content) {
+          parsedData = JSON.parse(data.content);
+        } else if (data.text) {
+          parsedData = JSON.parse(data.text);
+        } else {
+          // Direct response
+          parsedData = data;
+        }
       }
     } catch (parseError) {
       console.error('Failed to parse OpenAI response:', parseError);
+      console.error('Raw response data:', JSON.stringify(data, null, 2));
       throw new Error('Invalid response format from OpenAI');
     }
 
