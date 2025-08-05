@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Goal } from '@/types/goal';
-import { TrendingUp, Target, Calendar, Zap } from 'lucide-react';
+import { TrendingUp, Target, Calendar, Zap, BarChart3 } from 'lucide-react';
 
 interface GoalAnalyticsProps {
   goals: Goal[];
@@ -80,104 +82,121 @@ export function GoalAnalytics({ goals }: GoalAnalyticsProps) {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {/* Completion Rate */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Target className="h-4 w-4 text-blue-500" />
-            Voltooiingspercentage
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold">{Math.round(analytics.completionRate)}%</span>
-              <Badge variant={analytics.completionRate >= 70 ? "default" : "secondary"}>
-                {analytics.completionRate >= 70 ? "Excellent" : "Needs Focus"}
-              </Badge>
-            </div>
-            <Progress value={analytics.completionRate} className="h-2" />
-            <p className="text-xs text-muted-foreground">
-              Van je {goals.length} doelen
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="gap-2">
+          <BarChart3 className="h-4 w-4" />
+          Uitgebreide Statistieken
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            Doelen Analytics
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+          {/* Completion Rate */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Target className="h-4 w-4 text-blue-500" />
+                Voltooiingspercentage
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-bold">{Math.round(analytics.completionRate)}%</span>
+                  <Badge variant={analytics.completionRate >= 70 ? "default" : "secondary"}>
+                    {analytics.completionRate >= 70 ? "Excellent" : "Needs Focus"}
+                  </Badge>
+                </div>
+                <Progress value={analytics.completionRate} className="h-2" />
+                <p className="text-xs text-muted-foreground">
+                  Van je {goals.length} doelen
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Average Progress */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <TrendingUp className="h-4 w-4 text-green-500" />
-            Gemiddelde Voortgang
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-2xl font-bold">{Math.round(analytics.averageProgress)}%</span>
-              <div className={`w-3 h-3 rounded-full ${progressColor(analytics.averageProgress)}`} />
-            </div>
-            <Progress value={analytics.averageProgress} className="h-2" />
-            <p className="text-xs text-muted-foreground">
-              Across all active goals
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+          {/* Average Progress */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                Gemiddelde Voortgang
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-2xl font-bold">{Math.round(analytics.averageProgress)}%</span>
+                  <div className={`w-3 h-3 rounded-full ${progressColor(analytics.averageProgress)}`} />
+                </div>
+                <Progress value={analytics.averageProgress} className="h-2" />
+                <p className="text-xs text-muted-foreground">
+                  Across all active goals
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Goal Status */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Zap className="h-4 w-4 text-orange-500" />
-            Goal Status
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-green-600">On Track</span>
-              <Badge variant="outline" className="text-green-600 border-green-600">
-                {analytics.onTrackGoals}
-              </Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-red-600">At Risk</span>
-              <Badge variant="outline" className="text-red-600 border-red-600">
-                {analytics.atRiskGoals}
-              </Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-blue-600">Completed This Month</span>
-              <Badge variant="outline" className="text-blue-600 border-blue-600">
-                {analytics.completedThisMonth}
-              </Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          {/* Goal Status */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Zap className="h-4 w-4 text-orange-500" />
+                Goal Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-green-600">On Track</span>
+                  <Badge variant="outline" className="text-green-600 border-green-600">
+                    {analytics.onTrackGoals}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-red-600">At Risk</span>
+                  <Badge variant="outline" className="text-red-600 border-red-600">
+                    {analytics.atRiskGoals}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-blue-600">Completed This Month</span>
+                  <Badge variant="outline" className="text-blue-600 border-blue-600">
+                    {analytics.completedThisMonth}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Financial Goals Value */}
-      {analytics.totalValue > 0 && (
-        <Card className="md:col-span-2 lg:col-span-1">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Calendar className="h-4 w-4 text-purple-500" />
-              Financial Progress
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <span className="text-2xl font-bold">€{analytics.totalValue.toLocaleString()}</span>
-              <p className="text-xs text-muted-foreground">
-                Total value from sales & financial goals
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          {/* Financial Goals Value */}
+          {analytics.totalValue > 0 && (
+            <Card className="md:col-span-2 lg:col-span-3">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Calendar className="h-4 w-4 text-purple-500" />
+                  Financial Progress
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <span className="text-2xl font-bold">€{analytics.totalValue.toLocaleString()}</span>
+                  <p className="text-xs text-muted-foreground">
+                    Total value from sales & financial goals
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
