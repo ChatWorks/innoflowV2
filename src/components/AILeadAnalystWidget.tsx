@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Bot, Send, Loader2, Maximize2, X, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
@@ -106,29 +106,19 @@ Wat wil je weten over je leads?`,
 
   const ChatContent = ({ isFullscreenView = false }) => (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b bg-white">
-        <div className="flex items-center gap-3">
-          {isFullscreenView && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsFullscreen(false)}
-              className="h-8 w-8"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          )}
-          <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
-            <Bot className="h-6 w-6 text-white" />
+      {/* Header - only show in widget mode */}
+      {!isFullscreenView && (
+        <div className="flex items-center justify-between p-4 border-b bg-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
+              <Bot className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">Inno</h3>
+              <p className="text-sm text-muted-foreground">AI AGENT</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-semibold text-foreground">Inno</h3>
-            <p className="text-sm text-muted-foreground">AI AGENT</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {!isFullscreenView && (
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
@@ -137,20 +127,33 @@ Wat wil je weten over je leads?`,
             >
               <Maximize2 className="h-4 w-4" />
             </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsOpen(false)}
-            className="h-8 w-8"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsOpen(false)}
+              className="h-8 w-8"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Fullscreen Header */}
+      {isFullscreenView && (
+        <div className="flex items-center gap-3 p-4 border-b bg-white">
+          <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center">
+            <Bot className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground">Inno</h3>
+            <p className="text-sm text-muted-foreground">AI AGENT</p>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className={`flex-1 p-4 ${isFullscreenView ? 'max-h-[calc(100vh-300px)]' : ''}`}>
         <div className="space-y-4 max-w-full">
           {messages.map((message) => (
             <div
@@ -158,7 +161,7 @@ Wat wil je weten over je leads?`,
               className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`${isFullscreenView ? 'max-w-[70%]' : 'max-w-[85%]'} rounded-2xl p-4 ${
+                className={`${isFullscreenView ? 'max-w-4xl' : 'max-w-[85%]'} rounded-2xl p-4 ${
                   message.type === 'user'
                     ? 'bg-emerald-500 text-white'
                     : 'bg-muted text-foreground'
@@ -278,7 +281,8 @@ Wat wil je weten over je leads?`,
 
       {/* Fullscreen Dialog */}
       <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
-        <DialogContent className="max-w-4xl w-full h-[90vh] p-0">
+        <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0">
+          <DialogTitle className="sr-only">AI Lead Analyst Chat</DialogTitle>
           <ChatContent isFullscreenView={true} />
         </DialogContent>
       </Dialog>
