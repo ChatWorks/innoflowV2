@@ -187,9 +187,11 @@ const Auth = () => {
                 <button
                   type="button"
                   onClick={() => {
+                    console.log('Account aanmaken knop geklikt');
                     setError(null);
                     setSuccess(null);
                     setIsSignUp(true);
+                    console.log('isSignUp staat nu op:', true);
                   }}
                   className="text-sm text-gray-600 hover:text-gray-900 font-medium"
                 >
