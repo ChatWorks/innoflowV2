@@ -15,6 +15,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isSignUp, setIsSignUp] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -117,85 +118,199 @@ const Auth = () => {
               <InnoflowLogo size="lg" showText={false} />
             </div>
             <h1 className="text-2xl font-semibold text-gray-900 mb-1">Innoflow</h1>
-            <h2 className="text-xl font-medium text-gray-900 mb-8">Welkom terug</h2>
+            <h2 className="text-xl font-medium text-gray-900 mb-8">
+              {isSignUp ? 'Account Aanmaken' : 'Welkom terug'}
+            </h2>
           </div>
 
-          {/* Sign In Form */}
-          <form onSubmit={handleSignIn} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="signin-email" className="text-sm font-medium text-gray-700">
-                E-mailadres
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="signin-email"
-                  type="email"
-                  placeholder="tijn@innoworks.ai"
-                  value={signInData.email}
-                  onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
-                  className="pl-10 h-12 bg-blue-50 border-blue-100 focus:border-blue-300 focus:ring-blue-200"
-                  required
-                />
+          {!isSignUp ? (
+            /* Sign In Form */
+            <form onSubmit={handleSignIn} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="signin-email" className="text-sm font-medium text-gray-700">
+                  E-mailadres
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="signin-email"
+                    type="email"
+                    placeholder="tijn@innoworks.ai"
+                    value={signInData.email}
+                    onChange={(e) => setSignInData({ ...signInData, email: e.target.value })}
+                    className="pl-10 h-12 bg-blue-50 border-blue-100 focus:border-blue-300 focus:ring-blue-200"
+                    required
+                  />
+                </div>
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="signin-password" className="text-sm font-medium text-gray-700">
-                Wachtwoord
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="signin-password"
-                  type="password"
-                  placeholder="••••••••••••"
-                  value={signInData.password}
-                  onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
-                  className="pl-10 h-12 bg-blue-50 border-blue-100 focus:border-blue-300 focus:ring-blue-200"
-                  required
-                />
+              
+              <div className="space-y-2">
+                <Label htmlFor="signin-password" className="text-sm font-medium text-gray-700">
+                  Wachtwoord
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="signin-password"
+                    type="password"
+                    placeholder="••••••••••••"
+                    value={signInData.password}
+                    onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
+                    className="pl-10 h-12 bg-blue-50 border-blue-100 focus:border-blue-300 focus:ring-blue-200"
+                    required
+                  />
+                </div>
               </div>
-            </div>
 
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {/* Login Button */}
-            <Button 
-              type="submit" 
-              className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg" 
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Inloggen...
-                </>
-              ) : (
-                'Inloggen'
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
-            </Button>
 
-            {/* Account Creation Link */}
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  // Reset states and switch to signup mode
-                  setError(null);
-                  setSuccess(null);
-                  // Simple toggle for now - in a real implementation, you might want tabs
-                }}
-                className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg" 
+                disabled={isLoading}
               >
-                Account Aanmaken
-              </button>
-            </div>
-          </form>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Inloggen...
+                  </>
+                ) : (
+                  'Inloggen'
+                )}
+              </Button>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError(null);
+                    setSuccess(null);
+                    setIsSignUp(true);
+                  }}
+                  className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+                >
+                  Account Aanmaken
+                </button>
+              </div>
+            </form>
+          ) : (
+            /* Sign Up Form */
+            <form onSubmit={handleSignUp} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="signup-fullname" className="text-sm font-medium text-gray-700">
+                  Volledige naam
+                </Label>
+                <Input
+                  id="signup-fullname"
+                  type="text"
+                  placeholder="Jouw volledige naam"
+                  value={signUpData.fullName}
+                  onChange={(e) => setSignUpData({ ...signUpData, fullName: e.target.value })}
+                  className="h-12 bg-blue-50 border-blue-100 focus:border-blue-300 focus:ring-blue-200"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="signup-email" className="text-sm font-medium text-gray-700">
+                  E-mailadres
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="signup-email"
+                    type="email"
+                    placeholder="jouw.email@innoworks.ai"
+                    value={signUpData.email}
+                    onChange={(e) => setSignUpData({ ...signUpData, email: e.target.value })}
+                    className="pl-10 h-12 bg-blue-50 border-blue-100 focus:border-blue-300 focus:ring-blue-200"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="signup-password" className="text-sm font-medium text-gray-700">
+                  Wachtwoord
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="signup-password"
+                    type="password"
+                    placeholder="••••••••••••"
+                    value={signUpData.password}
+                    onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
+                    className="pl-10 h-12 bg-blue-50 border-blue-100 focus:border-blue-300 focus:ring-blue-200"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="signup-confirm-password" className="text-sm font-medium text-gray-700">
+                  Bevestig wachtwoord
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="signup-confirm-password"
+                    type="password"
+                    placeholder="••••••••••••"
+                    value={signUpData.confirmPassword}
+                    onChange={(e) => setSignUpData({ ...signUpData, confirmPassword: e.target.value })}
+                    className="pl-10 h-12 bg-blue-50 border-blue-100 focus:border-blue-300 focus:ring-blue-200"
+                    required
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {success && (
+                <Alert className="border-green-200 bg-green-50">
+                  <AlertDescription className="text-green-800">{success}</AlertDescription>
+                </Alert>
+              )}
+
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg" 
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Account aanmaken...
+                  </>
+                ) : (
+                  'Account Aanmaken'
+                )}
+              </Button>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError(null);
+                    setSuccess(null);
+                    setIsSignUp(false);
+                  }}
+                  className="text-sm text-gray-600 hover:text-gray-900 font-medium"
+                >
+                  Al een account? Inloggen
+                </button>
+              </div>
+            </form>
+          )}
 
           {/* Footer Text */}
           <div className="text-center mt-8">
