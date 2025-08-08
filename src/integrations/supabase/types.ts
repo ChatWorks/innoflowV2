@@ -382,6 +382,145 @@ export type Database = {
         }
         Relationships: []
       }
+      moneybird_aggregates_daily: {
+        Row: {
+          basis: string
+          cash_in: number
+          cash_net: number
+          cash_out: number
+          connection_id: string | null
+          costs_excl_vat: number
+          created_at: string
+          date: string
+          group_key: string | null
+          grouping: string
+          id: string
+          organization_id: string | null
+          revenue_excl_vat: number
+          source_counts: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          basis?: string
+          cash_in?: number
+          cash_net?: number
+          cash_out?: number
+          connection_id?: string | null
+          costs_excl_vat?: number
+          created_at?: string
+          date: string
+          group_key?: string | null
+          grouping?: string
+          id?: string
+          organization_id?: string | null
+          revenue_excl_vat?: number
+          source_counts?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          basis?: string
+          cash_in?: number
+          cash_net?: number
+          cash_out?: number
+          connection_id?: string | null
+          costs_excl_vat?: number
+          created_at?: string
+          date?: string
+          group_key?: string | null
+          grouping?: string
+          id?: string
+          organization_id?: string | null
+          revenue_excl_vat?: number
+          source_counts?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moneybird_aggregates_daily_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "moneybird_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moneybird_connections: {
+        Row: {
+          administration_id: string
+          auth_type: string
+          connection_label: string | null
+          created_at: string
+          id: string
+          organization_id: string | null
+          user_id: string
+        }
+        Insert: {
+          administration_id: string
+          auth_type: string
+          connection_label?: string | null
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          user_id: string
+        }
+        Update: {
+          administration_id?: string
+          auth_type?: string
+          connection_label?: string | null
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      moneybird_sync_state: {
+        Row: {
+          connection_id: string
+          created_at: string
+          cursor: string | null
+          etag: string | null
+          id: string
+          last_synced_at: string | null
+          resource: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          cursor?: string | null
+          etag?: string | null
+          id?: string
+          last_synced_at?: string | null
+          resource: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          cursor?: string | null
+          etag?: string | null
+          id?: string
+          last_synced_at?: string | null
+          resource?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moneybird_sync_state_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "moneybird_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string

@@ -17,6 +17,7 @@ import Goals from "./pages/Goals";
 import Auth from "./pages/Auth";
 import ClientPortal from "./pages/ClientPortal";
 import NotFound from "./pages/NotFound";
+import Financien from "./pages/Financien";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,11 @@ const App = () => (
               <Route path="/goals" element={
                 <ProtectedRoute>
                   <Goals />
+                </ProtectedRoute>
+              } />
+              <Route path="/financien" element={
+                <ProtectedRoute>
+                  <Financien />
                 </ProtectedRoute>
               } />
               {/* Public route for client portal - no auth required */}
