@@ -184,18 +184,9 @@ export default function Financien() {
     async function load() {
       setLoading(true);
       try {
-        // Check connection presence
-        const { data: conn, error: connErr } = await supabase
-          .from("moneybird_connections")
-          .select("id, administration_id")
-          .limit(1);
-        if (connErr) throw connErr;
-        const connected = !!(conn && conn.length);
-        if (!active) return;
-        setHasConnection(connected);
-
-        // Use mock if no connection or mockMode
-        if (!connected || mockMode) {
+        // Live mode: call Edge Function; Mock mode: use local mock
+        if (mockMode) {
+          setHasConnection(null);
           const { points, kpis, details } = mockData(range);
           if (!active) return;
           setChartData(points);
@@ -204,19 +195,34 @@ export default function Financien() {
           return;
         }
 
-        // Placeholder: Edge function call (to be implemented after secrets are added)
-        // const { data, error } = await supabase.functions.invoke('moneybird-financials', {
-        //   body: { from: range.from.toISOString().slice(0,10), to: range.to.toISOString().slice(0,10), basis, grouping, bucket }
-        // });
-        // if (error) throw error;
-        // setKpis(data.kpis); setChartData(data.points); setDetails(data.details);
-        const { points, kpis, details } = mockData(range);
+        const { data, error } = await supabase.functions.invoke('moneybird-aggregates', {
+          body: {
+            from: range.from.toISOString().slice(0, 10),
+            to: range.to.toISOString().slice(0, 10),
+            basis,
+            grouping,
+            bucket,
+          },
+        });
+        if (error) throw error;
+
         if (!active) return;
-        setChartData(points);
-        setKpis(kpis);
-        setDetails(details);
+        if (data && (data as any).kpis && (data as any).points) {
+          setHasConnection(Boolean((data as any).connected ?? true));
+          setKpis((data as any).kpis);
+          setChartData((data as any).points);
+          setDetails((data as any).details || []);
+        } else {
+          setHasConnection(false);
+          const { points, kpis, details } = mockData(range);
+          if (!active) return;
+          setChartData(points);
+          setKpis(kpis);
+          setDetails(details);
+        }
       } catch (e: any) {
         console.error(e);
+        setHasConnection(false);
         toast.error("Kon financiële data niet laden. Probeer het opnieuw.");
         const { points, kpis, details } = mockData(range);
         if (!active) return;
