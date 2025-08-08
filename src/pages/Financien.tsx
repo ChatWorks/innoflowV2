@@ -13,8 +13,8 @@ import { CalendarIcon, Download, Info, Link as LinkIcon, RefreshCw } from "lucid
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useSearchParams } from "react-router-dom";
-import { ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { ResponsiveContainer, BarChart, Bar, Line, LineChart, XAxis, YAxis, CartesianGrid } from "recharts";
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { BarChart, Bar, Line, LineChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import { toast } from "sonner";
 
 // Types
@@ -354,35 +354,44 @@ export default function Financien() {
                   <TabsTrigger value="cashflow">Cashflow</TabsTrigger>
                 </TabsList>
                 <TabsContent value="revenue" className="mt-4">
-                  <div className="h-[320px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date"/>
-                        <YAxis />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <ChartLegend content={<ChartLegendContent />} />
-                        <Bar dataKey="revenue" name="Omzet" fill="hsl(var(--primary))" />
-                        <Bar dataKey="costs" name="Kosten" fill="hsl(var(--muted-foreground))" />
-                        <Line type="monotone" dataKey="cumRevenue" name="Cumulatief omzet" stroke="hsl(var(--primary))" strokeDasharray="4 4" />
-                        <Line type="monotone" dataKey="cumCosts" name="Cumulatief kosten" stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <ChartContainer
+                    className="h-[320px]"
+                    config={{
+                      revenue: { label: "Omzet", color: "hsl(var(--primary))" },
+                      costs: { label: "Kosten", color: "hsl(var(--muted-foreground))" },
+                      cumRevenue: { label: "Cumulatief omzet", color: "hsl(var(--primary))" },
+                      cumCosts: { label: "Cumulatief kosten", color: "hsl(var(--muted-foreground))" },
+                    }}
+                  >
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date"/>
+                      <YAxis />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Bar dataKey="revenue" name="Omzet" fill="hsl(var(--primary))" />
+                      <Bar dataKey="costs" name="Kosten" fill="hsl(var(--muted-foreground))" />
+                      <Line type="monotone" dataKey="cumRevenue" name="Cumulatief omzet" stroke="hsl(var(--primary))" strokeDasharray="4 4" />
+                      <Line type="monotone" dataKey="cumCosts" name="Cumulatief kosten" stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" />
+                    </BarChart>
+                  </ChartContainer>
                 </TabsContent>
                 <TabsContent value="cashflow" className="mt-4">
-                  <div className="h-[320px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date"/>
-                        <YAxis />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <ChartLegend content={<ChartLegendContent />} />
-                        <Line type="monotone" dataKey="cashNet" name="Cashflow netto" stroke="hsl(var(--primary))" />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <ChartContainer
+                    className="h-[320px]"
+                    config={{
+                      cashNet: { label: "Cashflow netto", color: "hsl(var(--primary))" },
+                    }}
+                  >
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date"/>
+                      <YAxis />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Line type="monotone" dataKey="cashNet" name="Cashflow netto" stroke="hsl(var(--primary))" />
+                    </LineChart>
+                  </ChartContainer>
                 </TabsContent>
               </Tabs>
             </CardContent>
