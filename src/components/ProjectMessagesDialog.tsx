@@ -43,7 +43,7 @@ export function ProjectMessagesDialog({
     try {
       const { data, error } = await supabase
         .from('project_messages')
-        .select('*')
+        .select('id, project_id, sender_type, sender_name, sender_email, subject, message, is_read, created_at, updated_at')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
 

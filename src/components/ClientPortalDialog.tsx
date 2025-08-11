@@ -92,7 +92,7 @@ export const ClientPortalDialog = ({
     try {
       const { data, error } = await supabase
         .from('client_updates')
-        .select('*')
+        .select('id, project_id, title, message, created_by, created_at, updated_at, is_visible_to_client, user_id')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
 
@@ -108,7 +108,7 @@ export const ClientPortalDialog = ({
       // Fetch deliverables
       const { data: deliverablesData, error: deliverablesError } = await supabase
         .from('deliverables')
-        .select('*')
+        .select('id, project_id, title, description, status, target_date, due_date, phase_id, created_at, updated_at')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
 
@@ -118,7 +118,7 @@ export const ClientPortalDialog = ({
       // Fetch phases
       const { data: phasesData, error: phasesError } = await supabase
         .from('phases')
-        .select('*')
+        .select('id, project_id, name, status, target_date, created_at, updated_at')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
 
@@ -129,7 +129,7 @@ export const ClientPortalDialog = ({
       if (portal) {
         const { data: logsData, error: logsError } = await supabase
           .from('portal_access_logs')
-          .select('*')
+          .select('id, portal_id, ip_address, user_agent, accessed_at')
           .eq('portal_id', portal.id)
           .order('accessed_at', { ascending: false })
           .limit(50);
@@ -337,7 +337,7 @@ export const ClientPortalDialog = ({
           message: newUpdateMessage,
           is_visible_to_client: true
         })
-        .select()
+        .select('id, project_id, title, message, created_by, created_at, updated_at, is_visible_to_client, user_id')
         .single();
 
       if (error) throw error;

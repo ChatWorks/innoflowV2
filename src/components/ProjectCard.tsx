@@ -78,9 +78,9 @@ export function ProjectCard({ project, onClick, onUpdate }: ProjectCardProps) {
 
       // Fetch all related data in parallel
       const [phasesResult, deliverablesResult, timeEntriesResult] = await Promise.all([
-        supabase.from('phases').select('*').eq('project_id', project.id),
-        supabase.from('deliverables').select('*').eq('project_id', project.id),
-        supabase.from('time_entries').select('*').eq('project_id', project.id)
+        supabase.from('phases').select('id, project_id, name, status, target_date, manual_time_seconds, created_at, updated_at').eq('project_id', project.id),
+        supabase.from('deliverables').select('id, project_id, phase_id, title, status, target_date, due_date, declarable_hours, manual_time_seconds, description, created_at, updated_at').eq('project_id', project.id),
+        supabase.from('time_entries').select('id, project_id, deliverable_id, task_id, start_time, end_time, duration_seconds, is_active, description, created_at').eq('project_id', project.id)
       ]);
 
       if (phasesResult.error) throw phasesResult.error;
@@ -96,7 +96,7 @@ export function ProjectCard({ project, onClick, onUpdate }: ProjectCardProps) {
       if (deliverablesResult.data && deliverablesResult.data.length > 0) {
         const tasksResult = await supabase
           .from('tasks')
-          .select('*')
+          .select('id, deliverable_id, title, completed, completed_at, manual_time_seconds, assigned_to, description, created_at, updated_at')
           .in('deliverable_id', deliverablesResult.data.map(d => d.id));
         
         if (tasksResult.error) throw tasksResult.error;

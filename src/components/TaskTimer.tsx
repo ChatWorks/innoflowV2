@@ -70,7 +70,7 @@ export default function TaskTimer({
       // Atomic timer operation - stop all active timers
       const { data: activeTimers, error: fetchError } = await supabase
         .from('time_entries')
-        .select('*')
+        .select('id, start_time, is_active')
         .eq('is_active', true);
 
       if (fetchError) throw fetchError;
@@ -106,7 +106,7 @@ export default function TaskTimer({
           is_active: true,
           description: `Timer voor ${taskTitle}`
         }])
-        .select()
+        .select('id')
         .single();
 
       if (error) throw error;

@@ -42,7 +42,7 @@ export default function DeliverableCreationDialog({ projectId, onDeliverableCrea
   const fetchPhases = async () => {
     const { data, error } = await supabase
       .from('phases')
-      .select('*')
+      .select('id, name, target_date, status')
       .eq('project_id', projectId)
       .order('target_date', { ascending: true });
     
