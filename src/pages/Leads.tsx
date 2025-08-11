@@ -24,7 +24,7 @@ export default function Leads() {
     try {
       const { data, error } = await supabase
         .from('leads')
-        .select('*')
+        .select('id, company_name, status, probability, estimated_value, expected_close_date, is_stale, created_at, updated_at, contact_person, next_follow_up_date, next_follow_up_description, source, notes, converted_to_project_id')
         .order('created_at', { ascending: false });
 
       if (error) {

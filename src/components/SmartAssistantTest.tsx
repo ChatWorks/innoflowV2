@@ -16,7 +16,7 @@ export function SmartAssistantTest() {
       // Get user settings
       const { data: settings } = await supabase
         .from('lead_settings')
-        .select('*')
+        .select('stale_lead_days, enable_stale_detector')
         .maybeSingle();
 
       const staleDays = settings?.stale_lead_days || 14;
@@ -38,7 +38,7 @@ export function SmartAssistantTest() {
       // Find leads that haven't been updated recently
       const { data: leads, error } = await supabase
         .from('leads')
-        .select('*')
+        .select('id, updated_at, status')
         .lt('updated_at', cutoffDate.toISOString())
         .eq('is_stale', false)
         .not('status', 'in', '("Gewonnen","Verloren")');

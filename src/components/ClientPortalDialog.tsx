@@ -182,7 +182,7 @@ export const ClientPortalDialog = ({
       const { data, error } = await supabase
         .from('client_portals')
         .insert(portalData)
-        .select()
+        .select('id, project_id, portal_hash, is_active, expires_at, show_team_names, created_at, updated_at, last_accessed, access_count, user_id')
         .single();
 
       if (error) throw error;
