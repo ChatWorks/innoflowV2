@@ -42,6 +42,7 @@ import {
   getTotalProjectDeclarable
 } from '@/utils/progressCalculations';
 import EfficiencyDots from '@/components/ui/EfficiencyDots';
+import SEO from '@/components/SEO';
 
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -364,6 +365,7 @@ export default function ProjectDetail() {
 
   return (
     <Layout>
+      <SEO title={project ? `Project: ${project.name} – Innoflow` : "Projectdetails – Innoflow"} description={project ? `Overzicht en status van project voor ${project.client}` : "Projectdetails en voortgang."} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Project Hero Section */}
         <div className="mb-8">

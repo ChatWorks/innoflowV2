@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LeadCreationDialog } from '@/components/LeadCreationDialog';
 import { SmartAssistantSettingsDialog } from '@/components/SmartAssistantSettingsDialog';
 import { AILeadAnalystWidget } from '@/components/AILeadAnalystWidget';
+import SEO from '@/components/SEO';
 
 export default function Leads() {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -125,6 +126,7 @@ export default function Leads() {
 
   return (
     <Layout>
+      <SEO title="Leads – Innoflow" description="Beheer je sales pipeline en converteer leads naar projecten." />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Lead Hero Section */}
         <div className="mb-8">

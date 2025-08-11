@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Mail, Lock } from 'lucide-react';
 import { InnoflowLogo } from '@/components/ui/InnoflowLogo';
+import SEO from '@/components/SEO';
 
 const Auth = () => {
   const { user, signIn, signUp, loading } = useAuth();
@@ -110,6 +111,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <SEO title="Inloggen – Innoflow" description="Log in of maak een account aan om Innoflow te gebruiken." noIndex />
       <Card className="w-full max-w-md border-0 shadow-lg">
         <CardContent className="p-8">
           {/* Logo and Header */}

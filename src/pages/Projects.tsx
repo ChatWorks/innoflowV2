@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
+import SEO from '@/components/SEO';
 
 const statusFilters = [
   { label: 'Alle', value: 'all' },
@@ -110,6 +111,7 @@ export default function Index() {
 
   return (
     <Layout>
+      <SEO title="Projecten – Innoflow" description="Beheer en volg al je projecten op één centrale plek." />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Project Hero Section */}
         <div className="mb-8">

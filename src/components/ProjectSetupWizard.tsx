@@ -13,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout';
+import SEO from '@/components/SEO';
 
 interface ProjectData {
   name: string;
@@ -496,6 +497,7 @@ export default function ProjectSetupWizard() {
 
   return (
     <Layout>
+      <SEO title="Nieuw project – Innoflow" description="Maak een nieuw project aan met fases, deliverables en taken." />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">

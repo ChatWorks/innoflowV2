@@ -17,6 +17,7 @@ import {
   getDeliverableProgress,
   getPhaseStatus 
 } from '@/utils/progressCalculations';
+import SEO from '@/components/SEO';
 
 export default function ClientPortal() {
   const { hash } = useParams<{ hash: string }>();
@@ -377,6 +378,7 @@ export default function ClientPortal() {
   console.log('Rendering main portal interface');
   return (
     <div className="min-h-screen bg-slate-50">
+      <SEO title={portalData ? `Client Portal – ${portalData.portal.project_name} – Innoflow` : 'Client Portal – Innoflow'} description={portalData ? `Project voor ${portalData.portal.client}` : 'Deel projectstatus en updates met klanten.'} />
       {/* Clean Header */}
       <div className="bg-white border-b border-slate-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-6">

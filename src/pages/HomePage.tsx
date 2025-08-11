@@ -5,12 +5,14 @@ import { Target, Users, Briefcase, TrendingUp, ArrowRight } from 'lucide-react';
 import Layout from '@/components/Layout';
 import SpotlightCard from '@/components/ui/SpotlightCard';
 import { InnoflowLogo } from '@/components/ui/InnoflowLogo';
+import SEO from '@/components/SEO';
 
 export default function HomePage() {
   const navigate = useNavigate();
 
   return (
     <Layout>
+      <SEO title="Dashboard – Innoflow" description="Overzicht van projecten, leads, doelen en financiën." />
       <div className="min-h-screen bg-gradient-to-br from-[hsl(240_25%_96%)] via-[hsl(250_30%_98%)] to-[hsl(240_35%_95%)]">
         <div className="container mx-auto px-6 py-16">
           {/* Hero Section */}

@@ -34,6 +34,7 @@ import { LeadToProjectDialog } from '@/components/LeadToProjectDialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import SEO from '@/components/SEO';
 
 export default function LeadDetail() {
   const { id } = useParams<{ id: string }>();
@@ -204,6 +205,7 @@ export default function LeadDetail() {
 
   return (
     <Layout>
+      <SEO title={lead ? `Lead: ${lead.company_name} – Innoflow` : 'Lead – Innoflow'} description={lead ? `Status: ${lead.status}${lead.probability ? ` • Kans: ${lead.probability}%` : ''}` : 'Lead details en activiteiten.'} />
       <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

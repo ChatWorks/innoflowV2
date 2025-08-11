@@ -17,6 +17,7 @@ import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartToo
 import { BarChart, Bar, Line, LineChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import SEO from '@/components/SEO';
 
 // Types
 type Basis = "cash" | "accrual";
@@ -235,11 +236,6 @@ export default function Financien() {
   const [connecting, setConnecting] = useState(false);
   const [reloadTick, setReloadTick] = useState(0);
 
-  useEffect(() => {
-    document.title = "Financiën | Innoflow";
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute('content', 'Financiën dashboard met winst, omzet, kosten en cashflow.');
-  }, []);
 
   useEffect(() => {
     const params: any = { preset, basis, grouping };
@@ -363,6 +359,7 @@ export default function Financien() {
 
   return (
     <Layout>
+      <SEO title="Financiën – Innoflow" description="Overzicht van winst, omzet, kosten en cashflow." />
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-6 py-8">
           <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">

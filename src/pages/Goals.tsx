@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Target, TrendingUp, CheckCircle, AlertTriangle, Search, Filter } from 'lucide-react';
 import Layout from '@/components/Layout';
+import SEO from '@/components/SEO';
 
 export default function Goals() {
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -111,6 +112,7 @@ export default function Goals() {
 
   return (
     <Layout>
+      <SEO title="Doelen – Innoflow" description="Stel doelen in en track je voortgang met analytics." />
       <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
