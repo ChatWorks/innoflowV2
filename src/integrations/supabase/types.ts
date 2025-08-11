@@ -647,6 +647,48 @@ export type Database = {
         }
         Relationships: []
       }
+      project_meetings: {
+        Row: {
+          attendees: string | null
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          meeting_date: string
+          meeting_time: string | null
+          project_id: string
+          subject: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          attendees?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          meeting_date: string
+          meeting_time?: string | null
+          project_id: string
+          subject: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          attendees?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          meeting_date?: string
+          meeting_time?: string | null
+          project_id?: string
+          subject?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       project_messages: {
         Row: {
           created_at: string

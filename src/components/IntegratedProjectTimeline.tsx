@@ -24,7 +24,7 @@ import {
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 
-import { Project, Deliverable, Task, Phase, TimeEntry } from '@/types/project';
+import { Project, Deliverable, Task, Phase, TimeEntry, Meeting } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTimer } from '@/contexts/TimerContext';
@@ -34,6 +34,7 @@ import TaskTimer from './TaskTimer';
 import InlineDateEdit from './InlineDateEdit';
 import InlineEditField from './InlineEditField';
 import PhaseCreationDialog from './PhaseCreationDialog';
+import MeetingCreationDialog from './MeetingCreationDialog';
 import ManualTimeDialog from './ManualTimeDialog';
 import { 
   getTaskProgress, 
@@ -70,6 +71,7 @@ interface IntegratedProjectTimelineProps {
   deliverables: Deliverable[];
   tasks: Task[];
   timeEntries: TimeEntry[];
+  meetings: Meeting[];
   onRefresh: () => void;
   onPhaseUpdate: (phaseId: string, data: Partial<Phase>) => void;
   onDeliverableUpdate: (deliverableId: string, data: Partial<Deliverable>) => void;
@@ -81,6 +83,7 @@ export default function IntegratedProjectTimeline({
   deliverables, 
   tasks, 
   timeEntries,
+  meetings,
   onRefresh,
   onPhaseUpdate,
   onDeliverableUpdate
@@ -660,15 +663,142 @@ export default function IntegratedProjectTimeline({
     return false; // TODO: Implement timer state check
   };
 
+  // Meeting helpers
+  const updateMeetingDate = async (meetingId: string, newDate: string | null) => {
+    const { error } = await supabase
+      .from('project_meetings')
+      .update({ meeting_date: newDate })
+      .eq('id', meetingId);
+    if (error) throw error;
+    toast({ title: 'Meeting datum bijgewerkt' });
+    onRefresh();
+  };
+
+  const updateMeetingSubject = async (meetingId: string, newSubject: string) => {
+    const { error } = await supabase
+      .from('project_meetings')
+      .update({ subject: newSubject })
+      .eq('id', meetingId);
+    if (error) throw error;
+    toast({ title: 'Meeting onderwerp bijgewerkt' });
+    onRefresh();
+  };
+
+  const deleteMeeting = async (meetingId: string, subject: string) => {
+    const { error } = await supabase
+      .from('project_meetings')
+      .delete()
+      .eq('id', meetingId);
+    if (error) {
+      toast({ title: 'Fout', description: 'Kon meeting niet verwijderen', variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Meeting verwijderd', description: subject });
+    onRefresh();
+  };
+
+  const renderMeeting = (m: Meeting) => {
+    return (
+      <Card key={`meeting-${m.id}`} className="border-l ml-2 border-accent/40 bg-background">
+        <div className="p-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <InlineEditField
+              value={m.subject}
+              onSave={(val) => updateMeetingSubject(m.id, val)}
+              placeholder="Onderwerp"
+              className="text-[15px] font-medium text-foreground"
+            />
+            <span className="text-sm text-muted-foreground">
+              {m.meeting_time ? m.meeting_time.slice(0,5) : ''}
+            </span>
+          </div>
+          <InlineDateEdit
+            value={m.meeting_date || undefined}
+            onSave={(newDate) => updateMeetingDate(m.id, newDate)}
+            placeholder="Datum"
+          />
+        </div>
+        {m.description && (
+          <div className="px-3 pb-3 text-sm text-muted-foreground">{m.description}</div>
+        )}
+        <div className="px-3 pb-3">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 px-2 hover:bg-destructive/10">
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Meeting verwijderen?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Deze actie kan niet ongedaan worden gemaakt.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuleren</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => deleteMeeting(m.id, m.subject)}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Verwijderen
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </Card>
+    );
+  };
+
+  const renderTimeline = () => {
+    const items: JSX.Element[] = [];
+    const sortedMeetings = [...meetings].sort((a, b) => new Date(a.meeting_date).getTime() - new Date(b.meeting_date).getTime());
+
+    const sortedPhases = [...phases].sort((a, b) => {
+      if (!a.target_date && !b.target_date) {
+        return a.name.localeCompare(b.name, 'nl', { numeric: true });
+      }
+      if (!a.target_date) return 1;
+      if (!b.target_date) return -1;
+      return new Date(a.target_date).getTime() - new Date(b.target_date).getTime();
+    });
+
+    let mi = 0;
+    for (const phase of sortedPhases) {
+      const phaseTime = phase.target_date ? new Date(phase.target_date).getTime() : Infinity;
+      while (mi < sortedMeetings.length) {
+        const mTime = new Date(sortedMeetings[mi].meeting_date).getTime();
+        if (mTime <= phaseTime) {
+          items.push(renderMeeting(sortedMeetings[mi]));
+          mi++;
+        } else break;
+      }
+
+      // Push the phase block as is by reusing existing JSX below via a function would be complex.
+      // We'll render a placeholder here and replace the phases map below to use this function.
+    }
+
+    while (mi < sortedMeetings.length) {
+      items.push(renderMeeting(sortedMeetings[mi++]));
+    }
+
+    return items;
+  };
+
   return (
     <Card>
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">Project Timeline</h2>
-          <PhaseCreationDialog 
-            projectId={project.id} 
-            onPhaseCreated={onRefresh} 
-          />
+          <div className="flex items-center gap-2">
+            <MeetingCreationDialog projectId={project.id} onCreated={onRefresh} />
+            <PhaseCreationDialog 
+              projectId={project.id} 
+              onPhaseCreated={onRefresh} 
+            />
+          </div>
         </div>
 
         <div className="space-y-4">

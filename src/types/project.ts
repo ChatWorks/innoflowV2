@@ -65,3 +65,16 @@ export interface Task {
   created_at: string;
   updated_at: string;
 }
+
+export interface Meeting {
+  id: string;
+  project_id: string;
+  meeting_date: string; // ISO date string (YYYY-MM-DD)
+  meeting_time?: string; // HH:MM:SS
+  subject: string;
+  description?: string;
+  attendees?: string;
+  location?: string;
+  created_at: string;
+  updated_at: string;
+}

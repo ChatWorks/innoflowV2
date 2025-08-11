@@ -19,7 +19,7 @@ import {
   Plus,
   MessageCircle
 } from 'lucide-react';
-import { Project, Deliverable, TimeEntry, Task, Phase } from '@/types/project';
+import { Project, Deliverable, TimeEntry, Task, Phase, Meeting } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useTimer } from '@/contexts/TimerContext';
@@ -51,6 +51,7 @@ export default function ProjectDetail() {
   const [phases, setPhases] = useState<Phase[]>([]);
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
   const [showPortalDialog, setShowPortalDialog] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
