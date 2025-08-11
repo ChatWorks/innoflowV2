@@ -915,9 +915,17 @@ export type Database = {
         Args: { portal_hash_param: string }
         Returns: Json
       }
+      get_secure_portal_data: {
+        Args: { portal_hash_param: string }
+        Returns: Json
+      }
       update_portal_access: {
         Args: { portal_hash_param: string }
         Returns: undefined
+      }
+      validate_portal_access: {
+        Args: { portal_hash_param: string }
+        Returns: boolean
       }
     }
     Enums: {

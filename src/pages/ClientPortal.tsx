@@ -132,9 +132,9 @@ export default function ClientPortal() {
         }
       }
 
-      // Get all portal data using the enhanced function
+      // Get all portal data using the new secure function
       const { data: portalResult, error: portalError } = await supabase
-        .rpc('get_portal_data', { portal_hash_param: hash });
+        .rpc('get_secure_portal_data', { portal_hash_param: hash });
 
       console.log('Portal result:', portalResult);
       console.log('Portal error:', portalError);
