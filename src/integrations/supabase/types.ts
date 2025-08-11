@@ -449,6 +449,7 @@ export type Database = {
       }
       moneybird_connections: {
         Row: {
+          access_token: string | null
           administration_id: string
           auth_type: string
           connection_label: string | null
@@ -458,6 +459,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          access_token?: string | null
           administration_id: string
           auth_type: string
           connection_label?: string | null
@@ -467,6 +469,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          access_token?: string | null
           administration_id?: string
           auth_type?: string
           connection_label?: string | null

@@ -9,6 +9,7 @@ import { Project } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout';
+import { useAuth } from '@/contexts/AuthContext';
 
 const statusFilters = [
   { label: 'Alle', value: 'all' },
@@ -26,8 +27,14 @@ export default function Index() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user) {
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
     fetchProjects();
     
     // Set up real-time subscription
@@ -49,7 +56,7 @@ export default function Index() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user]);
 
   const fetchProjects = async () => {
     try {

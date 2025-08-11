@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // CORS for browser calls
 const corsHeaders = {
@@ -282,18 +283,67 @@ serve(async (req) => {
       });
     }
 
-    const token = Deno.env.get("MONEYBIRD_PAT");
-    if (!token) {
-      return new Response(JSON.stringify({ error: "MONEYBIRD_PAT not set" }), {
+    // Setup Supabase client with user's JWT
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnon = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !supabaseAnon) {
+      return new Response(JSON.stringify({ error: "Supabase env not set" }), {
         status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const authHeader = req.headers.get("Authorization") || "";
+    const sb = createClient(supabaseUrl, supabaseAnon, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    // Require authenticated user
+    const { data: userData, error: userError } = await sb.auth.getUser();
+    const user = userData?.user || null;
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Resolve per-user Moneybird token (fallback to global only for owner)
+    let token: string | null = null;
+    let adminId: string | null = null;
+
+    const { data: conn } = await sb
+      .from("moneybird_connections")
+      .select("access_token, administration_id")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (conn?.access_token) {
+      token = conn.access_token as string;
+      adminId = (conn.administration_id as string | null) ?? null;
+    }
+
+    if (!token) {
+      const ownerEmail = "info@innoworks.ai";
+      const globalToken = Deno.env.get("MONEYBIRD_PAT") || "";
+      if (user.email === ownerEmail && globalToken) {
+        token = globalToken;
+      }
+    }
+
+    if (!token) {
+      return new Response(JSON.stringify({ connected: false, message: "No Moneybird connection for this account" }), {
+        status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // Resolve administration
-    const adminId = await getFirstAdministrationId(token);
     if (!adminId) {
-      return new Response(JSON.stringify({ connected: false, message: "No administration found for PAT" }), {
+      adminId = await getFirstAdministrationId(token);
+    }
+    if (!adminId) {
+      return new Response(JSON.stringify({ connected: false, message: "No administration found for token" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
