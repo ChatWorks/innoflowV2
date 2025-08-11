@@ -87,6 +87,7 @@ const FloatingTimer = React.memo(function FloatingTimer() {
         .update({
           end_time: endTime.toISOString(),
           duration_seconds: totalSeconds,
+          duration_minutes: Math.floor(totalSeconds / 60),
           is_active: false
         })
         .eq('id', activeTimer.id);

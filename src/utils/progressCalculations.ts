@@ -22,11 +22,15 @@ export const formatTimeToHours = (seconds: number): number => {
   return Math.round((seconds / 3600) * 100) / 100;
 };
 
+const toSeconds = (e: TimeEntry): number => {
+  return e.duration_seconds ?? ((e.duration_minutes ?? 0) * 60);
+};
+
 // Get total time spent on a task
 export const getTaskTimeSpent = (taskId: string, timeEntries: TimeEntry[]): number => {
   return timeEntries
-    .filter(entry => entry.task_id === taskId && entry.duration_seconds)
-    .reduce((sum, entry) => sum + (entry.duration_seconds || 0), 0);
+    .filter(entry => entry.task_id === taskId)
+    .reduce((sum, entry) => sum + toSeconds(entry), 0);
 };
 
 // ============= SYSTEEM 1: VOORTGANG (Completion-Based) =============
@@ -73,7 +77,7 @@ export const getDeliverableEfficiency = (deliverable: Deliverable, tasks: Task[]
   const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
   const totalTimerSeconds = deliverableTasks.reduce((sum, task) => {
     const taskTimeEntries = timeEntries.filter(te => te.task_id === task.id);
-    const timerTime = taskTimeEntries.reduce((taskSum, te) => taskSum + (te.duration_seconds || 0), 0);
+    const timerTime = taskTimeEntries.reduce((taskSum, te) => taskSum + toSeconds(te), 0);
     const manualTime = (task as any).manual_time_seconds || 0;
     return sum + timerTime + manualTime;
   }, 0);
@@ -97,7 +101,7 @@ export const getPhaseEfficiency = (phase: Phase, deliverables: Deliverable[], ta
     const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
     const deliverableTimerSeconds = deliverableTasks.reduce((sum, task) => {
       const taskTimeEntries = timeEntries.filter(te => te.task_id === task.id);
-      const timerTime = taskTimeEntries.reduce((taskSum, te) => taskSum + (te.duration_seconds || 0), 0);
+      const timerTime = taskTimeEntries.reduce((taskSum, te) => taskSum + toSeconds(te), 0);
       const manualTime = (task as any).manual_time_seconds || 0;
       return sum + timerTime + manualTime;
     }, 0);
@@ -113,9 +117,7 @@ export const getPhaseEfficiency = (phase: Phase, deliverables: Deliverable[], ta
 
 // Project Efficiency = Timer tijd + manual tijd vs declarabele uren voor heel project
 export const getProjectEfficiency = (deliverables: Deliverable[], tasks: Task[], timeEntries: TimeEntry[], phases: Phase[]): number => {
-  const totalTimerSeconds = timeEntries
-    .filter(entry => entry.duration_seconds)
-    .reduce((sum, entry) => sum + (entry.duration_seconds || 0), 0);
+  const totalTimerSeconds = timeEntries.reduce((sum, entry) => sum + toSeconds(entry), 0);
   
   // Add all manual time from tasks and deliverables only (no phase manual time)
   const totalTaskManualTime = tasks.reduce((sum, task) => sum + ((task as any).manual_time_seconds || 0), 0);
@@ -148,7 +150,7 @@ export const getDeliverableTimerTime = (deliverable: Deliverable, tasks: Task[],
   const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
   return deliverableTasks.reduce((sum, task) => {
     const taskTimeEntries = timeEntries.filter(te => te.task_id === task.id);
-    return sum + taskTimeEntries.reduce((taskSum, te) => taskSum + (te.duration_seconds || 0), 0);
+    return sum + taskTimeEntries.reduce((taskSum, te) => taskSum + toSeconds(te), 0);
   }, 0);
 };
 
@@ -157,7 +159,7 @@ export const getDeliverableTotalTime = (deliverable: Deliverable, tasks: Task[],
   const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
   const timerTime = deliverableTasks.reduce((sum, task) => {
     const taskTimeEntries = timeEntries.filter(te => te.task_id === task.id);
-    const taskTimerTime = taskTimeEntries.reduce((taskSum, te) => taskSum + (te.duration_seconds || 0), 0);
+    const taskTimerTime = taskTimeEntries.reduce((taskSum, te) => taskSum + toSeconds(te), 0);
     const taskManualTime = (task as any).manual_time_seconds || 0;
     return sum + taskTimerTime + taskManualTime;
   }, 0);
@@ -175,7 +177,7 @@ export const getPhaseTimerTime = (phase: Phase, deliverables: Deliverable[], tas
     const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
     deliverableTasks.forEach(task => {
       const taskTimeEntries = timeEntries.filter(te => te.task_id === task.id);
-      totalSeconds += taskTimeEntries.reduce((sum, te) => sum + (te.duration_seconds || 0), 0);
+      totalSeconds += taskTimeEntries.reduce((sum, te) => sum + toSeconds(te), 0);
     });
   });
   
@@ -191,7 +193,7 @@ export const getPhaseTotalTime = (phase: Phase, deliverables: Deliverable[], tas
     const deliverableTasks = tasks.filter(t => t.deliverable_id === deliverable.id);
     deliverableTasks.forEach(task => {
       const taskTimeEntries = timeEntries.filter(te => te.task_id === task.id);
-      const taskTimerTime = taskTimeEntries.reduce((sum, te) => sum + (te.duration_seconds || 0), 0);
+      const taskTimerTime = taskTimeEntries.reduce((sum, te) => sum + toSeconds(te), 0);
       const taskManualTime = (task as any).manual_time_seconds || 0;
       totalSeconds += taskTimerTime + taskManualTime;
     });
@@ -294,9 +296,7 @@ export const getTotalProjectTimeSpent = (
   deliverables: Deliverable[] = [], 
   phases: Phase[] = []
 ): number => {
-  const timerTime = timeEntries
-    .filter(entry => entry.duration_seconds)
-    .reduce((sum, entry) => sum + (entry.duration_seconds || 0), 0);
+  const timerTime = timeEntries.reduce((sum, entry) => sum + toSeconds(entry), 0);
   
   const taskManualTime = tasks.reduce((sum, task) => sum + ((task as any).manual_time_seconds || 0), 0);
   const deliverableManualTime = deliverables.reduce((sum, deliverable) => sum + ((deliverable as any).manual_time_seconds || 0), 0);

@@ -86,6 +86,7 @@ export default function TaskTimer({
           .update({ 
             end_time: endTime.toISOString(),
             duration_seconds: durationSeconds,
+            duration_minutes: Math.floor(durationSeconds / 60),
             is_active: false 
           })
           .eq('id', timer.id);

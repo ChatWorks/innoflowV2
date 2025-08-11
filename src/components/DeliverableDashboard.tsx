@@ -80,8 +80,7 @@ export default function DeliverableDashboard({ projectId, deliverables, tasks, o
       const { data: timeEntries } = await supabase
         .from('time_entries')
         .select('duration_seconds, duration_minutes')
-        .eq('deliverable_id', deliverable.id)
-        .not('duration_seconds', 'is', null);
+        .eq('deliverable_id', deliverable.id);
 
       // Use duration_seconds if available, fallback to duration_minutes * 60
       const totalTimeSeconds = timeEntries?.reduce((sum, entry) => {

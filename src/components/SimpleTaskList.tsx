@@ -49,7 +49,6 @@ function TaskRow({ task, isTopTask, onToggle, deliverableId, deliverableTitle, p
       .from('time_entries')
       .select('duration_seconds, duration_minutes')
       .eq('task_id', task.id)
-      .not('duration_seconds', 'is', null);
     
     const totalSeconds = timeEntries?.reduce((sum, entry) => {
       const seconds = entry.duration_seconds || (entry.duration_minutes || 0) * 60;
@@ -177,7 +176,6 @@ export default function SimpleTaskList({ projectId, projectName, deliverables, t
         .from('time_entries')
         .select('duration_seconds, duration_minutes')
         .eq('deliverable_id', deliverable.id)
-        .not('duration_seconds', 'is', null);
 
       // Use duration_seconds if available, fallback to duration_minutes * 60
       const totalTimeSeconds = timeEntries?.reduce((sum, entry) => {
@@ -233,7 +231,6 @@ export default function SimpleTaskList({ projectId, projectName, deliverables, t
       .from('time_entries')
       .select('duration_seconds, duration_minutes')
       .eq('task_id', taskId)
-      .not('duration_seconds', 'is', null);
     
     return timeEntries?.reduce((sum, entry) => {
       const seconds = entry.duration_seconds || (entry.duration_minutes || 0) * 60;

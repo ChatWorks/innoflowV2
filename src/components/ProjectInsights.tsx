@@ -14,17 +14,13 @@ interface ProjectInsightsProps {
 
 export default function ProjectInsights({ tasks, timeEntries, deliverables, phases, hourlyRate = 75 }: ProjectInsightsProps) {
   // Calculate total actual hours worked
-  const actualHours = timeEntries
-    .filter(entry => entry.duration_minutes)
-    .reduce((sum, entry) => sum + (entry.duration_minutes || 0), 0) / 60;
+  const actualHours = timeEntries.reduce((s, e) => s + (e.duration_seconds ?? ((e.duration_minutes ?? 0) * 60)), 0) / 3600;
 
   // Calculate total declarable hours from deliverables
   const totalDeclarableHours = getTotalProjectDeclarable(deliverables);
 
   // Calculate timer-based hours from time entries
-  const totalTimerHours = timeEntries
-    .filter(entry => entry.duration_seconds)
-    .reduce((sum, entry) => sum + (entry.duration_seconds || 0), 0) / 3600;
+  const totalTimerHours = timeEntries.reduce((sum, entry) => sum + (entry.duration_seconds ?? ((entry.duration_minutes ?? 0) * 60)), 0) / 3600;
 
   // Calculate efficiency (timer hours / declarable hours * 100)
   const efficiency = getProjectEfficiency(deliverables, tasks, timeEntries, phases);
@@ -73,7 +69,7 @@ export default function ProjectInsights({ tasks, timeEntries, deliverables, phas
           <Zap className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className={`text-2xl font-bold ${efficiency <= 100 ? 'text-green-600' : 'text-red-600'}`}>
+          <div className={`text-2xl font-bold ${efficiency <= 100 ? 'text-green-600' : 'text-red-600'}`} aria-live="polite" aria-label={`Project efficiency ${Math.round(efficiency)} percent`}>
             {Math.round(efficiency)}%
           </div>
           <Progress value={Math.min(efficiency, 100)} className="mt-2" />
