@@ -283,22 +283,24 @@ serve(async (req) => {
       });
     }
 
-    // Setup Supabase client with user's JWT
+    // Setup Supabase clients (user for auth, service for secure token read)
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseAnon = Deno.env.get("SUPABASE_ANON_KEY");
-    if (!supabaseUrl || !supabaseAnon) {
+    const supabaseService = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !supabaseAnon || !supabaseService) {
       return new Response(JSON.stringify({ error: "Supabase env not set" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const authHeader = req.headers.get("Authorization") || "";
-    const sb = createClient(supabaseUrl, supabaseAnon, {
+    const sbUser = createClient(supabaseUrl, supabaseAnon, {
       global: { headers: { Authorization: authHeader } },
     });
+    const sbService = createClient(supabaseUrl, supabaseService);
 
     // Require authenticated user
-    const { data: userData, error: userError } = await sb.auth.getUser();
+    const { data: userData, error: userError } = await sbUser.auth.getUser();
     const user = userData?.user || null;
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -311,9 +313,10 @@ serve(async (req) => {
     let token: string | null = null;
     let adminId: string | null = null;
 
-    const { data: conn } = await sb
+    const { data: conn, error: connErr } = await sbService
       .from("moneybird_connections")
       .select("access_token, administration_id")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
