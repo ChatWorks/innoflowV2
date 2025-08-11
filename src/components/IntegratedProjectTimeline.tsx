@@ -802,6 +802,62 @@ export default function IntegratedProjectTimeline({
         </div>
 
         <div className="space-y-4">
+          {/* Show meetings first - chronologically sorted with thin line */}
+          {meetings.sort((a, b) => new Date(a.meeting_date).getTime() - new Date(b.meeting_date).getTime()).map(meeting => (
+            <Card key={`meeting-${meeting.id}`} className="border-l border-accent/40 bg-accent/5 ml-2">
+              <div className="p-3 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <InlineEditField
+                    value={meeting.subject}
+                    onSave={(val) => updateMeetingSubject(meeting.id, val)}
+                    placeholder="Onderwerp"
+                    className="text-[15px] font-medium text-foreground"
+                  />
+                  {meeting.meeting_time && (
+                    <span className="text-sm text-muted-foreground">
+                      {meeting.meeting_time.slice(0, 5)}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <InlineDateEdit
+                    value={meeting.meeting_date || undefined}
+                    onSave={(newDate) => updateMeetingDate(meeting.id, newDate)}
+                    placeholder="Datum"
+                  />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-destructive/10">
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Meeting verwijderen?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Deze actie kan niet ongedaan worden gemaakt.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuleren</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteMeeting(meeting.id, meeting.subject)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Verwijderen
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+              {meeting.description && (
+                <div className="px-3 pb-3 text-sm text-muted-foreground">{meeting.description}</div>
+              )}
+            </Card>
+          ))}
+          
           {phases.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Calendar className="h-12 w-12 mx-auto mb-4" />

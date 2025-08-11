@@ -119,26 +119,30 @@ export default function ProjectDetail() {
         { data: projectData, error: projectError },
         { data: phasesData, error: phasesError },
         { data: timeData, error: timeError },
-        { data: tasksData, error: tasksError }
+        { data: tasksData, error: tasksError },
+        { data: meetingsData, error: meetingsError }
       ] = await Promise.all([
         supabase.from('projects').select('*').eq('id', id).single(),
         supabase.from('phases').select('*').eq('project_id', id).order('target_date', { ascending: true }),
         supabase.from('time_entries').select('*').eq('project_id', id).order('start_time', { ascending: false }),
         deliverableIds.length > 0 
           ? supabase.from('tasks').select('*').in('deliverable_id', deliverableIds).order('created_at', { ascending: false })
-          : Promise.resolve({ data: [], error: null })
+          : Promise.resolve({ data: [], error: null }),
+        supabase.from('project_meetings').select('*').eq('project_id', id).order('meeting_date', { ascending: true })
       ]);
 
       if (projectError) throw projectError;
       if (phasesError) throw phasesError;
       if (timeError) throw timeError;
       if (tasksError) throw tasksError;
+      if (meetingsError) throw meetingsError;
 
       // Set all data with proper typing
       setProject(projectData as Project);
       setPhases((phasesData || []) as Phase[]);
       setTimeEntries((timeData || []) as TimeEntry[]);
       setTasks((tasksData || []) as Task[]);
+      setMeetings((meetingsData || []) as Meeting[]);
 
     } catch (error) {
       console.error('Error fetching project data:', error);
@@ -534,6 +538,7 @@ export default function ProjectDetail() {
           deliverables={deliverables}
           tasks={tasks}
           timeEntries={timeEntries}
+          meetings={meetings}
           onRefresh={fetchProjectData}
           onPhaseUpdate={(phaseId, data) => {
             setPhases(prev => prev.map(phase => 
