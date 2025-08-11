@@ -20,24 +20,13 @@ export default function HomePage() {
             <div className="inline-flex items-center px-4 py-2 bg-white/60 backdrop-blur-sm border border-white/40 rounded-full text-sm text-muted-foreground mb-6">
               🎯 Beheer je tijd efficiënt
             </div>
-            <h1 className="text-5xl font-bold tracking-tight mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <h1 className="text-5xl font-bold tracking-tight leading-[1.2] mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
               Welkom bij Innoflow
             </h1>
             <p className="text-lg text-muted-foreground max-w-lg mx-auto mb-8">
               Probeer 30 dagen gratis zonder risico
             </p>
             
-            {/* Tab Navigation */}
-            <div className="flex justify-center mb-12">
-              <div className="bg-white/80 backdrop-blur-sm rounded-full p-1 border border-white/40">
-                <button className="px-6 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium">
-                  Navigatie
-                </button>
-                <button className="px-6 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground">
-                  Overzicht
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Navigation Cards */}
