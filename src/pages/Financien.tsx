@@ -16,6 +16,7 @@ import { useSearchParams } from "react-router-dom";
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, Line, LineChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
 // Types
 type Basis = "cash" | "accrual";
@@ -166,6 +167,11 @@ export default function Financien() {
   const [kpis, setKpis] = useState<KPIData>({ revenueExcl: 0, costsExcl: 0, profitExcl: 0, cashNet: 0 });
   const [chartData, setChartData] = useState<any[]>([]);
   const [details, setDetails] = useState<DetailRow[]>([]);
+  const [showConnect, setShowConnect] = useState(false);
+  const [connectToken, setConnectToken] = useState("");
+  const [connectLabel, setConnectLabel] = useState("Moneybird");
+  const [connecting, setConnecting] = useState(false);
+  const [reloadTick, setReloadTick] = useState(0);
 
   useEffect(() => {
     document.title = "Financiën | Innoflow";
@@ -235,7 +241,7 @@ export default function Financien() {
     }
     load();
     return () => { active = false; };
-  }, [range.from, range.to, basis, grouping, bucket, mockMode]);
+  }, [range.from, range.to, basis, grouping, bucket, mockMode, reloadTick]);
 
   const subtitle = `${fmtDate(range.from)} – ${fmtDate(range.to)}`;
 
@@ -259,6 +265,26 @@ export default function Financien() {
   const copyLink = async () => {
     await navigator.clipboard.writeText(window.location.href);
     toast.success("Link gekopieerd");
+  };
+
+  const connectMoneybird = async () => {
+    if (!connectToken.trim()) return;
+    setConnecting(true);
+    try {
+      const { error } = await supabase.functions.invoke('moneybird-connect', {
+        body: { token: connectToken.trim(), label: (connectLabel || 'Moneybird').trim() }
+      });
+      if (error) throw error;
+      toast.success('Moneybird verbonden');
+      setHasConnection(true);
+      setShowConnect(false);
+      setReloadTick(t => t + 1);
+    } catch (e: any) {
+      console.error(e);
+      toast.error('Verbinding mislukt. Controleer je token.');
+    } finally {
+      setConnecting(false);
+    }
   };
 
   return (
@@ -447,14 +473,40 @@ export default function Financien() {
                 </Table>
               </div>
               {hasConnection === false && (
-                <div className="mt-6 p-4 border rounded-md">
+                <div className="mt-6 p-4 border rounded-md space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">Nog geen Moneybird-verbinding</p>
-                      <p className="text-sm text-muted-foreground">Verbind Moneybird om live data te laden. Tot die tijd tonen we mock-data voor demo.</p>
+                      <p className="text-sm text-muted-foreground">Verbind Moneybird om live data te laden. Tot die tijd tonen we mock-data.</p>
                     </div>
-                    <Button onClick={() => toast.message('Ga naar Integraties om te verbinden')}>Verbind Moneybird</Button>
+                    {!showConnect && (
+                      <Button onClick={() => setShowConnect(true)}>Verbind Moneybird</Button>
+                    )}
                   </div>
+                  {showConnect && (
+                    <div className="grid gap-3 md:grid-cols-5 items-center">
+                      <div className="md:col-span-3">
+                        <Input
+                          placeholder="Moneybird Personal Access Token"
+                          value={connectToken}
+                          onChange={(e) => setConnectToken(e.target.value)}
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Input
+                          placeholder="Label (optioneel)"
+                          value={connectLabel}
+                          onChange={(e) => setConnectLabel(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex gap-2 md:col-span-5">
+                        <Button onClick={connectMoneybird} disabled={connecting || !connectToken.trim()}>
+                          {connecting ? 'Verbinden...' : 'Verbinden'}
+                        </Button>
+                        <Button variant="outline" onClick={() => setShowConnect(false)} disabled={connecting}>Annuleren</Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

@@ -59,10 +59,12 @@ export default function Index() {
   }, [user]);
 
   const fetchProjects = async () => {
+    if (!user) return;
     try {
       const { data, error } = await supabase
         .from('projects')
         .select('*')
+        .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
