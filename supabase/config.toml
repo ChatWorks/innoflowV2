@@ -1,7 +1,7 @@
 project_id = "nzqbbpzxrdusqtolrwco"
 
 [functions.analyze-proposal]
-verify_jwt = false
+verify_jwt = true
 
 [functions.lead-analyst]
-verify_jwt = false
+verify_jwt = true

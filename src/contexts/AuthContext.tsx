@@ -2,6 +2,25 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+// Auth state cleanup to prevent limbo states
+const cleanupAuthState = () => {
+  try {
+    localStorage.removeItem('supabase.auth.token');
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+    if (typeof sessionStorage !== 'undefined') {
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          sessionStorage.removeItem(key);
+        }
+      });
+    }
+  } catch {}
+};
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -63,15 +82,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    cleanupAuthState();
+    try {
+      try { await supabase.auth.signOut({ scope: 'global' } as any); } catch {}
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (!error && data?.user) {
+        window.location.href = '/';
+      }
+      return { error };
+    } catch (error) {
+      return { error } as any;
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    cleanupAuthState();
+    try { await supabase.auth.signOut({ scope: 'global' } as any); } catch {}
     window.location.href = '/auth';
   };
 
