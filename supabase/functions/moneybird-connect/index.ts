@@ -63,26 +63,14 @@ serve(async (req) => {
       return new Response(JSON.stringify({ ok: false, message: "Ongeldige token of geen administratie gevonden" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Upsert connection for current user (manual because no unique constraint)
-    const { data: existing } = await sb
+    // Upsert connection for current user using unique user_id index
+    const { error: upsertErr } = await sb
       .from("moneybird_connections")
-      .select("id")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (existing?.id) {
-      const { error: updErr } = await sb
-        .from("moneybird_connections")
-        .update({ access_token: token, administration_id: adminId, connection_label: label, auth_type: "pat" })
-        .eq("id", existing.id);
-      if (updErr) throw updErr;
-    } else {
-      const { error: insErr } = await sb
-        .from("moneybird_connections")
-        .insert({ user_id: user.id, access_token: token, administration_id: adminId, connection_label: label, auth_type: "pat" });
-      if (insErr) throw insErr;
-    }
+      .upsert(
+        { user_id: user.id, access_token: token, administration_id: adminId, connection_label: label, auth_type: "pat" },
+        { onConflict: "user_id" }
+      );
+    if (upsertErr) throw upsertErr;
 
     return new Response(JSON.stringify({ ok: true, administration_id: adminId }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (error: any) {

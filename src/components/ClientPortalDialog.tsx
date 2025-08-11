@@ -66,7 +66,7 @@ export const ClientPortalDialog = ({
     try {
       const { data, error } = await supabase
         .from('client_portals')
-        .select('*')
+        .select('id, project_id, portal_hash, is_active, expires_at, show_team_names, created_at, updated_at, last_accessed, access_count, user_id')
         .eq('project_id', projectId)
         .eq('is_active', true)
         .maybeSingle();
@@ -74,8 +74,9 @@ export const ClientPortalDialog = ({
       if (error) throw error;
       
       if (data) {
-        setPortal(data);
-        setPasswordProtected(!!data.password_hash);
+        setPortal(data as any);
+        // For privacy, we no longer fetch password_hash; assume unknown and let user set a new one if desired
+        setPasswordProtected(false);
         setExpiryDate(data.expires_at ? new Date(data.expires_at) : undefined);
       }
     } catch (error: any) {
@@ -208,39 +209,28 @@ export const ClientPortalDialog = ({
   const updatePortal = async () => {
     if (!portal) return;
     
-    // Validatie voor wachtwoord
-    if (passwordProtected && !password && !portal.password_hash) {
-      toast({
-        title: "Fout",
-        description: "Voer een wachtwoord in voor beveiliging",
-        variant: "destructive",
-      });
-      return;
-    }
+    // Geen harde validatie: als geen nieuw wachtwoord is ingevuld en bescherming aanstaat, behouden we het bestaande wachtwoord (server-side)
     
     setLoading(true);
     try {
-      let passwordHash = null;
-      
-      if (passwordProtected) {
-        if (password) {
-          // Nieuw wachtwoord hashen
-          passwordHash = await hashPassword(password);
-          console.log('New password hashed:', passwordHash ? 'Success' : 'Failed');
-        } else {
-          // Bestaand wachtwoord behouden
-          passwordHash = portal.password_hash;
-          console.log('Keeping existing password hash');
-        }
-      }
-
-      const updateData = {
+      let updateData: any = {
         show_team_names: false,
-        password_hash: passwordHash,
         expires_at: expiryDate ? expiryDate.toISOString() : null,
       };
 
-      console.log('Updating portal with:', updateData);
+      if (passwordProtected) {
+        if (password) {
+          const passwordHash = await hashPassword(password);
+          console.log('New password hashed:', passwordHash ? 'Success' : 'Failed');
+          updateData.password_hash = passwordHash;
+        }
+        // If passwordProtected but no new password provided, keep existing (do not send password_hash)
+      } else {
+        // Turning off protection clears the password
+        updateData.password_hash = null;
+      }
+
+      console.log('Updating portal with:', { ...updateData, password_hash: updateData.password_hash ? '[set]' : updateData.password_hash });
 
       const { error } = await supabase
         .from('client_portals')
@@ -504,20 +494,15 @@ export const ClientPortalDialog = ({
                 {passwordProtected && (
                   <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
                     <Label htmlFor="password" className="text-base font-medium">
-                      {portal?.password_hash ? 'Nieuw wachtwoord instellen (optioneel)' : 'Wachtwoord instellen'}
+                      {passwordProtected ? 'Wachtwoord instellen of wijzigen' : 'Wachtwoord instellen'}
                     </Label>
-                    {portal?.password_hash && (
-                      <div className="text-sm text-muted-foreground">
-                        Er is al een wachtwoord ingesteld. Laat leeg om het huidige wachtwoord te behouden.
-                      </div>
-                    )}
                     <div className="relative">
                       <Input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder={portal?.password_hash ? "Nieuw wachtwoord (optioneel)" : "Kies een sterk wachtwoord"}
+                        placeholder={passwordProtected ? 'Nieuw wachtwoord (optioneel)' : 'Kies een sterk wachtwoord'}
                         className="pr-10"
                       />
                       <Button

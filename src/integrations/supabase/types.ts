@@ -919,6 +919,16 @@ export type Database = {
         Args: { portal_hash_param: string }
         Returns: Json
       }
+      insert_client_message: {
+        Args: {
+          p_portal_hash: string
+          p_subject: string
+          p_message: string
+          p_sender_name?: string
+          p_sender_email?: string
+        }
+        Returns: string
+      }
       update_portal_access: {
         Args: { portal_hash_param: string }
         Returns: undefined

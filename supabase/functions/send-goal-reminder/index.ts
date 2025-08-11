@@ -8,7 +8,9 @@ import { GoalReminderEmail } from './_templates/goal-reminder.tsx';
 const resend = new Resend(Deno.env.get('RESEND_API_KEY'));
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
 
+// Service-role client for secure DB operations
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
@@ -33,7 +35,21 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Sending ${type} reminder for goal ${goalId} to ${userEmail}`);
 
-    // Fetch goal data
+    // Authenticate caller via JWT and ensure goal ownership
+    const authHeader = req.headers.get('Authorization') || '';
+    const sbUser = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: userError } = await sbUser.auth.getUser();
+    const user = userData?.user || null;
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Fetch goal data securely and verify ownership
     const { data: goal, error: goalError } = await supabase
       .from('goals')
       .select('*')
@@ -42,6 +58,13 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (goalError || !goal) {
       throw new Error(`Goal not found: ${goalError?.message}`);
+    }
+
+    if (goal.user_id !== user.id) {
+      return new Response(JSON.stringify({ error: 'Forbidden: Goal does not belong to user' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Calculate progress percentage

@@ -5,3 +5,9 @@ verify_jwt = true
 
 [functions.lead-analyst]
 verify_jwt = true
+
+[functions.send-goal-reminder]
+verify_jwt = true
+
+[functions.moneybird-connect]
+verify_jwt = true

@@ -20,13 +20,10 @@ serve(async (req) => {
       throw new Error('OpenAI API key niet gevonden');
     }
 
-    // Create detailed lead context for AI
-    const leadContext = leads.map(lead => ({
+    // Create privacy-aware lead context for AI (no PII)
+    const leadContext = leads.map((lead) => ({
       id: lead.id,
       bedrijf: lead.company_name,
-      contactpersoon: lead.contact_person,
-      email: lead.email,
-      telefoon: lead.phone,
       status: lead.status,
       geschat_budget: lead.estimated_budget,
       geschatte_waarde: lead.estimated_value,
@@ -38,7 +35,7 @@ serve(async (req) => {
       volgende_followup: lead.next_follow_up_date,
       followup_beschrijving: lead.next_follow_up_description,
       aangemaakt: lead.created_at,
-      laatst_bijgewerkt: lead.updated_at
+      laatst_bijgewerkt: lead.updated_at,
     }));
 
     const systemPrompt = `Je bent een ervaren Lead Analyst die helpt bij het analyseren van sales pipeline data. 

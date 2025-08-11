@@ -170,13 +170,12 @@ export default function ClientPortal() {
 
     try {
       const { error } = await supabase
-        .from('project_messages')
-        .insert({
-          project_id: portalData.portal.project_id,
-          sender_type: 'client',
-          subject: messageSubject.trim(),
-          message: messageContent.trim(),
-          is_read: false
+        .rpc('insert_client_message', {
+          p_portal_hash: hash,
+          p_subject: messageSubject.trim(),
+          p_message: messageContent.trim(),
+          p_sender_name: null,
+          p_sender_email: null,
         });
 
       if (error) throw error;
