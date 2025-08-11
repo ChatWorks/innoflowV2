@@ -106,7 +106,7 @@ export default function ProjectDetail() {
       // First, get deliverable IDs for this project
       const { data: deliverablesData, error: deliverablesError } = await supabase
         .from('deliverables')
-         .select('id, project_id, phase_id, title, description, status, due_date, target_date, declarable_hours, created_at, updated_at')
+         .select('id, project_id, phase_id, title, description, status, due_date, target_date, declarable_hours, manual_time_seconds, created_at, updated_at')
         .eq('project_id', id)
         .order('target_date', { ascending: true });
 
@@ -124,7 +124,7 @@ export default function ProjectDetail() {
         { data: meetingsData, error: meetingsError }
       ] = await Promise.all([
         supabase.from('projects').select('id, name, client, description, status, progress, budget, project_value, total_hours, hourly_rate, start_date, end_date, created_at, updated_at').eq('id', id).single(),
-        supabase.from('phases').select('id, project_id, name, status, target_date, created_at, updated_at').eq('project_id', id).order('target_date', { ascending: true }),
+        supabase.from('phases').select('id, project_id, name, status, target_date, manual_time_seconds, created_at, updated_at').eq('project_id', id).order('target_date', { ascending: true }),
         supabase.from('time_entries').select('id, project_id, deliverable_id, task_id, start_time, end_time, duration_seconds, duration_minutes, is_active, description, created_at').eq('project_id', id).order('start_time', { ascending: false }),
         deliverableIds.length > 0 
           ? supabase.from('tasks').select('id, deliverable_id, title, completed, completed_at, manual_time_seconds, assigned_to, description, created_at, updated_at').in('deliverable_id', deliverableIds).order('created_at', { ascending: false })
@@ -281,8 +281,13 @@ export default function ProjectDetail() {
       
       if (timeEntriesError) throw timeEntriesError;
       
-      // 2. Skip manual time entries table as it doesn't exist in schema
-      console.log('Skipping manual time entries table (not in schema)');
+      // 2. Delete all manual time entries for this project
+      const { error: manualEntriesError } = await supabase
+        .from('manual_time_entries')
+        .delete()
+        .eq('project_id', id);
+      
+      if (manualEntriesError) throw manualEntriesError;
       
       // 3. Reset manual_time_seconds to 0 for all tasks in this project
       const taskIds = tasks.map(t => t.id);
