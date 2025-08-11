@@ -90,81 +90,29 @@ export default function ClientPortal() {
       setError(null);
       setPasswordError('');
 
-      console.log('Fetching portal data for hash:', hash);
+      console.log('Fetching secure portal data for hash:', hash);
 
-      // First check if portal exists and if it requires password
-      const { data: portalCheck, error: checkError } = await supabase
-        .from('client_portals')
-        .select('password_hash, is_active, expires_at')
-        .eq('portal_hash', hash)
-        .maybeSingle();
-
-      if (checkError) throw checkError;
-      if (!portalCheck) {
-        setError("Portal niet gevonden");
-        return;
-      }
-
-      if (!portalCheck.is_active) {
-        setError("Portal is gedeactiveerd");
-        return;
-      }
-
-      if (portalCheck.expires_at && new Date(portalCheck.expires_at) < new Date()) {
-        setError("Portal is verlopen");
-        return;
-      }
-
-      // Check if password is required
-      if (portalCheck.password_hash && !providedPassword) {
-        setRequiresPassword(true);
-        setLoading(false);
-        return;
-      }
-
-      // Verify password if provided
-      if (portalCheck.password_hash && providedPassword) {
-        const hashedPassword = await hashPassword(providedPassword);
-        if (hashedPassword !== portalCheck.password_hash) {
-          setPasswordError('Onjuist wachtwoord');
-          setIsVerifying(false);
-          return;
-        }
-      }
-
-      // Get all portal data using the new secure function
+      // Fetch all portal data via secure RPC (handles validation & logging)
       const { data: portalResult, error: portalError } = await supabase
         .rpc('get_secure_portal_data', { portal_hash_param: hash });
 
-      console.log('Portal result:', portalResult);
-      console.log('Portal error:', portalError);
-
       if (portalError) throw portalError;
       if (!portalResult) {
-        setError("Portal niet gevonden of verlopen");
+        setError('Portal niet gevonden of verlopen');
         return;
       }
 
       const parsedPortalData = typeof portalResult === 'string' ? JSON.parse(portalResult) : portalResult;
-      
+
       // Set portal data
       setPortalData({ portal: parsedPortalData.portal } as PortalData);
       setRequiresPassword(false);
-
-      // Track access separately (don't wait for this)
-      try {
-        await supabase.rpc('update_portal_access', { portal_hash_param: hash });
-      } catch (err) {
-        console.error('Failed to update portal access:', err);
-      }
 
       // Extract data from the function result
       const phasesData = parsedPortalData.phases || [];
       const deliverablesData = parsedPortalData.deliverables || [];
       const tasksData = parsedPortalData.tasks || [];
       const updatesData = parsedPortalData.updates || [];
-
-      console.log('Extracted data:', { phasesData, deliverablesData, tasksData, updatesData });
 
       // Calculate progress
       const overallProgress = getProjectProgress(phasesData as Phase[], deliverablesData as Deliverable[], tasksData as Task[]);
