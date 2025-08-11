@@ -151,13 +151,75 @@ function mockData(range: DateRange) {
   return { points, kpis, details };
 }
 
+const FINANCIEN_PREFS_KEY = "financien_prefs_v1";
+
 export default function Financien() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [preset, setPreset] = useState<PeriodPreset>((searchParams.get("preset") as PeriodPreset) || "this_month");
-  const [basis, setBasis] = useState<Basis>((searchParams.get("basis") as Basis) || "accrual");
-  const [grouping, setGrouping] = useState<string>(searchParams.get("grouping") || "none");
-  const [customRange, setCustomRange] = useState<DateRange | undefined>(undefined);
-  const [mockMode, setMockMode] = useState<boolean>(searchParams.get("mock") === "1");
+
+  const [preset, setPreset] = useState<PeriodPreset>(() => {
+    const fromUrl = searchParams.get("preset") as PeriodPreset | null;
+    if (fromUrl) return fromUrl;
+    try {
+      const raw = localStorage.getItem(FINANCIEN_PREFS_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.preset) return s.preset as PeriodPreset;
+      }
+    } catch {}
+    return "this_month";
+  });
+
+  const [basis, setBasis] = useState<Basis>(() => {
+    const fromUrl = searchParams.get("basis") as Basis | null;
+    if (fromUrl) return fromUrl;
+    try {
+      const raw = localStorage.getItem(FINANCIEN_PREFS_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.basis) return s.basis as Basis;
+      }
+    } catch {}
+    return "accrual";
+  });
+
+  const [grouping, setGrouping] = useState<string>(() => {
+    const fromUrl = searchParams.get("grouping");
+    if (fromUrl) return fromUrl;
+    try {
+      const raw = localStorage.getItem(FINANCIEN_PREFS_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.grouping) return s.grouping as string;
+      }
+    } catch {}
+    return "none";
+  });
+
+  const [customRange, setCustomRange] = useState<DateRange | undefined>(() => {
+    try {
+      const raw = localStorage.getItem(FINANCIEN_PREFS_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s.preset === "custom" && s.customFrom && s.customTo) {
+          return { from: new Date(s.customFrom), to: new Date(s.customTo) } as DateRange;
+        }
+      }
+    } catch {}
+    return undefined;
+  });
+
+  const [mockMode, setMockMode] = useState<boolean>(() => {
+    const fromUrl = searchParams.get("mock");
+    if (fromUrl) return fromUrl === "1";
+    try {
+      const raw = localStorage.getItem(FINANCIEN_PREFS_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (typeof s.mockMode === "boolean") return s.mockMode as boolean;
+      }
+    } catch {}
+    return false;
+  });
 
   const range = useMemo(() => rangeFromPreset(preset, customRange), [preset, customRange]);
   const bucket = useMemo(() => bucketForRange(daysBetween(range.from, range.to)), [range]);
@@ -184,6 +246,18 @@ export default function Financien() {
     if (mockMode) params.mock = "1";
     setSearchParams(params, { replace: true });
   }, [preset, basis, grouping, mockMode, setSearchParams]);
+
+  // Bewaar voorkeuren lokaal zodat ze bij een volgend bezoek worden hersteld
+  useEffect(() => {
+    try {
+      const toSave: any = { preset, basis, grouping, mockMode };
+      if (preset === "custom" && customRange) {
+        toSave.customFrom = customRange.from.toISOString();
+        toSave.customTo = customRange.to.toISOString();
+      }
+      localStorage.setItem(FINANCIEN_PREFS_KEY, JSON.stringify(toSave));
+    } catch {}
+  }, [preset, basis, grouping, mockMode, customRange]);
 
   useEffect(() => {
     let active = true;
