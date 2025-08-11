@@ -39,7 +39,7 @@ export function SmartAssistantSettingsDialog({ isOpen, onClose }: SmartAssistant
       setLoading(true);
       const { data, error } = await supabase
         .from('lead_settings')
-        .select('*')
+        .select('id, enable_stale_detector, stale_lead_days, enable_follow_up_reminders, notify_in_app, notify_by_email')
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
@@ -53,7 +53,7 @@ export function SmartAssistantSettingsDialog({ isOpen, onClose }: SmartAssistant
       }
 
       if (data) {
-        setSettings(data);
+        setSettings(data as LeadSettings);
         setFormData({
           enable_stale_detector: data.enable_stale_detector,
           stale_lead_days: data.stale_lead_days,

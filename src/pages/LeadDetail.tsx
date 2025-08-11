@@ -58,7 +58,7 @@ export default function LeadDetail() {
     try {
       const { data: leadData, error: leadError } = await supabase
         .from('leads')
-        .select('*')
+        .select('id, company_name, status, probability, estimated_value, estimated_budget, expected_close_date, source, notes, is_stale, email, phone, contact_person, converted_to_project_id, created_at, updated_at, next_follow_up_date, next_follow_up_description')
         .eq('id', id)
         .single();
 
@@ -89,7 +89,7 @@ export default function LeadDetail() {
     try {
       const { data, error } = await supabase
         .from('lead_activities')
-        .select('*')
+        .select('id, lead_id, title, activity_type, description, activity_date, created_at')
         .eq('lead_id', id)
         .order('activity_date', { ascending: false });
 
