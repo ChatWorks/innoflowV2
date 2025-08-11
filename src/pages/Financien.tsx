@@ -359,6 +359,44 @@ export default function Financien() {
             </div>
           </header>
 
+          {hasConnection === false && (
+            <div className="mb-6 p-4 border rounded-md space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Nog geen Moneybird-verbinding</p>
+                  <p className="text-sm text-muted-foreground">Verbind Moneybird om live data te laden. Tot die tijd tonen we mock-data.</p>
+                </div>
+                {!showConnect && (
+                  <Button onClick={() => setShowConnect(true)}>Verbind Moneybird</Button>
+                )}
+              </div>
+              {showConnect && (
+                <div className="grid gap-3 md:grid-cols-5 items-center">
+                  <div className="md:col-span-3">
+                    <Input
+                      placeholder="Moneybird Personal Access Token"
+                      value={connectToken}
+                      onChange={(e) => setConnectToken(e.target.value)}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Input
+                      placeholder="Label (optioneel)"
+                      value={connectLabel}
+                      onChange={(e) => setConnectLabel(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-2 md:col-span-5">
+                    <Button onClick={connectMoneybird} disabled={connecting || !connectToken.trim()}>
+                      {connecting ? 'Verbinden...' : 'Verbinden'}
+                    </Button>
+                    <Button variant="outline" onClick={() => setShowConnect(false)} disabled={connecting}>Annuleren</Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* KPI Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <KpiCard title="Winst (excl. btw)" value={eur.format(kpis.profitExcl)} subtitle={subtitle} tooltip="Winst = Omzet excl. btw − Kosten excl. btw. Cash: betaald; Accrual: op factuurdatum, status ≠ draft." />
@@ -472,43 +510,6 @@ export default function Financien() {
                   <TableCaption>{loading ? "Laden..." : details.length ? `${details.length} rijen` : "Geen data beschikbaar"}</TableCaption>
                 </Table>
               </div>
-              {hasConnection === false && (
-                <div className="mt-6 p-4 border rounded-md space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">Nog geen Moneybird-verbinding</p>
-                      <p className="text-sm text-muted-foreground">Verbind Moneybird om live data te laden. Tot die tijd tonen we mock-data.</p>
-                    </div>
-                    {!showConnect && (
-                      <Button onClick={() => setShowConnect(true)}>Verbind Moneybird</Button>
-                    )}
-                  </div>
-                  {showConnect && (
-                    <div className="grid gap-3 md:grid-cols-5 items-center">
-                      <div className="md:col-span-3">
-                        <Input
-                          placeholder="Moneybird Personal Access Token"
-                          value={connectToken}
-                          onChange={(e) => setConnectToken(e.target.value)}
-                        />
-                      </div>
-                      <div className="md:col-span-2">
-                        <Input
-                          placeholder="Label (optioneel)"
-                          value={connectLabel}
-                          onChange={(e) => setConnectLabel(e.target.value)}
-                        />
-                      </div>
-                      <div className="flex gap-2 md:col-span-5">
-                        <Button onClick={connectMoneybird} disabled={connecting || !connectToken.trim()}>
-                          {connecting ? 'Verbinden...' : 'Verbinden'}
-                        </Button>
-                        <Button variant="outline" onClick={() => setShowConnect(false)} disabled={connecting}>Annuleren</Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
