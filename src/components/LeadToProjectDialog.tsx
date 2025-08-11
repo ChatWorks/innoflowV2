@@ -71,7 +71,7 @@ export function LeadToProjectDialog({ lead, isOpen, onClose, onConversionComplet
       const { data: project, error: projectError } = await supabase
         .from('projects')
         .insert([projectData])
-        .select()
+        .select('id, name')
         .single();
 
       if (projectError) {

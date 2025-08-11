@@ -29,7 +29,7 @@ export default function Goals() {
 
       const { data, error } = await supabase
         .from('goals')
-        .select('*')
+        .select('id, user_id, title, description, goal_type, category, status, target_value, current_value, target_unit, deadline, is_completed, completed_at, notification_settings, created_at, updated_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 

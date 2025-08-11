@@ -264,7 +264,7 @@ export default function ProjectSetupWizard() {
           project_value: projectData.projectValue,
           status: 'Nieuw'
         }])
-        .select()
+        .select('id, name')
         .single();
       
       if (projectError) throw projectError;
@@ -280,7 +280,7 @@ export default function ProjectSetupWizard() {
             name: phase.name,
             target_date: phase.targetDate || null
           }])
-          .select()
+          .select('id')
           .single();
         
         if (phaseError) throw phaseError;
@@ -298,7 +298,7 @@ export default function ProjectSetupWizard() {
               declarable_hours: parseFloat(deliverable.hours) || 0,
               status: 'Pending'
             }])
-            .select()
+            .select('id')
             .single();
           
           if (deliverableError) throw deliverableError;

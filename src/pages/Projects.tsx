@@ -63,7 +63,7 @@ export default function Index() {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('*')
+        .select('id, name, client, description, status, progress, budget, project_value, total_hours, hourly_rate, start_date, end_date, created_at, updated_at')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false });
 

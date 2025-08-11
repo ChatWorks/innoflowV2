@@ -105,7 +105,7 @@ export default function ProjectDetail() {
       // First, get deliverable IDs for this project
       const { data: deliverablesData, error: deliverablesError } = await supabase
         .from('deliverables')
-        .select('*')
+         .select('id, project_id, phase_id, title, description, status, due_date, target_date, declarable_hours, created_at, updated_at')
         .eq('project_id', id)
         .order('target_date', { ascending: true });
 
@@ -122,13 +122,13 @@ export default function ProjectDetail() {
         { data: tasksData, error: tasksError },
         { data: meetingsData, error: meetingsError }
       ] = await Promise.all([
-        supabase.from('projects').select('*').eq('id', id).single(),
-        supabase.from('phases').select('*').eq('project_id', id).order('target_date', { ascending: true }),
-        supabase.from('time_entries').select('*').eq('project_id', id).order('start_time', { ascending: false }),
+        supabase.from('projects').select('id, name, client, description, status, progress, budget, project_value, total_hours, hourly_rate, start_date, end_date, created_at, updated_at').eq('id', id).single(),
+        supabase.from('phases').select('id, project_id, name, status, target_date, created_at, updated_at').eq('project_id', id).order('target_date', { ascending: true }),
+        supabase.from('time_entries').select('id, project_id, deliverable_id, task_id, start_time, end_time, duration_seconds, duration_minutes, is_active, description, created_at').eq('project_id', id).order('start_time', { ascending: false }),
         deliverableIds.length > 0 
-          ? supabase.from('tasks').select('*').in('deliverable_id', deliverableIds).order('created_at', { ascending: false })
+          ? supabase.from('tasks').select('id, deliverable_id, title, completed, completed_at, manual_time_seconds, assigned_to, description, created_at, updated_at').in('deliverable_id', deliverableIds).order('created_at', { ascending: false })
           : Promise.resolve({ data: [], error: null }),
-        supabase.from('project_meetings').select('*').eq('project_id', id).order('meeting_date', { ascending: true })
+        supabase.from('project_meetings').select('id, project_id, meeting_date, meeting_time, subject, description, attendees, location, created_at, updated_at').eq('project_id', id).order('meeting_date', { ascending: true })
       ]);
 
       if (projectError) throw projectError;
@@ -165,7 +165,7 @@ export default function ProjectDetail() {
       // Fetch only time entries for refresh - prevent cascade
       const { data: timeData, error: timeError } = await supabase
         .from('time_entries')
-        .select('*')
+        .select('id, project_id, deliverable_id, task_id, start_time, end_time, duration_seconds, duration_minutes, is_active, description, created_at')
         .eq('project_id', id)
         .order('start_time', { ascending: false });
 
