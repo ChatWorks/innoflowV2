@@ -1055,16 +1055,16 @@ export default function IntegratedProjectTimeline({
                                          
                                           {/* Manual time add button for deliverable */}
                                           <Button
-                                            variant="ghost"
+                                            variant="outline"
                                             size="sm"
-                                            className="h-8 w-8 p-0 hover:bg-primary/10"
+                                            className="h-8 w-8 p-0 text-primary hover:text-primary border-primary/40 bg-primary/10 hover:bg-primary/20"
                                             onClick={(e) => {
                                               e.stopPropagation();
                                               openManualTimeDialog('deliverable', deliverable.id, deliverable.title);
                                             }}
                                             title="Handmatige tijd toevoegen aan deliverable"
                                           >
-                                            <PlusCircle className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                                            <PlusCircle className="h-5 w-5" />
                                           </Button>
                                           
                                           {/* Delete deliverable button */}
@@ -1232,16 +1232,16 @@ export default function IntegratedProjectTimeline({
                                                     
                                                     {/* Manual time add button */}
                                                     <Button
-                                                      variant="ghost"
+                                                      variant="outline"
                                                       size="sm"
-                                                      className="h-8 w-8 p-0 hover:bg-primary/10"
+                                                      className="h-8 w-8 p-0 text-primary hover:text-primary border-primary/40 bg-primary/10 hover:bg-primary/20"
                                                       onClick={(e) => {
                                                         e.stopPropagation();
                                                         openManualTimeDialog('task', task.id, task.title);
                                                       }}
                                                       title="Handmatige tijd toevoegen"
                                                     >
-                                                      <PlusCircle className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                                                      <PlusCircle className="h-5 w-5" />
                                                     </Button>
                                                     
                                                     {/* Time display with manual time indication */}
