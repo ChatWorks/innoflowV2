@@ -153,6 +153,26 @@ export default function Index() {
     }));
   };
 
+  const getStatusPriority = (status: Project['status']) => {
+    switch (status) {
+      case 'In Progress': return 0;
+      case 'Nieuw': return 1;
+      case 'Review': return 2;
+      case 'Voltooid': return 3;
+      default: return 4;
+    }
+  };
+
+  const sortedProjects = [...filteredProjects].sort((a, b) => {
+    const pa = getStatusPriority(a.status);
+    const pb = getStatusPriority(b.status);
+    if (pa !== pb) return pa - pb;
+    const sa = a.sort_order ?? Number.MAX_SAFE_INTEGER;
+    const sb = b.sort_order ?? Number.MAX_SAFE_INTEGER;
+    if (sa !== sb) return sa - sb;
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+  });
+
   const totalProjectValue = projects.reduce((sum, project) => sum + (project.project_value || 0), 0);
   const completedProjects = projects.filter(p => p.status === 'Voltooid').length;
   const inProgressProjects = projects.filter(p => p.status === 'In Progress').length;
@@ -283,13 +303,13 @@ export default function Index() {
           </div>
         ) : (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={filteredProjects.map(p => p.id)} strategy={rectSortingStrategy}>
+            <SortableContext items={sortedProjects.map(p => p.id)} strategy={rectSortingStrategy}>
               <div className={`grid gap-6 ${
                 viewMode === 'grid' 
                   ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' 
                   : 'grid-cols-1'
               }`}>
-                {filteredProjects.map((project) => (
+                {sortedProjects.map((project) => (
                   <SortableProject id={project.id} key={project.id}>
                     <ProjectCard
                       project={project}
