@@ -1,4 +1,4 @@
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -60,7 +60,7 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-function ProjectCardBase({ project, onClick, onUpdate }: ProjectCardProps) {
+export function ProjectCard({ project, onClick, onUpdate }: ProjectCardProps) {
   const [phases, setPhases] = useState<Phase[]>([]);
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -217,7 +217,7 @@ function ProjectCardBase({ project, onClick, onUpdate }: ProjectCardProps) {
   return (
     <Card 
       className={cn(
-        "group bg-card/50 backdrop-blur-sm relative",
+        "group transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-card/50 backdrop-blur-sm relative",
         project.is_highlighted ? "ring-2 ring-primary" : "border"
       )}
     >
@@ -371,5 +371,3 @@ function ProjectCardBase({ project, onClick, onUpdate }: ProjectCardProps) {
     </Card>
   );
 }
-
-export const ProjectCard = memo(ProjectCardBase);
