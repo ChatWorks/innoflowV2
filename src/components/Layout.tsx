@@ -4,21 +4,20 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, User } from 'lucide-react';
 import { InnoflowLogo } from '@/components/ui/InnoflowLogo';
-
 interface LayoutProps {
   children: ReactNode;
 }
-
-export default function Layout({ children }: LayoutProps) {
+export default function Layout({
+  children
+}: LayoutProps) {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
-
-  return (
-    <div className="min-h-screen bg-background">
+  const {
+    user,
+    signOut
+  } = useAuth();
+  return <div className="min-h-screen bg-background">
       {/* Deadline Banner */}
-      <div className="bg-primary text-primary-foreground text-center py-2 text-sm font-medium">
-        12 AUGUSTUS MOET HET AF ZIJN
-      </div>
+      
       
       {/* Navigation Header */}
       <div className="bg-white border-b border-gray-200">
@@ -63,6 +62,5 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Page Content */}
       {children}
-    </div>
-  );
+    </div>;
 }
