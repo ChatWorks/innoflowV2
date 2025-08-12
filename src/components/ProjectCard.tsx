@@ -34,6 +34,7 @@ import {
   updateProjectStatusIfNeeded
 } from '@/utils/progressCalculations';
 import EfficiencyDots from '@/components/ui/EfficiencyDots';
+import { cn } from '@/lib/utils';
 
 interface ProjectCardProps {
   project: Project;
@@ -130,6 +131,37 @@ export function ProjectCard({ project, onClick, onUpdate }: ProjectCardProps) {
       console.error('Error updating project status:', error);
     }
   };
+  
+  // Highlight toggle
+  const handleToggleHighlight = async () => {
+    try {
+      await supabase
+        .from('projects')
+        .update({ is_highlighted: !project.is_highlighted } as any)
+        .eq('id', project.id);
+      toast({
+        title: project.is_highlighted ? 'Highlight uitgeschakeld' : 'Highlight ingeschakeld',
+        description: `${project.name} is ${project.is_highlighted ? 'niet langer' : 'nu'} gemarkeerd`,
+      });
+      onUpdate?.();
+    } catch (error) {
+      console.error('Error toggling highlight:', error);
+      toast({ title: 'Fout', description: 'Kon highlight niet wijzigen', variant: 'destructive' });
+    }
+  };
+
+  // Quick status set
+  const handleSetStatus = async (newStatus: Project['status']) => {
+    try {
+      if (newStatus === project.status) return;
+      await supabase.from('projects').update({ status: newStatus } as any).eq('id', project.id);
+      toast({ title: 'Status bijgewerkt', description: `${project.name} → ${newStatus}` });
+      onUpdate?.();
+    } catch (error) {
+      console.error('Error setting status:', error);
+      toast({ title: 'Fout', description: 'Kon status niet bijwerken', variant: 'destructive' });
+    }
+  };
 
   // Project verwijderen
   const handleDeleteProject = async () => {
@@ -184,7 +216,10 @@ export function ProjectCard({ project, onClick, onUpdate }: ProjectCardProps) {
 
   return (
     <Card 
-      className="group transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border-0 bg-card/50 backdrop-blur-sm relative"
+      className={cn(
+        "group transition-all duration-300 hover:shadow-lg hover:-translate-y-1 bg-card/50 backdrop-blur-sm relative",
+        project.is_highlighted ? "ring-2 ring-primary" : "border"
+      )}
     >
       {/* Dropdown Menu voor acties */}
       <div className="absolute top-2 right-2 z-10">
@@ -202,6 +237,22 @@ export function ProjectCard({ project, onClick, onUpdate }: ProjectCardProps) {
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClick(); }}>
               Project Bekijken
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleToggleHighlight(); }}>
+              <Star className="h-4 w-4 mr-2" />
+              {project.is_highlighted ? 'Highlight uit' : 'Highlight aan'}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleSetStatus('Nieuw'); }}>
+              <Target className="h-4 w-4 mr-2" />
+              Markeer als Nieuw
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleSetStatus('In Progress'); }}>
+              <PlayCircle className="h-4 w-4 mr-2" />
+              Markeer als Aan de slag
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleSetStatus('Voltooid'); }}>
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              Markeer als Voltooid
             </DropdownMenuItem>
             <AlertDialog>
               <AlertDialogTrigger asChild>

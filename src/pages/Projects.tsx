@@ -63,7 +63,7 @@ export default function Index() {
       if (updates.length === 0) return;
       await Promise.all(
         updates.map((u) =>
-          supabase.from('projects').update({ sort_order: u.sort_order }).eq('id', u.id)
+          supabase.from('projects').update({ sort_order: u.sort_order } as any).eq('id', u.id)
         )
       );
     } catch (e) {
@@ -87,7 +87,6 @@ export default function Index() {
       return newOrder;
     });
   };
-
   useEffect(() => {
     if (!user) {
       setProjects([]);
@@ -124,7 +123,7 @@ export default function Index() {
         .from('projects')
         .select('id, name, client, description, status, progress, budget, project_value, total_hours, hourly_rate, sort_order, is_highlighted, start_date, end_date, created_at, updated_at')
         .eq('user_id', user.id)
-        .order('sort_order', { ascending: true, nullsFirst: false })
+        .order('sort_order' as any, { ascending: true })
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
@@ -283,20 +282,25 @@ export default function Index() {
             </div>
           </div>
         ) : (
-          <div className={`grid gap-6 ${
-            viewMode === 'grid' 
-              ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' 
-              : 'grid-cols-1'
-          }`}>
-            {filteredProjects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onClick={() => navigate(`/project/${project.id}`)}
-                onUpdate={fetchProjects} // Refresh homepage na wijzigingen
-              />
-            ))}
-          </div>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={filteredProjects.map(p => p.id)} strategy={rectSortingStrategy}>
+              <div className={`grid gap-6 ${
+                viewMode === 'grid' 
+                  ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3' 
+                  : 'grid-cols-1'
+              }`}>
+                {filteredProjects.map((project) => (
+                  <SortableProject id={project.id} key={project.id}>
+                    <ProjectCard
+                      project={project}
+                      onClick={() => navigate(`/project/${project.id}`)}
+                      onUpdate={fetchProjects}
+                    />
+                  </SortableProject>
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </main>
     </Layout>
