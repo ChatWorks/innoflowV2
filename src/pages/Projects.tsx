@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, Grid, List } from 'lucide-react';
+import { Search, Plus, Grid, List, Briefcase, Building2 } from 'lucide-react';
 import { ProjectCard } from '@/components/ProjectCard';
 import { Project } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,10 +43,11 @@ export default function Index() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const { user } = useAuth();
+const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+const [scope, setScope] = useState<'clients' | 'internal'>('clients');
+const navigate = useNavigate();
+const { toast } = useToast();
+const { user } = useAuth();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
@@ -121,7 +122,7 @@ export default function Index() {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('id, name, client, description, status, progress, budget, project_value, total_hours, hourly_rate, sort_order, is_highlighted, start_date, end_date, created_at, updated_at')
+        .select('id, name, client, description, status, progress, budget, project_value, total_hours, hourly_rate, sort_order, is_highlighted, is_internal, start_date, end_date, created_at, updated_at')
         .eq('user_id', user.id)
         .order('sort_order' as any, { ascending: true })
         .order('updated_at', { ascending: false });
@@ -139,19 +140,21 @@ export default function Index() {
     }
   };
 
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.client.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+const scopedProjects = projects.filter(p => scope === 'internal' ? !!p.is_internal : !p.is_internal);
 
-  const getStatusCounts = () => {
-    return statusFilters.slice(1).map(filter => ({
-      ...filter,
-      count: projects.filter(p => p.status === filter.value).length
-    }));
-  };
+const filteredProjects = scopedProjects.filter(project => {
+  const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                       project.client.toLowerCase().includes(searchTerm.toLowerCase());
+  const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
+  return matchesSearch && matchesStatus;
+});
+
+const getStatusCounts = () => {
+  return statusFilters.slice(1).map(filter => ({
+    ...filter,
+    count: scopedProjects.filter(p => p.status === filter.value).length
+  }));
+};
 
   const getStatusPriority = (status: Project['status']) => {
     switch (status) {
@@ -173,9 +176,9 @@ export default function Index() {
     return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
   });
 
-  const totalProjectValue = projects.reduce((sum, project) => sum + (project.project_value || 0), 0);
-  const completedProjects = projects.filter(p => p.status === 'Voltooid').length;
-  const inProgressProjects = projects.filter(p => p.status === 'In Progress').length;
+const totalProjectValue = scopedProjects.reduce((sum, project) => sum + (project.project_value || 0), 0);
+const completedProjects = scopedProjects.filter(p => p.status === 'Voltooid').length;
+const inProgressProjects = scopedProjects.filter(p => p.status === 'In Progress').length;
 
   if (loading) {
     return (
@@ -218,10 +221,32 @@ export default function Index() {
           </div>
         </div>
 
+        {/* Scope Toggle */}
+        <div className="mb-6">
+          <div className="bg-card rounded-lg border p-2 flex gap-2">
+            <Button
+              variant={scope === 'clients' ? 'default' : 'outline'}
+              className="flex-1"
+              onClick={() => setScope('clients')}
+            >
+              <Briefcase className="h-4 w-4 mr-2" />
+              Klanten
+            </Button>
+            <Button
+              variant={scope === 'internal' ? 'default' : 'outline'}
+              className="flex-1"
+              onClick={() => setScope('internal')}
+            >
+              <Building2 className="h-4 w-4 mr-2" />
+              Intern (Innoworks)
+            </Button>
+          </div>
+        </div>
+
         {/* Enhanced Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-card rounded-lg p-6 border">
-            <div className="text-3xl font-bold text-foreground">{projects.length}</div>
+            <div className="text-3xl font-bold text-foreground">{scopedProjects.length}</div>
             <div className="text-sm text-muted-foreground">Totaal Projecten</div>
           </div>
           <div className="bg-card rounded-lg p-6 border">

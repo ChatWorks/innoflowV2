@@ -11,6 +11,7 @@ export interface Project {
   hourly_rate?: number; // Added for contract value calculation
   sort_order?: number;
   is_highlighted?: boolean;
+  is_internal?: boolean;
   start_date?: string;
   end_date?: string;
   created_at: string;
