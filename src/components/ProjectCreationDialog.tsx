@@ -32,7 +32,7 @@ const [formData, setFormData] = useState({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.client.trim()) {
+    if (!formData.name.trim() || (!formData.is_internal && !formData.client.trim())) {
       toast({
         title: "Verplichte velden",
         description: "Naam en klant zijn verplicht",
@@ -49,7 +49,7 @@ const [formData, setFormData] = useState({
         .from('projects')
         .insert([{
           name: formData.name,
-          client: formData.client,
+          client: formData.is_internal ? 'Innoworks' : formData.client,
           description: formData.description || null,
           budget: formData.budget ? parseFloat(formData.budget) : null,
           total_hours: formData.total_hours ? parseFloat(formData.total_hours) : 0,
@@ -113,18 +113,20 @@ const [formData, setFormData] = useState({
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="client" className="text-sm font-medium">
-                Klant *
-              </Label>
-              <Input
-                id="client"
-                placeholder="Bijv. Acme Corp"
-                value={formData.client}
-                onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-                className="h-11"
-              />
-            </div>
+{!formData.is_internal && (
+  <div className="space-y-2">
+    <Label htmlFor="client" className="text-sm font-medium">
+      Klant *
+    </Label>
+    <Input
+      id="client"
+      placeholder="Bijv. Acme Corp"
+      value={formData.client}
+      onChange={(e) => setFormData({ ...formData, client: e.target.value })}
+      className="h-11"
+    />
+  </div>
+)}
 
 <div className="space-y-2">
   <Label htmlFor="description" className="text-sm font-medium">

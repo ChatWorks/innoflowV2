@@ -45,7 +45,7 @@ export function LeadToProjectDialog({ lead, isOpen, onClose, onConversionComplet
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.client.trim()) {
+    if (!formData.name.trim() || (!formData.is_internal && !formData.client.trim())) {
       toast({
         title: "Vereiste velden",
         description: "Voer een projectnaam en client in.",
@@ -61,12 +61,12 @@ export function LeadToProjectDialog({ lead, isOpen, onClose, onConversionComplet
       const projectData = {
         user_id: user?.id,
         name: formData.name.trim(),
-        client: formData.client.trim(),
+        client: formData.is_internal ? 'Innoworks' : formData.client.trim(),
         description: formData.description.trim() || null,
         status: 'Nieuw' as const,
         progress: 0,
         budget: formData.budget ? parseFloat(formData.budget) : null,
-        project_value: formData.project_value ? parseFloat(formData.project_value) : null,
+        project_value: formData.is_internal ? null : (formData.project_value ? parseFloat(formData.project_value) : null),
         total_hours: formData.total_hours ? parseFloat(formData.total_hours) : 0,
         hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : 75,
         start_date: formData.start_date || null,
@@ -165,15 +165,17 @@ export function LeadToProjectDialog({ lead, isOpen, onClose, onConversionComplet
           </div>
 
 {/* Client */}
-<div>
-  <Label htmlFor="client">Client *</Label>
-  <Input
-    id="client"
-    value={formData.client}
-    onChange={(e) => handleInputChange('client', e.target.value)}
-    required
-  />
-</div>
+{!formData.is_internal && (
+  <div>
+    <Label htmlFor="client">Client *</Label>
+    <Input
+      id="client"
+      value={formData.client}
+      onChange={(e) => handleInputChange('client', e.target.value)}
+      required
+    />
+  </div>
+)}
 
 {/* Internal toggle */}
 <div className="flex items-center justify-between rounded-md border p-3">
@@ -211,16 +213,18 @@ export function LeadToProjectDialog({ lead, isOpen, onClose, onConversionComplet
           </div>
 
           {/* Project Value */}
-          <div>
-            <Label htmlFor="project_value">Projectwaarde (€)</Label>
-            <Input
-              id="project_value"
-              type="number"
-              step="0.01"
-              value={formData.project_value}
-              onChange={(e) => handleInputChange('project_value', e.target.value)}
-            />
-          </div>
+          {!formData.is_internal && (
+            <div>
+              <Label htmlFor="project_value">Projectwaarde (€)</Label>
+              <Input
+                id="project_value"
+                type="number"
+                step="0.01"
+                value={formData.project_value}
+                onChange={(e) => handleInputChange('project_value', e.target.value)}
+              />
+            </div>
+          )}
 
           {/* Total Hours */}
           <div>

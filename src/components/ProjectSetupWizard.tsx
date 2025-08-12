@@ -99,10 +99,11 @@ const [projectData, setProjectData] = useState<ProjectData>({
   // Step 1 validation
   const isStep1Valid = () => {
     return projectData.name.trim() !== '' &&
-           projectData.client.trim() !== '' &&
            projectData.totalHours > 0 &&
-           projectData.projectValue > 0 &&
-           projectData.numberOfPhases >= 1;
+           projectData.numberOfPhases >= 1 &&
+           (!projectData.isInternal
+             ? projectData.client.trim() !== '' && projectData.projectValue > 0
+             : true);
   };
 
   // Step 2 validation
@@ -263,9 +264,9 @@ const [projectData, setProjectData] = useState<ProjectData>({
         .insert([{
           user_id: user?.id,
           name: projectData.name,
-          client: projectData.client,
+          client: projectData.isInternal ? 'Innoworks' : projectData.client,
           total_hours: projectData.totalHours,
-          project_value: projectData.projectValue,
+          project_value: projectData.isInternal ? null : projectData.projectValue,
           status: 'Nieuw',
           is_internal: projectData.isInternal
         }])
@@ -642,15 +643,17 @@ const [projectData, setProjectData] = useState<ProjectData>({
                 />
               </div>
 
-<div className="space-y-2">
-  <Label htmlFor="clientName">Klant Naam *</Label>
-  <Input
-    id="clientName"
-    placeholder="Bijv. Acme Corp"
-    value={projectData.client}
-    onChange={(e) => setProjectData({ ...projectData, client: e.target.value })}
-  />
-</div>
+{!projectData.isInternal && (
+  <div className="space-y-2">
+    <Label htmlFor="clientName">Klant Naam *</Label>
+    <Input
+      id="clientName"
+      placeholder="Bijv. Acme Corp"
+      value={projectData.client}
+      onChange={(e) => setProjectData({ ...projectData, client: e.target.value })}
+    />
+  </div>
+)}
 
 <div className="flex items-center justify-between rounded-md border p-3">
   <div>
@@ -675,17 +678,19 @@ const [projectData, setProjectData] = useState<ProjectData>({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="projectValue">Project Waarde (EUR) *</Label>
-                <Input
-                  id="projectValue"
-                  type="number"
-                  placeholder="5000"
-                  min="1"
-                  value={projectData.projectValue || ''}
-                  onChange={(e) => setProjectData({ ...projectData, projectValue: parseInt(e.target.value) || 0 })}
-                />
-              </div>
+              {!projectData.isInternal && (
+                <div className="space-y-2">
+                  <Label htmlFor="projectValue">Project Waarde (EUR) *</Label>
+                  <Input
+                    id="projectValue"
+                    type="number"
+                    placeholder="5000"
+                    min="1"
+                    value={projectData.projectValue || ''}
+                    onChange={(e) => setProjectData({ ...projectData, projectValue: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="numberOfPhases">Aantal Fases *</Label>
