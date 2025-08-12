@@ -673,7 +673,7 @@ const isStep1Valid = () => {
 {!projectData.isInternal && (
   <>
     <div className="space-y-2">
-      <Label htmlFor="totalHours">Totaal Declarabele Uren *</Label>
+      <Label htmlFor="totalHours">Geschatte tijdsbesteding (uren) *</Label>
       <Input
         id="totalHours"
         type="number"
@@ -987,7 +987,7 @@ const isStep1Valid = () => {
       <p className="text-lg font-semibold">{projectData.client}</p>
     </div>
     <div>
-      <Label className="text-sm font-medium text-muted-foreground">Totaal Uren</Label>
+      <Label className="text-sm font-medium text-muted-foreground">Geschatte tijdsbesteding</Label>
       <p className="text-lg font-semibold">{projectData.totalHours}h</p>
     </div>
     <div>
