@@ -20,7 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Users, Clock, Target, Trash2, MoreVertical } from 'lucide-react';
+import { Users, Clock, Target, Trash2, MoreVertical, Star, CheckCircle2, PlayCircle } from 'lucide-react';
 import { Project, Deliverable, Phase, Task, TimeEntry } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';

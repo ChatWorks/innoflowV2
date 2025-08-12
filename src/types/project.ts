@@ -9,11 +9,14 @@ export interface Project {
   project_value?: number;
   total_hours?: number;
   hourly_rate?: number; // Added for contract value calculation
+  sort_order?: number;
+  is_highlighted?: boolean;
   start_date?: string;
   end_date?: string;
   created_at: string;
   updated_at: string;
 }
+
 
 export interface TimeEntry {
   id: string;

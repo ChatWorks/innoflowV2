@@ -11,6 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
 import SEO from '@/components/SEO';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, rectSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 const statusFilters = [
   { label: 'Alle', value: 'all' },
@@ -19,6 +22,21 @@ const statusFilters = [
   { label: 'Review', value: 'Review' },
   { label: 'Voltooid', value: 'Voltooid' },
 ];
+
+// Draggable wrapper for each project card
+function SortableProject({ id, children }: { id: string; children: React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    touchAction: 'manipulation',
+  };
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {children}
+    </div>
+  );
+}
 
 export default function Index() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -29,6 +47,46 @@ export default function Index() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
+  );
+
+  const persistSortOrder = async (original: Project[], ordered: Project[]) => {
+    try {
+      const updates = ordered
+        .map((p, idx) => ({ id: p.id, sort_order: idx + 1 }))
+        .filter(({ id, sort_order }) => {
+          const prev = original.find(pr => pr.id === id);
+          return prev?.sort_order !== sort_order;
+        });
+      if (updates.length === 0) return;
+      await Promise.all(
+        updates.map((u) =>
+          supabase.from('projects').update({ sort_order: u.sort_order }).eq('id', u.id)
+        )
+      );
+    } catch (e) {
+      toast({
+        title: 'Fout bij opslaan volgorde',
+        description: 'Probeer het opnieuw.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setProjects((prev) => {
+      const oldIndex = prev.findIndex((p) => p.id === active.id);
+      const newIndex = prev.findIndex((p) => p.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return prev;
+      const newOrder = arrayMove(prev, oldIndex, newIndex);
+      persistSortOrder(prev, newOrder);
+      return newOrder;
+    });
+  };
 
   useEffect(() => {
     if (!user) {
@@ -64,12 +122,13 @@ export default function Index() {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('id, name, client, description, status, progress, budget, project_value, total_hours, hourly_rate, start_date, end_date, created_at, updated_at')
+        .select('id, name, client, description, status, progress, budget, project_value, total_hours, hourly_rate, sort_order, is_highlighted, start_date, end_date, created_at, updated_at')
         .eq('user_id', user.id)
+        .order('sort_order', { ascending: true, nullsFirst: false })
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setProjects((data || []) as Project[]);
+      setProjects(((data || []) as unknown) as Project[]);
     } catch (error) {
       toast({
         title: "Error",
