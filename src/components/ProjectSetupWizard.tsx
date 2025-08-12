@@ -414,13 +414,14 @@ const [projectData, setProjectData] = useState<ProjectData>({
         // Map the AI response to our state
         if (data.project_info) {
           console.log('Mapping project_info:', data.project_info);
-          setProjectData({
+          setProjectData(prev => ({
+            ...prev,
             name: data.project_info.name || '',
             client: data.project_info.client || '',
             totalHours: data.project_info.totalHours || 0,
             projectValue: data.project_info.projectValue || 0,
-            numberOfPhases: data.project_info.numberOfPhases || 1
-          });
+            numberOfPhases: data.project_info.numberOfPhases || 1,
+          }));
         }
 
         if (data.phases && Array.isArray(data.phases)) {
