@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,6 +22,7 @@ interface ProjectData {
   totalHours: number;
   projectValue: number;
   numberOfPhases: number;
+  isInternal: boolean;
 }
 
 interface Task {
@@ -58,13 +60,14 @@ export default function ProjectSetupWizard() {
   const [analysisMessage, setAnalysisMessage] = useState('');
 
   // Step 1 data
-  const [projectData, setProjectData] = useState<ProjectData>({
-    name: '',
-    client: '',
-    totalHours: 0,
-    projectValue: 0,
-    numberOfPhases: 1
-  });
+const [projectData, setProjectData] = useState<ProjectData>({
+  name: '',
+  client: '',
+  totalHours: 0,
+  projectValue: 0,
+  numberOfPhases: 1,
+  isInternal: false
+});
 
   // Step 2 data
   const [phases, setPhases] = useState<Phase[]>([]);
@@ -263,7 +266,8 @@ export default function ProjectSetupWizard() {
           client: projectData.client,
           total_hours: projectData.totalHours,
           project_value: projectData.projectValue,
-          status: 'Nieuw'
+          status: 'Nieuw',
+          is_internal: projectData.isInternal
         }])
         .select('id, name')
         .single();
@@ -637,15 +641,26 @@ export default function ProjectSetupWizard() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="clientName">Klant Naam *</Label>
-                <Input
-                  id="clientName"
-                  placeholder="Bijv. Acme Corp"
-                  value={projectData.client}
-                  onChange={(e) => setProjectData({ ...projectData, client: e.target.value })}
-                />
-              </div>
+<div className="space-y-2">
+  <Label htmlFor="clientName">Klant Naam *</Label>
+  <Input
+    id="clientName"
+    placeholder="Bijv. Acme Corp"
+    value={projectData.client}
+    onChange={(e) => setProjectData({ ...projectData, client: e.target.value })}
+  />
+</div>
+
+<div className="flex items-center justify-between rounded-md border p-3">
+  <div>
+    <Label className="text-sm font-medium">Intern (Innoworks)</Label>
+    <p className="text-xs text-muted-foreground">Markeer dit project als intern.</p>
+  </div>
+  <Switch
+    checked={projectData.isInternal}
+    onCheckedChange={(v) => setProjectData({ ...projectData, isInternal: v })}
+  />
+</div>
 
               <div className="space-y-2">
                 <Label htmlFor="totalHours">Totaal Declarabele Uren *</Label>

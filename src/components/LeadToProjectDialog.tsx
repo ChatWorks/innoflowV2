@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface LeadToProjectDialogProps {
   lead: Lead;
@@ -25,6 +27,7 @@ export function LeadToProjectDialog({ lead, isOpen, onClose, onConversionComplet
   const [isConverting, setIsConverting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const [formData, setFormData] = useState({
     name: `${lead.company_name} Project`,
@@ -36,6 +39,7 @@ export function LeadToProjectDialog({ lead, isOpen, onClose, onConversionComplet
     hourly_rate: '75',
     start_date: '',
     end_date: lead.expected_close_date || '',
+    is_internal: false,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,6 +59,7 @@ export function LeadToProjectDialog({ lead, isOpen, onClose, onConversionComplet
     try {
       // Create the project
       const projectData = {
+        user_id: user?.id,
         name: formData.name.trim(),
         client: formData.client.trim(),
         description: formData.description.trim() || null,
@@ -66,7 +71,8 @@ export function LeadToProjectDialog({ lead, isOpen, onClose, onConversionComplet
         hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : 75,
         start_date: formData.start_date || null,
         end_date: formData.end_date || null,
-      };
+        is_internal: formData.is_internal,
+      } as const;
 
       const { data: project, error: projectError } = await supabase
         .from('projects')
@@ -158,16 +164,28 @@ export function LeadToProjectDialog({ lead, isOpen, onClose, onConversionComplet
             />
           </div>
 
-          {/* Client */}
-          <div>
-            <Label htmlFor="client">Client *</Label>
-            <Input
-              id="client"
-              value={formData.client}
-              onChange={(e) => handleInputChange('client', e.target.value)}
-              required
-            />
-          </div>
+{/* Client */}
+<div>
+  <Label htmlFor="client">Client *</Label>
+  <Input
+    id="client"
+    value={formData.client}
+    onChange={(e) => handleInputChange('client', e.target.value)}
+    required
+  />
+</div>
+
+{/* Internal toggle */}
+<div className="flex items-center justify-between rounded-md border p-3">
+  <div>
+    <Label className="text-sm font-medium">Intern (Innoworks)</Label>
+    <p className="text-xs text-muted-foreground">Markeer dit project als intern.</p>
+  </div>
+  <Switch
+    checked={formData.is_internal}
+    onCheckedChange={(v) => setFormData(prev => ({ ...prev, is_internal: v }))}
+  />
+</div>
 
           {/* Description */}
           <div>

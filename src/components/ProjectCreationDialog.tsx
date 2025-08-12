@@ -9,6 +9,7 @@ import { Plus, Euro, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
 
 interface ProjectCreationDialogProps {
   onProjectCreated: () => void;
@@ -16,13 +17,14 @@ interface ProjectCreationDialogProps {
 
 export default function ProjectCreationDialog({ onProjectCreated }: ProjectCreationDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    client: '',
-    description: '',
-    budget: '',
-    total_hours: ''
-  });
+const [formData, setFormData] = useState({
+  name: '',
+  client: '',
+  description: '',
+  budget: '',
+  total_hours: '',
+  is_internal: false,
+});
   const [isCreating, setIsCreating] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -51,7 +53,8 @@ export default function ProjectCreationDialog({ onProjectCreated }: ProjectCreat
           description: formData.description || null,
           budget: formData.budget ? parseFloat(formData.budget) : null,
           total_hours: formData.total_hours ? parseFloat(formData.total_hours) : 0,
-          status: 'Nieuw'
+          status: 'Nieuw',
+          is_internal: formData.is_internal
         }]);
 
       if (error) throw error;
@@ -66,7 +69,8 @@ export default function ProjectCreationDialog({ onProjectCreated }: ProjectCreat
         client: '',
         description: '',
         budget: '',
-        total_hours: ''
+        total_hours: '',
+        is_internal: false,
       });
       setIsOpen(false);
       onProjectCreated();
@@ -122,18 +126,29 @@ export default function ProjectCreationDialog({ onProjectCreated }: ProjectCreat
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="description" className="text-sm font-medium">
-                Beschrijving
-              </Label>
-              <Textarea
-                id="description"
-                placeholder="Korte beschrijving van het project..."
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="min-h-[80px]"
-              />
-            </div>
+<div className="space-y-2">
+  <Label htmlFor="description" className="text-sm font-medium">
+    Beschrijving
+  </Label>
+  <Textarea
+    id="description"
+    placeholder="Korte beschrijving van het project..."
+    value={formData.description}
+    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+    className="min-h-[80px]"
+  />
+</div>
+
+<div className="flex items-center justify-between rounded-md border p-3">
+  <div>
+    <Label className="text-sm font-medium">Intern (Innoworks)</Label>
+    <p className="text-xs text-muted-foreground">Markeer dit project als intern.</p>
+  </div>
+  <Switch
+    checked={formData.is_internal}
+    onCheckedChange={(v) => setFormData({ ...formData, is_internal: v })}
+  />
+</div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
