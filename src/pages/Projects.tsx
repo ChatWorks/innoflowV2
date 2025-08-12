@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
 import SEO from '@/components/SEO';
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragOverlay, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core';
 import { SortableContext, rectSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -25,14 +25,17 @@ const statusFilters = [
 
 // Draggable wrapper for each project card
 function SortableProject({ id, children }: { id: string; children: React.ReactNode }) {
-  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     touchAction: 'manipulation',
+    willChange: transform ? 'transform' : undefined,
+    zIndex: isDragging ? 50 : undefined,
+    cursor: isDragging ? 'grabbing' : 'grab',
   };
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="select-none">
       {children}
     </div>
   );
@@ -48,6 +51,7 @@ const [scope, setScope] = useState<'clients' | 'internal'>('clients');
 const navigate = useNavigate();
 const { toast } = useToast();
 const { user } = useAuth();
+const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
@@ -76,7 +80,12 @@ const { user } = useAuth();
     }
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(String(event.active.id));
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveId(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;
     setProjects((prev) => {
@@ -327,7 +336,7 @@ const inProgressProjects = scopedProjects.filter(p => p.status === 'In Progress'
             </div>
           </div>
         ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
             <SortableContext items={sortedProjects.map(p => p.id)} strategy={rectSortingStrategy}>
               <div className={`grid gap-6 ${
                 viewMode === 'grid' 
@@ -345,6 +354,23 @@ const inProgressProjects = scopedProjects.filter(p => p.status === 'In Progress'
                 ))}
               </div>
             </SortableContext>
+            <DragOverlay>
+              {activeId ? (
+                <div className="bg-card rounded-lg border p-4 shadow-lg w-[320px]">
+                  <div className="font-semibold text-card-foreground">
+                    {sortedProjects.find(p => p.id === activeId)?.name}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {sortedProjects.find(p => p.id === activeId)?.client}
+                  </div>
+                  <div className="mt-2">
+                    <Badge variant="secondary">
+                      {sortedProjects.find(p => p.id === activeId)?.status}
+                    </Badge>
+                  </div>
+                </div>
+              ) : null}
+            </DragOverlay>
           </DndContext>
         )}
       </main>
