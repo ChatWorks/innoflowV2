@@ -253,7 +253,7 @@ export default function ProjectDetail() {
       // await fetchProjectData();
       
       toast({
-        title: project?.is_internal ? "Geschatte tijdsbesteding bijgewerkt" : "Totaal declarabele uren bijgewerkt",
+        title: "Totaal uren bijgewerkt",
         description: `Nieuwe waarde: ${numericValue}h`,
       });
       console.log('updateProjectTotalHours completed successfully');

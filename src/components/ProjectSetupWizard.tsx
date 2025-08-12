@@ -97,18 +97,13 @@ const [projectData, setProjectData] = useState<ProjectData>({
   };
 
   // Step 1 validation
-const isStep1Valid = () => {
-  if (projectData.isInternal) {
-    return projectData.name.trim() !== '' && projectData.numberOfPhases >= 1;
-  }
-  return (
-    projectData.name.trim() !== '' &&
-    projectData.client.trim() !== '' &&
-    projectData.totalHours > 0 &&
-    projectData.projectValue > 0 &&
-    projectData.numberOfPhases >= 1
-  );
-};
+  const isStep1Valid = () => {
+    return projectData.name.trim() !== '' &&
+           projectData.client.trim() !== '' &&
+           projectData.totalHours > 0 &&
+           projectData.projectValue > 0 &&
+           projectData.numberOfPhases >= 1;
+  };
 
   // Step 2 validation
   const isStep2Valid = () => {
@@ -647,17 +642,15 @@ const isStep1Valid = () => {
                 />
               </div>
 
-{!projectData.isInternal && (
-  <div className="space-y-2">
-    <Label htmlFor="clientName">Klant Naam *</Label>
-    <Input
-      id="clientName"
-      placeholder="Bijv. Acme Corp"
-      value={projectData.client}
-      onChange={(e) => setProjectData({ ...projectData, client: e.target.value })}
-    />
-  </div>
-)}
+<div className="space-y-2">
+  <Label htmlFor="clientName">Klant Naam *</Label>
+  <Input
+    id="clientName"
+    placeholder="Bijv. Acme Corp"
+    value={projectData.client}
+    onChange={(e) => setProjectData({ ...projectData, client: e.target.value })}
+  />
+</div>
 
 <div className="flex items-center justify-between rounded-md border p-3">
   <div>
@@ -666,37 +659,33 @@ const isStep1Valid = () => {
   </div>
   <Switch
     checked={projectData.isInternal}
-    onCheckedChange={(v) => setProjectData(prev => ({ ...prev, isInternal: v, client: v ? 'Innoworks' : prev.client }))}
+    onCheckedChange={(v) => setProjectData({ ...projectData, isInternal: v })}
   />
 </div>
 
-{!projectData.isInternal && (
-  <>
-    <div className="space-y-2">
-      <Label htmlFor="totalHours">Geschatte tijdsbesteding (uren) *</Label>
-      <Input
-        id="totalHours"
-        type="number"
-        placeholder="40"
-        min="1"
-        value={projectData.totalHours || ''}
-        onChange={(e) => setProjectData({ ...projectData, totalHours: parseInt(e.target.value) || 0 })}
-      />
-    </div>
+              <div className="space-y-2">
+                <Label htmlFor="totalHours">Totaal Declarabele Uren *</Label>
+                <Input
+                  id="totalHours"
+                  type="number"
+                  placeholder="40"
+                  min="1"
+                  value={projectData.totalHours || ''}
+                  onChange={(e) => setProjectData({ ...projectData, totalHours: parseInt(e.target.value) || 0 })}
+                />
+              </div>
 
-    <div className="space-y-2">
-      <Label htmlFor="projectValue">Project Waarde (EUR) *</Label>
-      <Input
-        id="projectValue"
-        type="number"
-        placeholder="5000"
-        min="1"
-        value={projectData.projectValue || ''}
-        onChange={(e) => setProjectData({ ...projectData, projectValue: parseInt(e.target.value) || 0 })}
-      />
-    </div>
-  </>
-)}
+              <div className="space-y-2">
+                <Label htmlFor="projectValue">Project Waarde (EUR) *</Label>
+                <Input
+                  id="projectValue"
+                  type="number"
+                  placeholder="5000"
+                  min="1"
+                  value={projectData.projectValue || ''}
+                  onChange={(e) => setProjectData({ ...projectData, projectValue: parseInt(e.target.value) || 0 })}
+                />
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="numberOfPhases">Aantal Fases *</Label>
@@ -980,22 +969,18 @@ const isStep1Valid = () => {
                     <Label className="text-sm font-medium text-muted-foreground">Project Naam</Label>
                     <p className="text-lg font-semibold">{projectData.name}</p>
                   </div>
-{!projectData.isInternal && (
-  <>
-    <div>
-      <Label className="text-sm font-medium text-muted-foreground">Klant</Label>
-      <p className="text-lg font-semibold">{projectData.client}</p>
-    </div>
-    <div>
-      <Label className="text-sm font-medium text-muted-foreground">Geschatte tijdsbesteding</Label>
-      <p className="text-lg font-semibold">{projectData.totalHours}h</p>
-    </div>
-    <div>
-      <Label className="text-sm font-medium text-muted-foreground">Project Waarde</Label>
-      <p className="text-lg font-semibold">€{projectData.projectValue.toLocaleString()}</p>
-    </div>
-  </>
-)}
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Klant</Label>
+                    <p className="text-lg font-semibold">{projectData.client}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Totaal Uren</Label>
+                    <p className="text-lg font-semibold">{projectData.totalHours}h</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Project Waarde</Label>
+                    <p className="text-lg font-semibold">€{projectData.projectValue.toLocaleString()}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
