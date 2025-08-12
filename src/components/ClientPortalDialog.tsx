@@ -769,7 +769,7 @@ export const ClientPortalDialog = ({
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="Pending">Pending</SelectItem>
-                              <SelectItem value="In Progress">In Progress</SelectItem>
+                              <SelectItem value="In Progress">In ontwikkeling</SelectItem>
                               <SelectItem value="Completed">Completed</SelectItem>
                             </SelectContent>
                           </Select>
