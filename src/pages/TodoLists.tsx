@@ -165,16 +165,16 @@ export default function TodoLists() {
 
         {/* Tabs for Active and Completed Todo Lists */}
         <Tabs defaultValue="active" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-card border border-border shadow-sm h-12">
+          <TabsList className="grid w-full grid-cols-2 bg-card border border-border shadow-sm h-12 p-1 rounded-lg">
             <TabsTrigger 
               value="active" 
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-semibold px-6 py-3 text-base"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-semibold text-base rounded-md transition-all duration-200 h-full flex items-center justify-center"
             >
               Actieve Lijsten ({activeTodoLists.length})
             </TabsTrigger>
             <TabsTrigger 
               value="completed"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-semibold px-6 py-3 text-base"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-semibold text-base rounded-md transition-all duration-200 h-full flex items-center justify-center"
             >
               Voltooid ({completedTodoLists.length})
             </TabsTrigger>
