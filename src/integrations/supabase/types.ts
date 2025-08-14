@@ -819,6 +819,7 @@ export type Database = {
           created_at: string
           deliverable_id: string
           description: string | null
+          estimated_time_seconds: number | null
           id: string
           manual_time_seconds: number | null
           title: string
@@ -832,6 +833,7 @@ export type Database = {
           created_at?: string
           deliverable_id: string
           description?: string | null
+          estimated_time_seconds?: number | null
           id?: string
           manual_time_seconds?: number | null
           title: string
@@ -845,6 +847,7 @@ export type Database = {
           created_at?: string
           deliverable_id?: string
           description?: string | null
+          estimated_time_seconds?: number | null
           id?: string
           manual_time_seconds?: number | null
           title?: string

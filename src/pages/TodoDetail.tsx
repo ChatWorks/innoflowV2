@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Clock, User, Target } from 'lucide-react';
-import { Project, Deliverable, Task } from '@/types/project';
+import { Label } from '@/components/ui/label';
+import { ArrowLeft, Plus, Clock, User, Target, Settings } from 'lucide-react';
+import { Project, Deliverable, Task, TimeEntry } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Layout from '@/components/Layout';
@@ -14,6 +15,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import SEO from '@/components/SEO';
 import TaskTimer from '@/components/TaskTimer';
 import InlineEditField from '@/components/InlineEditField';
+import ManualTimeDialog from '@/components/ManualTimeDialog';
+import TodoEfficiencyStats from '@/components/TodoEfficiencyStats';
+import { formatSecondsToTime, getTaskTotalTime } from '@/utils/manualTimeUtils';
 
 export default function TodoDetail() {
   const { id } = useParams<{ id: string }>();
@@ -24,9 +28,17 @@ export default function TodoDetail() {
   const [todoList, setTodoList] = useState<Project | null>(null);
   const [deliverable, setDeliverable] = useState<Deliverable | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskAssignee, setNewTaskAssignee] = useState('');
+  const [estimatedHours, setEstimatedHours] = useState('');
+  const [estimatedMinutes, setEstimatedMinutes] = useState('');
+  const [manualTimeDialog, setManualTimeDialog] = useState<{
+    isOpen: boolean;
+    taskId?: string;
+    taskName?: string;
+  }>({ isOpen: false });
 
   useEffect(() => {
     if (!user || !id) return;
@@ -90,6 +102,15 @@ export default function TodoDetail() {
       if (tasksError) throw tasksError;
       setTasks(tasksData as Task[]);
 
+      // Fetch time entries
+      const { data: timeEntriesData, error: timeEntriesError } = await supabase
+        .from('time_entries')
+        .select('*')
+        .eq('project_id', id);
+
+      if (timeEntriesError) throw timeEntriesError;
+      setTimeEntries(timeEntriesData as TimeEntry[]);
+
     } catch (error) {
       console.error('Error fetching todo data:', error);
       toast({
@@ -132,6 +153,10 @@ export default function TodoDetail() {
   const handleAddTask = async () => {
     if (!deliverable || !newTaskTitle.trim()) return;
 
+    const estimatedHoursNum = parseInt(estimatedHours) || 0;
+    const estimatedMinutesNum = parseInt(estimatedMinutes) || 0;
+    const totalEstimatedSeconds = (estimatedHoursNum * 60 + estimatedMinutesNum) * 60;
+
     try {
       const { data, error } = await supabase
         .from('tasks')
@@ -139,6 +164,7 @@ export default function TodoDetail() {
           deliverable_id: deliverable.id,
           title: newTaskTitle,
           assigned_to: newTaskAssignee || null,
+          estimated_time_seconds: totalEstimatedSeconds,
           user_id: user?.id
         })
         .select()
@@ -149,6 +175,8 @@ export default function TodoDetail() {
       setTasks([data as Task, ...tasks]);
       setNewTaskTitle('');
       setNewTaskAssignee('');
+      setEstimatedHours('');
+      setEstimatedMinutes('');
       toast({
         title: "Taak toegevoegd",
         description: "Nieuwe taak is succesvol aangemaakt",
@@ -243,10 +271,17 @@ export default function TodoDetail() {
   const totalTasks = tasks.length;
   const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
+  const refreshData = () => {
+    fetchTodoData();
+  };
+
   return (
     <Layout>
       <SEO title={`${todoList.name} – Todo Lijsten – Innoflow`} description={`Beheer taken voor ${todoList.name}`} />
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Efficiency Statistics */}
+        <TodoEfficiencyStats tasks={tasks} timeEntries={timeEntries} />
+
         {/* Header */}
         <div className="mb-8">
           <Button 
@@ -291,27 +326,66 @@ export default function TodoDetail() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Taak titel..."
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
-                />
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <Label htmlFor="task-title">Taak titel</Label>
+                  <Input
+                    id="task-title"
+                    placeholder="Taak titel..."
+                    value={newTaskTitle}
+                    onChange={(e) => setNewTaskTitle(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
+                  />
+                </div>
+                <div className="w-48">
+                  <Label htmlFor="assignee">Toegewezen aan</Label>
+                  <Input
+                    id="assignee"
+                    placeholder="Toegewezen aan..."
+                    value={newTaskAssignee}
+                    onChange={(e) => setNewTaskAssignee(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
+                  />
+                </div>
               </div>
-              <div className="w-48">
-                <Input
-                  placeholder="Toegewezen aan..."
-                  value={newTaskAssignee}
-                  onChange={(e) => setNewTaskAssignee(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddTask()}
-                />
+              
+              <div className="flex gap-4 items-end">
+                <div className="flex gap-2">
+                  <div className="w-20">
+                    <Label htmlFor="est-hours">Uren</Label>
+                    <Input
+                      id="est-hours"
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      value={estimatedHours}
+                      onChange={(e) => setEstimatedHours(e.target.value)}
+                    />
+                  </div>
+                  <div className="w-20">
+                    <Label htmlFor="est-minutes">Min</Label>
+                    <Input
+                      id="est-minutes"
+                      type="number"
+                      min="0"
+                      max="59"
+                      placeholder="0"
+                      value={estimatedMinutes}
+                      onChange={(e) => setEstimatedMinutes(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4 mr-1" />
+                    Geschatte tijd
+                  </div>
+                </div>
+                
+                <Button onClick={handleAddTask} disabled={!newTaskTitle.trim()} className="ml-auto">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Toevoegen
+                </Button>
               </div>
-              <Button onClick={handleAddTask} disabled={!newTaskTitle.trim()}>
-                <Plus className="h-4 w-4 mr-2" />
-                Toevoegen
-              </Button>
             </div>
           </CardContent>
         </Card>
@@ -344,15 +418,37 @@ export default function TodoDetail() {
                       <div className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
                         {task.title}
                       </div>
-                      {task.assigned_to && (
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                          <User className="h-3 w-3" />
-                          {task.assigned_to}
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                        {task.assigned_to && (
+                          <div className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            {task.assigned_to}
+                          </div>
+                        )}
+                        
+                        {/* Estimated vs Actual Time */}
+                        <div className="flex items-center gap-2">
+                          {(task as any).estimated_time_seconds > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Target className="h-3 w-3" />
+                              <span>Geschat: {formatSecondsToTime((task as any).estimated_time_seconds)}</span>
+                            </div>
+                          )}
+                          
+                          {(() => {
+                            const totalTime = getTaskTotalTime(task.id, timeEntries, (task as any).manual_time_seconds || 0);
+                            return totalTime > 0 && (
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                <span>Werkelijk: {formatSecondsToTime(totalTime)}</span>
+                              </div>
+                            );
+                          })()}
                         </div>
-                      )}
+                      </div>
                     </div>
 
-                    {/* Timer */}
+                    {/* Timer and Manual Time */}
                     {deliverable && (
                       <div className="flex items-center gap-2">
                         <TaskTimer
@@ -363,6 +459,19 @@ export default function TodoDetail() {
                           projectId={todoList.id}
                           projectName={todoList.name}
                         />
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setManualTimeDialog({
+                            isOpen: true,
+                            taskId: task.id,
+                            taskName: task.title
+                          })}
+                        >
+                          <Settings className="h-4 w-4 mr-1" />
+                          Handmatig
+                        </Button>
                       </div>
                     )}
 
@@ -381,6 +490,19 @@ export default function TodoDetail() {
             ))
           )}
         </div>
+
+        {/* Manual Time Dialog */}
+        {manualTimeDialog.isOpen && manualTimeDialog.taskId && manualTimeDialog.taskName && todoList && (
+          <ManualTimeDialog
+            isOpen={manualTimeDialog.isOpen}
+            onClose={() => setManualTimeDialog({ isOpen: false })}
+            onTimeAdded={refreshData}
+            targetType="task"
+            targetId={manualTimeDialog.taskId}
+            targetName={manualTimeDialog.taskName}
+            projectId={todoList.id}
+          />
+        )}
       </main>
     </Layout>
   );
