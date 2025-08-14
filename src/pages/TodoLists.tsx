@@ -118,10 +118,10 @@ export default function TodoLists() {
                 </div>
                 <div>
                   <Button 
-                    className="bg-white/20 text-white border-white/30 hover:bg-white/30"
+                    className="bg-primary text-primary-foreground hover:bg-primary-hover border-2 border-primary-glow shadow-lg font-semibold px-6 py-3 text-base"
                     onClick={() => setShowCreateDialog(true)}
                   >
-                    <Plus className="mr-2 h-4 w-4" />
+                    <Plus className="mr-2 h-5 w-5" />
                     Nieuwe Todo Lijst
                   </Button>
                 </div>
