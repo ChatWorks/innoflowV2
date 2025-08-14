@@ -124,6 +124,10 @@ export default function TodoDetail() {
     }
   };
 
+  const refreshData = async () => {
+    await fetchTodoData();
+  };
+
   const handleUpdateTodoTitle = async (newTitle: string) => {
     if (!todoList || !newTitle.trim()) return;
 
@@ -271,9 +275,6 @@ export default function TodoDetail() {
   const totalTasks = tasks.length;
   const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  const refreshData = () => {
-    fetchTodoData();
-  };
 
   return (
     <Layout>
