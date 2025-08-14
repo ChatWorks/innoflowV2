@@ -42,6 +42,10 @@ const getStatusColor = (status: Project['status']) => {
 };
 
 const getStatusDisplay = (status: Project['status'], progress: number) => {
+  // Voor voltooide lijsten (100% progress), toon altijd "Voltooid"
+  if (progress >= 100) {
+    return 'Voltooid';
+  }
   // Voor actieve lijsten (< 100% progress), toon "Actief" in plaats van "Nieuw"
   if (progress < 100 && status === 'Nieuw') {
     return 'Actief';
@@ -154,20 +158,25 @@ export function TodoListCard({ todoList, onClick, onUpdate }: TodoListCardProps)
     const updateProgress = async () => {
       if (!loading && totalTasks > 0) {
         const newProgress = Math.round((completedTasks / totalTasks) * 100);
-        if (newProgress !== todoList.progress) {
+        const needsProgressUpdate = newProgress !== todoList.progress;
+        const needsStatusUpdate = newProgress >= 100 && todoList.status !== 'Voltooid';
+        
+        if (needsProgressUpdate || needsStatusUpdate) {
           try {
-            await supabase.from('projects').update({ 
-              progress: newProgress 
-            }).eq('id', todoList.id);
+            const updateData: any = {};
+            if (needsProgressUpdate) updateData.progress = newProgress;
+            if (needsStatusUpdate) updateData.status = 'Voltooid';
+            
+            await supabase.from('projects').update(updateData).eq('id', todoList.id);
             onUpdate?.();
           } catch (error) {
-            console.error('Error updating progress:', error);
+            console.error('Error updating progress/status:', error);
           }
         }
       }
     };
     updateProgress();
-  }, [completedTasks, totalTasks, loading, todoList.id, todoList.progress, onUpdate]);
+  }, [completedTasks, totalTasks, loading, todoList.id, todoList.progress, todoList.status, onUpdate]);
 
   return (
     <Card 
