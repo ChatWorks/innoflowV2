@@ -43,7 +43,7 @@ export default function Layout({
                   Doelen
                 </Button>
                 <Button variant="ghost" onClick={() => navigate('/todo')} className="text-gray-600 hover:text-gray-900">
-                  Todo Lijsten
+                  To-do Lijsten
                 </Button>
                 <span className="text-gray-400">AI Advies</span>
               </nav>
