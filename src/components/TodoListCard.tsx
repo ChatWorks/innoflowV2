@@ -41,6 +41,14 @@ const getStatusColor = (status: Project['status']) => {
   }
 };
 
+const getStatusDisplay = (status: Project['status'], progress: number) => {
+  // Voor actieve lijsten (< 100% progress), toon "Actief" in plaats van "Nieuw"
+  if (progress < 100 && status === 'Nieuw') {
+    return 'Actief';
+  }
+  return status;
+};
+
 export function TodoListCard({ todoList, onClick, onUpdate }: TodoListCardProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,7 +86,15 @@ export function TodoListCard({ todoList, onClick, onUpdate }: TodoListCardProps)
   const handleSetStatus = async (newStatus: Project['status']) => {
     try {
       if (newStatus === todoList.status) return;
-      await supabase.from('projects').update({ status: newStatus } as any).eq('id', todoList.id);
+      
+      // Calculate and update progress based on task completion
+      const newProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      
+      await supabase.from('projects').update({ 
+        status: newStatus,
+        progress: newProgress
+      } as any).eq('id', todoList.id);
+      
       toast({ title: 'Status bijgewerkt', description: `${todoList.name} → ${newStatus}` });
       onUpdate?.();
     } catch (error) {
@@ -132,6 +148,26 @@ export function TodoListCard({ todoList, onClick, onUpdate }: TodoListCardProps)
   const completedTasks = tasks.filter(t => t.completed).length;
   const totalTasks = tasks.length;
   const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  // Auto-update project progress when tasks change
+  useEffect(() => {
+    const updateProgress = async () => {
+      if (!loading && totalTasks > 0) {
+        const newProgress = Math.round((completedTasks / totalTasks) * 100);
+        if (newProgress !== todoList.progress) {
+          try {
+            await supabase.from('projects').update({ 
+              progress: newProgress 
+            }).eq('id', todoList.id);
+            onUpdate?.();
+          } catch (error) {
+            console.error('Error updating progress:', error);
+          }
+        }
+      }
+    };
+    updateProgress();
+  }, [completedTasks, totalTasks, loading, todoList.id, todoList.progress, onUpdate]);
 
   return (
     <Card 
@@ -211,7 +247,7 @@ export function TodoListCard({ todoList, onClick, onUpdate }: TodoListCardProps)
               {todoList.name}
             </CardTitle>
             <Badge className={`text-xs ${getStatusColor(todoList.status)}`}>
-              {todoList.status}
+              {getStatusDisplay(todoList.status, progressPercentage)}
             </Badge>
           </div>
         </CardHeader>
