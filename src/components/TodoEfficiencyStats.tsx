@@ -48,64 +48,60 @@ export default function TodoEfficiencyStats({ tasks, timeEntries }: TodoEfficien
   }
 
   return (
-    <Card className="mb-6">
-      <CardContent className="p-6">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {/* Total Tasks */}
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-2">
-              <CheckSquare className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="text-2xl font-bold">{totalTasks}</div>
-            <div className="text-sm text-muted-foreground">Taken</div>
-            <div className="text-xs text-muted-foreground">
-              {completedTasks} voltooid
-            </div>
-          </div>
-
-          {/* Estimated Time */}
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-2">
-              <Target className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="text-2xl font-bold">
-              {formatSecondsToTime(totalEstimatedTime)}
-            </div>
-            <div className="text-sm text-muted-foreground">Geschat</div>
-          </div>
-
-          {/* Actual Time */}
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-2">
-              <Clock className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="text-2xl font-bold">
-              {formatSecondsToTime(totalActualTime)}
-            </div>
-            <div className="text-sm text-muted-foreground">Werkelijk</div>
-          </div>
-
-          {/* Efficiency */}
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-2">
-              <TrendingUp className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className={`text-2xl font-bold ${getEfficiencyColor(efficiencyPercentage)}`}>
-              {totalEstimatedTime > 0 ? `${efficiencyPercentage}%` : 'N/A'}
-            </div>
-            <div className="text-sm text-muted-foreground">Efficiëntie</div>
-            {totalEstimatedTime > 0 && (
-              <Badge 
-                variant={getEfficiencyVariant(efficiencyPercentage)}
-                className="text-xs mt-1"
-              >
-                {efficiencyPercentage <= 100 ? 'Binnen tijd' : 
-                 efficiencyPercentage <= 120 ? 'Licht over' : 'Veel over'}
-              </Badge>
-            )}
-          </div>
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      {/* Total Tasks */}
+      <Card className="p-6 border">
+        <div className="flex items-center justify-between mb-2">
+          <CheckSquare className="h-5 w-5 text-muted-foreground" />
         </div>
-      </CardContent>
-    </Card>
+        <div className="text-3xl font-bold text-foreground">{totalTasks}</div>
+        <div className="text-sm text-muted-foreground">Taken</div>
+        <div className="text-xs text-muted-foreground">
+          {completedTasks} voltooid
+        </div>
+      </Card>
+
+      {/* Estimated Time */}
+      <Card className="p-6 border">
+        <div className="flex items-center justify-between mb-2">
+          <Target className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <div className="text-3xl font-bold text-foreground">
+          {formatSecondsToTime(totalEstimatedTime)}
+        </div>
+        <div className="text-sm text-muted-foreground">Geschat</div>
+      </Card>
+
+      {/* Actual Time */}
+      <Card className="p-6 border">
+        <div className="flex items-center justify-between mb-2">
+          <Clock className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <div className="text-3xl font-bold text-foreground">
+          {formatSecondsToTime(totalActualTime)}
+        </div>
+        <div className="text-sm text-muted-foreground">Werkelijk</div>
+      </Card>
+
+      {/* Efficiency */}
+      <Card className="p-6 border">
+        <div className="flex items-center justify-between mb-2">
+          <TrendingUp className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <div className={`text-3xl font-bold ${getEfficiencyColor(efficiencyPercentage)}`}>
+          {totalEstimatedTime > 0 ? `${efficiencyPercentage}%` : 'N/A'}
+        </div>
+        <div className="text-sm text-muted-foreground">Efficiëntie</div>
+        {totalEstimatedTime > 0 && (
+          <Badge 
+            variant={getEfficiencyVariant(efficiencyPercentage)}
+            className="text-xs mt-1"
+          >
+            {efficiencyPercentage <= 100 ? 'Binnen tijd' : 
+             efficiencyPercentage <= 120 ? 'Licht over' : 'Veel over'}
+          </Badge>
+        )}
+      </Card>
+    </div>
   );
 }
