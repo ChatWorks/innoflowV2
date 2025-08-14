@@ -14,6 +14,7 @@ interface TaskTimerProps {
   projectId: string;
   projectName: string;
   onTimerChange?: (isActive: boolean) => void;
+  onTimerUpdate?: () => void;
 }
 
 export default function TaskTimer({ 
@@ -23,7 +24,8 @@ export default function TaskTimer({
   deliverableTitle,
   projectId, 
   projectName,
-  onTimerChange 
+  onTimerChange,
+  onTimerUpdate 
 }: TaskTimerProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false); // Prevent race conditions

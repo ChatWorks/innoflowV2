@@ -17,6 +17,7 @@ import TaskTimer from '@/components/TaskTimer';
 import InlineEditField from '@/components/InlineEditField';
 import ManualTimeDialog from '@/components/ManualTimeDialog';
 import TodoEfficiencyStats from '@/components/TodoEfficiencyStats';
+import { useTimer } from '@/contexts/TimerContext';
 import { formatSecondsToTime, getTaskTotalTime } from '@/utils/manualTimeUtils';
 
 export default function TodoDetail() {
@@ -24,6 +25,7 @@ export default function TodoDetail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { timeEntryRefreshTrigger, lastRefreshProjectId, lastRefreshTaskId } = useTimer();
   
   const [todoList, setTodoList] = useState<Project | null>(null);
   const [deliverable, setDeliverable] = useState<Deliverable | null>(null);
@@ -44,6 +46,14 @@ export default function TodoDetail() {
     if (!user || !id) return;
     fetchTodoData();
   }, [user, id]);
+
+  // Listen for timer updates
+  useEffect(() => {
+    if (timeEntryRefreshTrigger > 0 && lastRefreshProjectId === id) {
+      console.log('Timer update detected, refreshing data...');
+      fetchTodoData();
+    }
+  }, [timeEntryRefreshTrigger, lastRefreshProjectId, id]);
 
   const fetchTodoData = async () => {
     if (!user || !id) return;
