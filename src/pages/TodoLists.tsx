@@ -100,7 +100,7 @@ export default function TodoLists() {
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-4xl font-bold mb-2">
-                    Todo Lijsten
+                    To do Lijsten
                   </h1>
                   <p className="text-primary-foreground/80 text-lg mb-4">
                     Organiseer je taken en behaal je doelen
