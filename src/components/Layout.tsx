@@ -42,6 +42,9 @@ export default function Layout({
                 <Button variant="ghost" onClick={() => navigate('/goals')} className="text-gray-600 hover:text-gray-900">
                   Doelen
                 </Button>
+                <Button variant="ghost" onClick={() => navigate('/todo')} className="text-gray-600 hover:text-gray-900">
+                  Todo Lijsten
+                </Button>
                 <span className="text-gray-400">AI Advies</span>
               </nav>
             </div>

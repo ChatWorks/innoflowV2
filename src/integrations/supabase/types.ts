@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -445,6 +445,13 @@ export type Database = {
             referencedRelation: "moneybird_connections"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "moneybird_aggregates_daily_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "moneybird_connections_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       moneybird_connections: {
@@ -520,6 +527,13 @@ export type Database = {
             columns: ["connection_id"]
             isOneToOne: false
             referencedRelation: "moneybird_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "moneybird_sync_state_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "moneybird_connections_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -740,9 +754,13 @@ export type Database = {
           end_date: string | null
           hourly_rate: number | null
           id: string
+          is_highlighted: boolean
+          is_internal: boolean
+          is_todo_list: boolean
           name: string
           progress: number | null
           project_value: number | null
+          sort_order: number | null
           start_date: string | null
           status: string
           total_hours: number | null
@@ -757,9 +775,13 @@ export type Database = {
           end_date?: string | null
           hourly_rate?: number | null
           id?: string
+          is_highlighted?: boolean
+          is_internal?: boolean
+          is_todo_list?: boolean
           name: string
           progress?: number | null
           project_value?: number | null
+          sort_order?: number | null
           start_date?: string | null
           status?: string
           total_hours?: number | null
@@ -774,9 +796,13 @@ export type Database = {
           end_date?: string | null
           hourly_rate?: number | null
           id?: string
+          is_highlighted?: boolean
+          is_internal?: boolean
+          is_todo_list?: boolean
           name?: string
           progress?: number | null
           project_value?: number | null
+          sort_order?: number | null
           start_date?: string | null
           status?: string
           total_hours?: number | null
@@ -904,7 +930,33 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      moneybird_connections_safe: {
+        Row: {
+          administration_id: string | null
+          auth_type: string | null
+          connection_label: string | null
+          created_at: string | null
+          id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          administration_id?: string | null
+          auth_type?: string | null
+          connection_label?: string | null
+          created_at?: string | null
+          id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          administration_id?: string | null
+          auth_type?: string | null
+          connection_label?: string | null
+          created_at?: string | null
+          id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_portal_hash: {
@@ -921,11 +973,11 @@ export type Database = {
       }
       insert_client_message: {
         Args: {
-          p_portal_hash: string
-          p_subject: string
           p_message: string
-          p_sender_name?: string
+          p_portal_hash: string
           p_sender_email?: string
+          p_sender_name?: string
+          p_subject: string
         }
         Returns: string
       }

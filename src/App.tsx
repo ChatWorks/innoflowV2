@@ -11,6 +11,8 @@ import HomePage from "./pages/HomePage";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import ProjectSetupWizard from "./components/ProjectSetupWizard";
+import TodoLists from "./pages/TodoLists";
+import TodoDetail from "./pages/TodoDetail";
 import Leads from "./pages/Leads";
 import LeadDetail from "./pages/LeadDetail";
 import Goals from "./pages/Goals";
@@ -49,6 +51,16 @@ const App = () => (
               <Route path="/project/:id" element={
                 <ProtectedRoute>
                   <ProjectDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/todo" element={
+                <ProtectedRoute>
+                  <TodoLists />
+                </ProtectedRoute>
+              } />
+              <Route path="/todo/:id" element={
+                <ProtectedRoute>
+                  <TodoDetail />
                 </ProtectedRoute>
               } />
               <Route path="/leads" element={

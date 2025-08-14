@@ -122,8 +122,9 @@ const { user } = useAuth();
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('id, name, client, description, status, progress, budget, project_value, total_hours, hourly_rate, sort_order, is_highlighted, is_internal, start_date, end_date, created_at, updated_at')
+        .select('id, name, client, description, status, progress, budget, project_value, total_hours, hourly_rate, sort_order, is_highlighted, is_internal, start_date, end_date, created_at, updated_at, is_todo_list')
         .eq('user_id', user.id)
+        .eq('is_todo_list', false)
         .order('sort_order' as any, { ascending: true })
         .order('updated_at', { ascending: false });
 
