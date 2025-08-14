@@ -290,19 +290,21 @@ export default function TodoDetail() {
     <Layout>
       <SEO title={`${todoList.name} – Todo Lijsten – Innoflow`} description={`Beheer taken voor ${todoList.name}`} />
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Back Button - Moved to top with dark blue styling */}
+        <Button 
+          variant="default"
+          className="mb-6 bg-slate-800 hover:bg-slate-700 text-white border-slate-800 hover:border-slate-700"
+          onClick={() => navigate('/todo')}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Terug naar Todo Lijsten
+        </Button>
+
         {/* Efficiency Statistics */}
         <TodoEfficiencyStats tasks={tasks} timeEntries={timeEntries} />
 
         {/* Header */}
         <div className="mb-8">
-          <Button 
-            variant="ghost" 
-            className="mb-4"
-            onClick={() => navigate('/todo')}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Terug naar Todo Lijsten
-          </Button>
           
           <div className="bg-card rounded-lg p-6 border">
             <div className="flex items-center justify-between mb-4">
