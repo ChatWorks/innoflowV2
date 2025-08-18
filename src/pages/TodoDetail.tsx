@@ -603,7 +603,15 @@ export default function TodoDetail() {
                           </Button>
                         )}
 
-                        {deliverable && (
+                        {deliverable && !hasSubtasks && (
+                          <SubtaskCreationDialog
+                            parentTaskId={task.id}
+                            deliverableId={deliverable.id}
+                            onSubtaskCreated={refreshData}
+                          />
+                        )}
+                        
+                        {deliverable && hasSubtasks && (
                           <SubtaskCreationDialog
                             parentTaskId={task.id}
                             deliverableId={deliverable.id}
