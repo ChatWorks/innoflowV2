@@ -39,6 +39,25 @@ export const getTaskTotalTime = (
   return taskTimerSeconds + manualTimeSeconds;
 };
 
+// Get total time spent on a main task including all its subtasks
+export const getMainTaskTotalTime = (
+  mainTask: Task,
+  timeEntries: TimeEntry[],
+  manualTimeSeconds: number = 0
+): number => {
+  // Get time for the main task itself
+  let totalTime = getTaskTotalTime(mainTask.id, timeEntries, manualTimeSeconds);
+  
+  // Add time from all subtasks
+  if (mainTask.subtasks) {
+    totalTime += mainTask.subtasks.reduce((sum, subtask) => {
+      return sum + getTaskTotalTime(subtask.id, timeEntries, (subtask as any).manual_time_seconds || 0);
+    }, 0);
+  }
+  
+  return totalTime;
+};
+
 // Get total time spent on a deliverable (all tasks + manual)
 export const getDeliverableTotalTime = (
   deliverable: Deliverable,

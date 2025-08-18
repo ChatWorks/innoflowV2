@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Plus, Clock, User, Target, Settings } from 'lucide-react';
+import { ArrowLeft, Plus, Clock, User, Target, Settings, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { Project, Deliverable, Task, TimeEntry } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +18,9 @@ import InlineEditField from '@/components/InlineEditField';
 import ManualTimeDialog from '@/components/ManualTimeDialog';
 import TodoEfficiencyStats from '@/components/TodoEfficiencyStats';
 import { useTimer } from '@/contexts/TimerContext';
-import { formatSecondsToTime, getTaskTotalTime } from '@/utils/manualTimeUtils';
+import { formatSecondsToTime, getTaskTotalTime, getMainTaskTotalTime } from '@/utils/manualTimeUtils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import SubtaskCreationDialog from '@/components/SubtaskCreationDialog';
 
 export default function TodoDetail() {
   const { id } = useParams<{ id: string }>();
@@ -41,6 +43,7 @@ export default function TodoDetail() {
     taskId?: string;
     taskName?: string;
   }>({ isOpen: false });
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!user || !id) return;
@@ -102,15 +105,27 @@ export default function TodoDetail() {
 
       setDeliverable(deliverableData as Deliverable);
 
-      // Fetch tasks
-      const { data: tasksData, error: tasksError } = await supabase
+      // Fetch all tasks with hierarchical structure
+      const { data: allTasksData, error: tasksError } = await supabase
         .from('tasks')
         .select('*')
         .eq('deliverable_id', deliverableData.id)
         .order('created_at', { ascending: false });
 
       if (tasksError) throw tasksError;
-      setTasks(tasksData as Task[]);
+
+      // Organize tasks into hierarchical structure
+      const allTasks = allTasksData as Task[];
+      const mainTasks = allTasks.filter(task => !task.is_subtask);
+      const subtasks = allTasks.filter(task => task.is_subtask);
+
+      // Attach subtasks to their parent tasks
+      const tasksWithSubtasks = mainTasks.map(mainTask => ({
+        ...mainTask,
+        subtasks: subtasks.filter(subtask => subtask.parent_task_id === mainTask.id)
+      }));
+
+      setTasks(tasksWithSubtasks);
 
       // Fetch time entries
       const { data: timeEntriesData, error: timeEntriesError } = await supabase
@@ -205,7 +220,7 @@ export default function TodoDetail() {
     }
   };
 
-  const handleToggleTask = async (task: Task) => {
+  const handleToggleTask = async (task: Task, isSubtask = false, parentTaskId?: string) => {
     try {
       const { error } = await supabase
         .from('tasks')
@@ -217,11 +232,28 @@ export default function TodoDetail() {
 
       if (error) throw error;
 
-      setTasks(tasks.map(t => 
-        t.id === task.id 
-          ? { ...t, completed: !t.completed, completed_at: !t.completed ? new Date().toISOString() : null }
-          : t
-      ));
+      if (isSubtask && parentTaskId) {
+        // Update subtask in parent task
+        setTasks(tasks.map(t => 
+          t.id === parentTaskId 
+            ? { 
+                ...t, 
+                subtasks: t.subtasks?.map(st => 
+                  st.id === task.id 
+                    ? { ...st, completed: !st.completed, completed_at: !st.completed ? new Date().toISOString() : null }
+                    : st
+                ) || []
+              }
+            : t
+        ));
+      } else {
+        // Update main task
+        setTasks(tasks.map(t => 
+          t.id === task.id 
+            ? { ...t, completed: !t.completed, completed_at: !t.completed ? new Date().toISOString() : null }
+            : t
+        ));
+      }
     } catch (error) {
       console.error('Error toggling task:', error);
       toast({
@@ -232,7 +264,7 @@ export default function TodoDetail() {
     }
   };
 
-  const handleDeleteTask = async (taskId: string) => {
+  const handleDeleteTask = async (taskId: string, isSubtask = false, parentTaskId?: string) => {
     try {
       const { error } = await supabase
         .from('tasks')
@@ -241,7 +273,18 @@ export default function TodoDetail() {
 
       if (error) throw error;
 
-      setTasks(tasks.filter(t => t.id !== taskId));
+      if (isSubtask && parentTaskId) {
+        // Remove subtask from parent task
+        setTasks(tasks.map(t => 
+          t.id === parentTaskId 
+            ? { ...t, subtasks: t.subtasks?.filter(st => st.id !== taskId) || [] }
+            : t
+        ));
+      } else {
+        // Remove main task (and all its subtasks will be deleted via cascade)
+        setTasks(tasks.filter(t => t.id !== taskId));
+      }
+      
       toast({
         title: "Taak verwijderd",
         description: "Taak is succesvol verwijderd",
@@ -254,6 +297,18 @@ export default function TodoDetail() {
         variant: "destructive",
       });
     }
+  };
+
+  const toggleTaskExpansion = (taskId: string) => {
+    setExpandedTasks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(taskId)) {
+        newSet.delete(taskId);
+      } else {
+        newSet.add(taskId);
+      }
+      return newSet;
+    });
   };
 
   if (loading) {
@@ -281,9 +336,31 @@ export default function TodoDetail() {
     );
   }
 
-  const completedTasks = tasks.filter(t => t.completed).length;
-  const totalTasks = tasks.length;
-  const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+  // Calculate progress including subtasks
+  const calculateProgress = () => {
+    let completedCount = 0;
+    let totalCount = 0;
+
+    tasks.forEach(task => {
+      if (task.subtasks && task.subtasks.length > 0) {
+        // For tasks with subtasks, count individual subtasks
+        totalCount += task.subtasks.length;
+        completedCount += task.subtasks.filter(st => st.completed).length;
+      } else {
+        // For tasks without subtasks, count the main task
+        totalCount += 1;
+        if (task.completed) completedCount += 1;
+      }
+    });
+
+    return {
+      completedTasks: completedCount,
+      totalTasks: totalCount,
+      progressPercentage: totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+    };
+  };
+
+  const { completedTasks, totalTasks, progressPercentage } = calculateProgress();
 
 
   return (
@@ -403,7 +480,7 @@ export default function TodoDetail() {
           </CardContent>
         </Card>
 
-        {/* Tasks List */}
+        {/* Tasks List with Subtasks */}
         <div className="space-y-4">
           {tasks.length === 0 ? (
             <div className="text-center py-12">
@@ -414,93 +491,229 @@ export default function TodoDetail() {
               </div>
             </div>
           ) : (
-            tasks.map((task) => (
-              <Card key={task.id} className={`transition-opacity ${task.completed ? 'opacity-60' : ''}`}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    {/* Checkbox */}
-                    <input
-                      type="checkbox"
-                      checked={task.completed}
-                      onChange={() => handleToggleTask(task)}
-                      className="h-5 w-5 rounded border-2 text-primary focus:ring-primary"
-                    />
-                    
-                    {/* Task Details */}
-                    <div className="flex-1">
-                      <div className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
-                        {task.title}
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                        {task.assigned_to && (
-                          <div className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            {task.assigned_to}
-                          </div>
-                        )}
-                        
-                        {/* Estimated vs Actual Time */}
-                        <div className="flex items-center gap-2">
-                          {(task as any).estimated_time_seconds > 0 && (
+            tasks.map((task) => {
+              const isExpanded = expandedTasks.has(task.id);
+              const hasSubtasks = task.subtasks && task.subtasks.length > 0;
+              const mainTaskTime = getMainTaskTotalTime(task, timeEntries, (task as any).manual_time_seconds || 0);
+              
+              return (
+                <Card key={task.id} className="transition-opacity">
+                  <CardContent className="p-4">
+                    {/* Main Task */}
+                    <div className="flex items-center gap-4">
+                      {/* Expand/Collapse Button */}
+                      {hasSubtasks ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleTaskExpansion(task.id)}
+                          className="p-1 h-auto"
+                        >
+                          {isExpanded ? 
+                            <ChevronDown className="h-4 w-4" /> : 
+                            <ChevronRight className="h-4 w-4" />
+                          }
+                        </Button>
+                      ) : (
+                        <div className="w-8" />
+                      )}
+                      
+                      {/* Checkbox */}
+                      <input
+                        type="checkbox"
+                        checked={hasSubtasks ? task.subtasks!.every(st => st.completed) : task.completed}
+                        onChange={() => {
+                          if (hasSubtasks) {
+                            // Toggle all subtasks
+                            const allCompleted = task.subtasks!.every(st => st.completed);
+                            task.subtasks!.forEach(subtask => {
+                              if (subtask.completed === allCompleted) {
+                                handleToggleTask(subtask, true, task.id);
+                              }
+                            });
+                          } else {
+                            handleToggleTask(task);
+                          }
+                        }}
+                        className="h-5 w-5 rounded border-2 text-primary focus:ring-primary"
+                      />
+                      
+                      {/* Task Details */}
+                      <div className="flex-1">
+                        <div className={`font-medium ${hasSubtasks ? '' : task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                          {task.title}
+                          {hasSubtasks && (
+                            <Badge variant="secondary" className="ml-2 text-xs">
+                              {task.subtasks!.filter(st => st.completed).length}/{task.subtasks!.length}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                          {task.assigned_to && (
                             <div className="flex items-center gap-1">
-                              <Target className="h-3 w-3" />
-                              <span>Geschat: {formatSecondsToTime((task as any).estimated_time_seconds)}</span>
+                              <User className="h-3 w-3" />
+                              {task.assigned_to}
                             </div>
                           )}
                           
-                          {(() => {
-                            const totalTime = getTaskTotalTime(task.id, timeEntries, (task as any).manual_time_seconds || 0);
-                            return totalTime > 0 && (
+                          {/* Estimated vs Actual Time */}
+                          <div className="flex items-center gap-2">
+                            {(task as any).estimated_time_seconds > 0 && (
+                              <div className="flex items-center gap-1">
+                                <Target className="h-3 w-3" />
+                                <span>Geschat: {formatSecondsToTime((task as any).estimated_time_seconds)}</span>
+                              </div>
+                            )}
+                            
+                            {mainTaskTime > 0 && (
                               <div className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                <span>Werkelijk: {formatSecondsToTime(totalTime)}</span>
+                                <span>Totaal: {formatSecondsToTime(mainTaskTime)}</span>
                               </div>
-                            );
-                          })()}
+                            )}
+                          </div>
                         </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2">
+                        {deliverable && !hasSubtasks && (
+                          <TaskTimer
+                            taskId={task.id}
+                            taskTitle={task.title}
+                            deliverableId={deliverable.id}
+                            deliverableTitle={deliverable.title}
+                            projectId={todoList.id}
+                            projectName={todoList.name}
+                          />
+                        )}
+                        
+                        {deliverable && !hasSubtasks && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setManualTimeDialog({
+                              isOpen: true,
+                              taskId: task.id,
+                              taskName: task.title
+                            })}
+                          >
+                            <Settings className="h-4 w-4 mr-1" />
+                            Handmatig
+                          </Button>
+                        )}
+
+                        {deliverable && (
+                          <SubtaskCreationDialog
+                            parentTaskId={task.id}
+                            deliverableId={deliverable.id}
+                            onSubtaskCreated={refreshData}
+                          />
+                        )}
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteTask(task.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
 
-                    {/* Timer and Manual Time */}
-                    {deliverable && (
-                      <div className="flex items-center gap-2">
-                        <TaskTimer
-                          taskId={task.id}
-                          taskTitle={task.title}
-                          deliverableId={deliverable.id}
-                          deliverableTitle={deliverable.title}
-                          projectId={todoList.id}
-                          projectName={todoList.name}
-                        />
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setManualTimeDialog({
-                            isOpen: true,
-                            taskId: task.id,
-                            taskName: task.title
-                          })}
-                        >
-                          <Settings className="h-4 w-4 mr-1" />
-                          Handmatig
-                        </Button>
-                      </div>
-                    )}
+                    {/* Subtasks */}
+                    {hasSubtasks && (
+                      <Collapsible open={isExpanded}>
+                        <CollapsibleContent className="mt-4">
+                          <div className="pl-12 space-y-3 border-l-2 border-border ml-4">
+                            {task.subtasks!.map((subtask) => {
+                              const subtaskTime = getTaskTotalTime(subtask.id, timeEntries, (subtask as any).manual_time_seconds || 0);
+                              
+                              return (
+                                <div key={subtask.id} className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                                  {/* Subtask Checkbox */}
+                                  <input
+                                    type="checkbox"
+                                    checked={subtask.completed}
+                                    onChange={() => handleToggleTask(subtask, true, task.id)}
+                                    className="h-4 w-4 rounded border-2 text-primary focus:ring-primary"
+                                  />
+                                  
+                                  {/* Subtask Details */}
+                                  <div className="flex-1">
+                                    <div className={`text-sm font-medium ${subtask.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                      {subtask.title}
+                                    </div>
+                                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                                      {subtask.assigned_to && (
+                                        <div className="flex items-center gap-1">
+                                          <User className="h-3 w-3" />
+                                          {subtask.assigned_to}
+                                        </div>
+                                      )}
+                                      
+                                      {(subtask as any).estimated_time_seconds > 0 && (
+                                        <div className="flex items-center gap-1">
+                                          <Target className="h-3 w-3" />
+                                          <span>Geschat: {formatSecondsToTime((subtask as any).estimated_time_seconds)}</span>
+                                        </div>
+                                      )}
+                                      
+                                      {subtaskTime > 0 && (
+                                        <div className="flex items-center gap-1">
+                                          <Clock className="h-3 w-3" />
+                                          <span>Werkelijk: {formatSecondsToTime(subtaskTime)}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
 
-                    {/* Delete Button */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteTask(task.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      Verwijderen
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
+                                  {/* Subtask Actions */}
+                                  {deliverable && (
+                                    <div className="flex items-center gap-2">
+                                      <TaskTimer
+                                        taskId={subtask.id}
+                                        taskTitle={subtask.title}
+                                        deliverableId={deliverable.id}
+                                        deliverableTitle={`${task.title} - ${subtask.title}`}
+                                        projectId={todoList.id}
+                                        projectName={todoList.name}
+                                      />
+                                      
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setManualTimeDialog({
+                                          isOpen: true,
+                                          taskId: subtask.id,
+                                          taskName: `${task.title} - ${subtask.title}`
+                                        })}
+                                      >
+                                        <Settings className="h-3 w-3" />
+                                      </Button>
+
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleDeleteTask(subtask.id, true, task.id)}
+                                        className="text-destructive hover:text-destructive"
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </div>
 

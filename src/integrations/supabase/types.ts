@@ -821,7 +821,9 @@ export type Database = {
           description: string | null
           estimated_time_seconds: number | null
           id: string
+          is_subtask: boolean
           manual_time_seconds: number | null
+          parent_task_id: string | null
           title: string
           updated_at: string
           user_id: string | null
@@ -835,7 +837,9 @@ export type Database = {
           description?: string | null
           estimated_time_seconds?: number | null
           id?: string
+          is_subtask?: boolean
           manual_time_seconds?: number | null
+          parent_task_id?: string | null
           title: string
           updated_at?: string
           user_id?: string | null
@@ -849,7 +853,9 @@ export type Database = {
           description?: string | null
           estimated_time_seconds?: number | null
           id?: string
+          is_subtask?: boolean
           manual_time_seconds?: number | null
+          parent_task_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string | null
@@ -860,6 +866,13 @@ export type Database = {
             columns: ["deliverable_id"]
             isOneToOne: false
             referencedRelation: "deliverables"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_parent_task_id_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
         ]

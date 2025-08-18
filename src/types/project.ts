@@ -66,6 +66,9 @@ export interface Task {
   completed: boolean;
   completed_at?: string;
   assigned_to?: string;
+  parent_task_id?: string;
+  is_subtask?: boolean;
+  subtasks?: Task[];
   created_at: string;
   updated_at: string;
 }
