@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { TimerProvider } from "@/contexts/TimerContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import FloatingTimer from "@/components/FloatingTimer";
 import HomePage from "./pages/HomePage";
@@ -23,14 +24,17 @@ import Financien from "./pages/Financien";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TimerProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+function App() {
+  useDocumentTitle();
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <TimerProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={
@@ -94,6 +98,7 @@ const App = () => (
       </TimerProvider>
     </AuthProvider>
   </QueryClientProvider>
-);
+  );
+}
 
 export default App;

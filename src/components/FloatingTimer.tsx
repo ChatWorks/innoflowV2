@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pause, Square, Minimize2, Maximize2, X } from 'lucide-react';
 import { useTimer } from '@/contexts/TimerContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { formatTime } from '@/utils/timeUtils';
 
 const FloatingTimer = React.memo(function FloatingTimer() {
   const { activeTimer, setActiveTimer, setFloatingVisible, refreshTimeEntry } = useTimer();
@@ -33,17 +34,6 @@ const FloatingTimer = React.memo(function FloatingTimer() {
     return () => clearInterval(interval);
   }, [activeTimer, pausedTime]);
 
-  // Memoize expensive calculations
-  const formatTime = useMemo(() => (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }, []);
 
   const handlePause = () => {
     if (!activeTimer) return;
