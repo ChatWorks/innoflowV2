@@ -86,7 +86,11 @@ serve(async (req) => {
     console.log('OpenAI Response received for project:', projectId);
     console.log('Full OpenAI Response:', JSON.stringify(data, null, 2));
     
-    const aiResponse = data.output?.[0]?.content?.[0]?.text || 'Er is een fout opgetreden bij het verwerken van je vraag.';
+    // Find the message type output item (not the reasoning type)
+    const messageOutput = data.output?.find(item => item.type === 'message');
+    const aiResponse = messageOutput?.content?.[0]?.text || 
+                      data.output?.[0]?.content?.[0]?.text || 
+                      'Er is een fout opgetreden bij het verwerken van je vraag.';
     console.log('Extracted AI Response:', aiResponse);
 
     return new Response(JSON.stringify({ response: aiResponse }), {
