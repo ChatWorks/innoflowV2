@@ -325,6 +325,21 @@ function prepareProjectContext(context: any) {
   };
 }
 
+// Helper function to format seconds to precise time format
+function formatTimeSeconds(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes}m ${secs}s`;
+  } else if (minutes > 0) {
+    return `${minutes}m ${secs}s`;
+  } else {
+    return `${secs}s`;
+  }
+}
+
 function createSystemPrompt(enrichedContext: any) {
   const { project, hierarchy, meetings } = enrichedContext;
   
@@ -342,7 +357,7 @@ COMPLETE PROJECT HIËRARCHIE EN CONTEXT:
 - Eind datum: ${project.end_date || 'Niet ingesteld'}
 
 📈 PROJECT STATISTIEKEN:
-- Totaal bestede tijd: ${project.statistics.time_breakdown.total_hours.toFixed(1)}h (Timer: ${project.statistics.time_breakdown.timer_hours.toFixed(1)}h, Handmatig: ${(project.statistics.time_breakdown.manual_hours + project.statistics.time_breakdown.manual_entry_hours).toFixed(1)}h)
+- Totaal bestede tijd: ${formatTimeSeconds(project.statistics.time_breakdown.total_hours * 3600)} (Timer: ${formatTimeSeconds(project.statistics.time_breakdown.timer_hours * 3600)}, Handmatig: ${formatTimeSeconds((project.statistics.time_breakdown.manual_hours + project.statistics.time_breakdown.manual_entry_hours) * 3600)})
 - Declarabele uren: ${project.statistics.declarable_hours_total}h
 - Efficiency: ${project.statistics.efficiency_percentage}%
 - Taken voltooid: ${project.statistics.completed_tasks}/${project.statistics.total_tasks} (${project.statistics.task_completion_rate}%)
@@ -357,7 +372,7 @@ ${hierarchy.phases.map((phase: any) => `
 ├── Target datum: ${phase.target_date || 'Niet ingesteld'}
 ├── Voortgang: ${phase.completion_rate.toFixed(1)}%
 ├── Declarabele uren: ${phase.declarable_hours_total}h
-├── Bestede tijd: ${phase.time_breakdown.total_hours.toFixed(1)}h (Timer: ${phase.time_breakdown.timer_hours.toFixed(1)}h, Handmatig: ${(phase.time_breakdown.manual_hours + phase.time_breakdown.manual_entry_hours).toFixed(1)}h)
+├── Bestede tijd: ${formatTimeSeconds(phase.time_breakdown.total_hours * 3600)} (Timer: ${formatTimeSeconds(phase.time_breakdown.timer_hours * 3600)}, Handmatig: ${formatTimeSeconds((phase.time_breakdown.manual_hours + phase.time_breakdown.manual_entry_hours) * 3600)})
 └── DELIVERABLES (${phase.deliverables.length}):
 ${phase.deliverables.map((del: any) => `
     ├── ${del.title}
@@ -365,13 +380,13 @@ ${phase.deliverables.map((del: any) => `
     │   ├── Due datum: ${del.due_date || 'Niet ingesteld'}
     │   ├── Target datum: ${del.target_date || 'Niet ingesteld'}
     │   ├── Declarabele uren: ${del.declarable_hours || 0}h
-    │   ├── Bestede tijd: ${del.time_breakdown.total_hours.toFixed(1)}h (Timer: ${del.time_breakdown.timer_hours.toFixed(1)}h, Handmatig: ${(del.time_breakdown.manual_hours + del.time_breakdown.manual_entry_hours).toFixed(1)}h)
+    │   ├── Bestede tijd: ${formatTimeSeconds(del.time_breakdown.total_hours * 3600)} (Timer: ${formatTimeSeconds(del.time_breakdown.timer_hours * 3600)}, Handmatig: ${formatTimeSeconds((del.time_breakdown.manual_hours + del.time_breakdown.manual_entry_hours) * 3600)})
     │   ├── Voortgang: ${del.completion_rate.toFixed(1)}%
     │   └── TAKEN (${del.tasks.length}):
 ${del.tasks.map((task: any) => `
     │       ${task.completed ? '✅' : '⏳'} ${task.title}
     │           ${task.assigned_to ? `(Toegewezen aan: ${task.assigned_to})` : ''}
-    │           └── Bestede tijd: ${task.time_breakdown.total_hours.toFixed(1)}h (Timer: ${task.time_breakdown.timer_hours.toFixed(1)}h, Handmatig: ${(task.time_breakdown.manual_hours + task.time_breakdown.manual_entry_hours).toFixed(1)}h)
+    │           └── Bestede tijd: ${formatTimeSeconds(task.time_breakdown.total_hours * 3600)} (Timer: ${formatTimeSeconds(task.time_breakdown.timer_hours * 3600)}, Handmatig: ${formatTimeSeconds((task.time_breakdown.manual_hours + task.time_breakdown.manual_entry_hours) * 3600)})
 `).join('')}
 `).join('')}
 `).join('')}
@@ -444,7 +459,7 @@ function generateRecentActivity(tasks: any[], timeEntries: any[], deliverables: 
   recentTimeEntries.forEach(entry => {
     recent.push({
       type: 'time_logged',
-      description: `${(entry.duration_seconds / 3600).toFixed(1)}h tijd geregistreerd (timer)`,
+      description: `${formatTimeSeconds(entry.duration_seconds)} tijd geregistreerd (timer)`,
       date: entry.created_at
     });
   });
@@ -457,7 +472,7 @@ function generateRecentActivity(tasks: any[], timeEntries: any[], deliverables: 
   recentManualEntries.forEach(entry => {
     recent.push({
       type: 'manual_time_logged',
-      description: `${(entry.time_seconds / 3600).toFixed(1)}h handmatig tijd toegevoegd`,
+      description: `${formatTimeSeconds(entry.time_seconds)} handmatig tijd toegevoegd`,
       date: entry.created_at
     });
   });
