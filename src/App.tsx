@@ -11,6 +11,7 @@ import DocumentTitleUpdater from "@/components/DocumentTitleUpdater";
 import HomePage from "./pages/HomePage";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
+import { ProjectAIChat } from "./pages/ProjectAIChat";
 import ProjectSetupWizard from "./components/ProjectSetupWizard";
 import TodoLists from "./pages/TodoLists";
 import TodoDetail from "./pages/TodoDetail";
@@ -54,6 +55,16 @@ function App() {
               <Route path="/project/:id" element={
                 <ProtectedRoute>
                   <ProjectDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/project/:projectId/ai-chat" element={
+                <ProtectedRoute>
+                  <ProjectAIChat />
+                </ProtectedRoute>
+              } />
+              <Route path="/project/:projectId/ai-chat/:sessionId" element={
+                <ProtectedRoute>
+                  <ProjectAIChat />
                 </ProtectedRoute>
               } />
               <Route path="/todo" element={

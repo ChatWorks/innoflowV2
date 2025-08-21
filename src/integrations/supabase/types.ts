@@ -661,6 +661,68 @@ export type Database = {
         }
         Relationships: []
       }
+      project_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          message_type: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          message_type: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_session_id"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "project_chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_chat_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          project_id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_id: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       project_meetings: {
         Row: {
           attendees: string | null
