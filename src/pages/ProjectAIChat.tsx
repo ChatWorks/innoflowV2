@@ -91,7 +91,7 @@ export function ProjectAIChat() {
       
       <div className="h-screen flex flex-col">
         {/* Header */}
-        <header className="border-b px-4 py-3 flex items-center gap-3 bg-[#032031] bg-[fafafa]">
+        <header className="border-b px-4 py-3 flex items-center gap-3 bg-[fafafa] bg-slate-50">
           <Button variant="ghost" size="sm" onClick={() => navigate(`/project/${projectId}`)} className="gap-2">
             <ArrowLeft className="h-4 w-4" />
             Terug naar project
