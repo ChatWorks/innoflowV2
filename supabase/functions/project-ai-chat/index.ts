@@ -29,7 +29,7 @@ serve(async (req) => {
     const systemPrompt = createSystemPrompt(enrichedContext);
     const conversationHistory = formatChatHistoryForResponses(chatHistory);
     
-    // Construct full input with context and conversation history
+    // Construct full input according to Responses API format
     let fullInput = systemPrompt + '\n\n';
     if (conversationHistory.length > 0) {
       fullInput += 'GESPREKSGESCHIEDENIS:\n' + conversationHistory + '\n\n';
@@ -38,13 +38,37 @@ serve(async (req) => {
 
     const requestBody: any = {
       model: model || 'gpt-5-mini-2025-08-07',
-      input: fullInput,
-      max_completion_tokens: 4000
+      input: [
+        {
+          role: "user",
+          content: fullInput
+        }
+      ],
+      text: {
+        format: {
+          type: "text"
+        },
+        verbosity: "medium"
+      },
+      reasoning: {
+        effort: "medium",
+        summary: "auto"
+      },
+      max_output_tokens: 4000,
+      store: true
     };
 
     // Add web search tool if requested
     if (useWebSearch) {
-      requestBody.tools = [{ type: 'web_search' }];
+      requestBody.tools = [
+        {
+          type: "web_search_preview",
+          user_location: {
+            type: "approximate"
+          },
+          search_context_size: "medium"
+        }
+      ];
     }
 
     console.log('System prompt length:', systemPrompt.length, 'characters');
