@@ -274,7 +274,7 @@ function formatChatHistory(chatHistory: any[]) {
     role: msg.type === 'user' ? 'user' : 'assistant',
     content: [
       {
-        type: 'input_text',
+        type: msg.type === 'user' ? 'input_text' : 'output_text',
         text: msg.content
       }
     ]
