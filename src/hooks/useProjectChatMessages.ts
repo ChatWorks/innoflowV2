@@ -70,7 +70,17 @@ export function useProjectChatMessages(sessionId?: string) {
 
   // Send AI message (calls edge function)
   const sendAIMessageMutation = useMutation({
-    mutationFn: async ({ message, projectContext }: { message: string; projectContext: any }) => {
+    mutationFn: async ({ 
+      message, 
+      projectContext, 
+      model, 
+      useWebSearch 
+    }: { 
+      message: string; 
+      projectContext: any; 
+      model?: string; 
+      useWebSearch?: boolean; 
+    }) => {
       if (!sessionId) throw new Error('Geen sessie geselecteerd');
 
       // First add user message
@@ -81,7 +91,9 @@ export function useProjectChatMessages(sessionId?: string) {
         body: {
           message,
           projectContext,
-          chatHistory: messages.slice(-10) // Last 10 messages for context
+          chatHistory: messages.slice(-10), // Last 10 messages for context
+          model: model || 'gpt-5-mini',
+          useWebSearch: useWebSearch || false
         }
       });
 

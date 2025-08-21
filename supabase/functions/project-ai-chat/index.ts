@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, projectId, projectContext, chatHistory } = await req.json();
+    const { message, projectId, projectContext, chatHistory, model = 'gpt-5-mini', useWebSearch = false } = await req.json();
     
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
@@ -23,15 +23,15 @@ serve(async (req) => {
     const enrichedContext = prepareProjectContext(projectContext);
     
     console.log('Project AI Chat - Processing message for project:', projectId);
+    console.log('Using model:', model, 'Web search:', useWebSearch);
 
-    const response = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-5',
+    // Choose API endpoint and request format based on model
+    let response;
+    
+    if (model === 'o4-mini-deep-research') {
+      // Use reasoning API for O4 models
+      const requestBody: any = {
+        model: 'o4-mini-deep-research',
         input: [
           {
             role: 'developer',
@@ -63,7 +63,12 @@ serve(async (req) => {
           effort: 'medium',
           summary: 'auto'
         },
-        tools: [
+        store: true
+      };
+
+      // Add web search tools if enabled
+      if (useWebSearch) {
+        requestBody.tools = [
           {
             type: 'web_search_preview',
             user_location: {
@@ -71,10 +76,53 @@ serve(async (req) => {
             },
             search_context_size: 'medium'
           }
+        ];
+        requestBody.tool_choice = 'required';
+      }
+
+      response = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+    } else {
+      // Use chat completions API for GPT models
+      const requestBody: any = {
+        model: 'gpt-5-mini-2025-08-07',
+        messages: [
+          { role: 'system', content: createSystemPrompt(enrichedContext) },
+          ...formatChatHistoryForChat(chatHistory),
+          { role: 'user', content: message }
         ],
-        store: true
-      }),
-    });
+        max_completion_tokens: 2000
+      };
+
+      // Add web search tools if enabled
+      if (useWebSearch) {
+        requestBody.tools = [
+          {
+            type: 'web_search_preview',
+            user_location: {
+              type: 'approximate'
+            },
+            search_context_size: 'medium'
+          }
+        ];
+        requestBody.tool_choice = 'required';
+      }
+
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -86,11 +134,20 @@ serve(async (req) => {
     console.log('OpenAI Response received for project:', projectId);
     console.log('Full OpenAI Response:', JSON.stringify(data, null, 2));
     
-    // Find the message type output item (not the reasoning type)
-    const messageOutput = data.output?.find(item => item.type === 'message');
-    const aiResponse = messageOutput?.content?.[0]?.text || 
-                      data.output?.[0]?.content?.[0]?.text || 
-                      'Er is een fout opgetreden bij het verwerken van je vraag.';
+    let aiResponse;
+    
+    if (model === 'o4-mini-deep-research') {
+      // Handle reasoning API response
+      const messageOutput = data.output?.find(item => item.type === 'message');
+      aiResponse = messageOutput?.content?.[0]?.text || 
+                   data.output?.[0]?.content?.[0]?.text || 
+                   'Er is een fout opgetreden bij het verwerken van je vraag.';
+    } else {
+      // Handle chat completions API response
+      aiResponse = data.choices?.[0]?.message?.content || 
+                   'Er is een fout opgetreden bij het verwerken van je vraag.';
+    }
+    
     console.log('Extracted AI Response:', aiResponse);
 
     return new Response(JSON.stringify({ response: aiResponse }), {
@@ -398,6 +455,13 @@ function formatChatHistory(chatHistory: any[]) {
         text: msg.content
       }
     ]
+  }));
+}
+
+function formatChatHistoryForChat(chatHistory: any[]) {
+  return chatHistory.slice(-8).map((msg: any) => ({
+    role: msg.message_type === 'user' ? 'user' : 'assistant',
+    content: msg.content
   }));
 }
 

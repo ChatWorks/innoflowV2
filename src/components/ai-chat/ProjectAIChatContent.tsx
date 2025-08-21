@@ -2,9 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useProjectChatMessages } from '@/hooks/useProjectChatMessages';
 import { ChatMessage } from './ChatMessage';
-import { Send, Loader2, Sparkles } from 'lucide-react';
+import { Send, Loader2, Sparkles, Search } from 'lucide-react';
 interface ProjectAIChatContentProps {
   sessionId?: string;
   projectContext: any;
@@ -23,8 +24,17 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
   console.log('ProjectAIChatContent - sessionId:', sessionId);
   console.log('ProjectAIChatContent - messages:', messages);
   const [inputMessage, setInputMessage] = useState('');
+  const [selectedModel, setSelectedModel] = useState(() => {
+    return localStorage.getItem('preferred_ai_model') || 'gpt-5-mini';
+  });
+  const [useWebSearch, setUseWebSearch] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Save model preference to localStorage
+  useEffect(() => {
+    localStorage.setItem('preferred_ai_model', selectedModel);
+  }, [selectedModel]);
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -45,11 +55,15 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !sessionId || isSendingAI) return;
     const message = inputMessage.trim();
+    const webSearch = useWebSearch;
     setInputMessage('');
+    setUseWebSearch(false); // Reset web search for next message
     try {
       await sendAIMessage({
         message,
-        projectContext
+        projectContext,
+        model: selectedModel,
+        useWebSearch: webSearch
       });
     } catch (error) {
       console.error('Failed to send AI message:', error);
@@ -141,6 +155,22 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
       {/* Input Area */}
       <div className="border-t border-gray-200 p-6 bg-white">
         <div className="max-w-4xl mx-auto space-y-4">
+          {/* AI Model Selection */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700">AI Model:</span>
+              <Select value={selectedModel} onValueChange={setSelectedModel}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gpt-5-mini">GPT-5 Mini</SelectItem>
+                  <SelectItem value="o4-mini-deep-research">O4 Mini Deep Research</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           {/* Quick actions for empty chat */}
           {messages.length === 0 && <div className="flex flex-wrap gap-2 justify-center">
               {getQuickActions().slice(0, 3).map((action, index) => <Button key={index} variant="outline" size="sm" onClick={() => setInputMessage(action)} className="text-sm border-gray-200 text-gray-700 hover:bg-gray-50">
@@ -152,6 +182,15 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
             <div className="flex-1 relative">
               <Textarea ref={textareaRef} value={inputMessage} onChange={e => setInputMessage(e.target.value)} onKeyDown={handleKeyPress} placeholder="Stel een vraag over je project..." rows={1} className="min-h-[48px] max-h-32 resize-none border-gray-300 focus:border-gray-400 focus:ring-gray-400 text-base" />
             </div>
+            <Button 
+              onClick={() => setUseWebSearch(!useWebSearch)} 
+              size="icon" 
+              variant={useWebSearch ? "default" : "outline"}
+              className="h-[48px] w-[48px]"
+              title="Web zoeken inschakelen"
+            >
+              <Search className="h-5 w-5" />
+            </Button>
             <Button onClick={handleSendMessage} disabled={!inputMessage.trim() || isSendingAI} size="icon" className="h-[48px] w-[48px] bg-gray-900 hover:bg-gray-800">
               {isSendingAI ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
@@ -159,6 +198,7 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
           
           <p className="text-xs text-gray-500 text-center">
             AI antwoorden kunnen onjuist zijn. Controleer belangrijke informatie altijd.
+            {useWebSearch && <span className="text-blue-600 font-medium"> • Web zoeken ingeschakeld</span>}
           </p>
         </div>
       </div>
