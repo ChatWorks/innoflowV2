@@ -17,7 +17,8 @@ import {
   RotateCcw,
   Globe,
   Plus,
-  MessageCircle
+  MessageCircle,
+  Brain
 } from 'lucide-react';
 import { Project, Deliverable, TimeEntry, Task, Phase, Meeting } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,6 +32,7 @@ import IntegratedProjectTimeline from '@/components/IntegratedProjectTimeline';
 import { ClientPortalDialog } from '@/components/ClientPortalDialog';
 import { ClientUpdateDialog } from '@/components/ClientUpdateDialog';
 import { ProjectMessagesDialog } from '@/components/ProjectMessagesDialog';
+import { ProjectAIChatDialog } from '@/components/ProjectAIChatDialog';
 import { useProjectMessages } from '@/hooks/useProjectMessages';
 import {
   getProjectProgress,
@@ -57,6 +59,7 @@ export default function ProjectDetail() {
   const [showPortalDialog, setShowPortalDialog] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [showMessagesDialog, setShowMessagesDialog] = useState(false);
+  const [showAIChatDialog, setShowAIChatDialog] = useState(false);
   const { toast } = useToast();
   const { timeEntryRefreshTrigger } = useTimer();
   const { unreadCount } = useProjectMessages(id || '');
@@ -437,6 +440,14 @@ export default function ProjectDetail() {
                     <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
+                        onClick={() => setShowAIChatDialog(true)}
+                        className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                      >
+                        <Brain className="mr-2 h-4 w-4" />
+                        AI Chat
+                      </Button>
+                      <Button
+                        variant="outline"
                         onClick={() => setShowMessagesDialog(true)}
                         className="bg-white/10 border-white/20 text-white hover:bg-white/20 relative"
                       >
@@ -586,6 +597,18 @@ export default function ProjectDetail() {
         onOpenChange={setShowMessagesDialog}
         projectId={id!}
         projectName={project.name}
+      />
+
+      {/* AI Chat Dialog */}
+      <ProjectAIChatDialog
+        isOpen={showAIChatDialog}
+        onClose={() => setShowAIChatDialog(false)}
+        project={project}
+        deliverables={deliverables}
+        tasks={tasks}
+        phases={phases}
+        timeEntries={timeEntries}
+        meetings={meetings}
       />
     </Layout>
   );
