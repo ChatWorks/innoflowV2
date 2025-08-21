@@ -110,58 +110,156 @@ serve(async (req) => {
 });
 
 function prepareProjectContext(context: any) {
-  const { project, deliverables, tasks, phases, timeEntries, meetings } = context;
+  const { project, deliverables, tasks, phases, timeEntries, meetings, manualTimeEntries } = context;
   
-  // Calculate project statistics
-  const totalTimeSpent = timeEntries.reduce((sum: number, entry: any) => 
-    sum + (entry.duration_seconds || 0), 0) / 3600; // Convert to hours
+  // Helper function to calculate total time for a task (timer + manual time seconds + manual time entries)
+  const getTaskTotalTime = (taskId: string) => {
+    const task = tasks.find((t: any) => t.id === taskId);
+    const timerSeconds = timeEntries
+      .filter((entry: any) => entry.task_id === taskId)
+      .reduce((sum: number, entry: any) => sum + (entry.duration_seconds || 0), 0);
+    const manualSeconds = task?.manual_time_seconds || 0;
+    const manualEntrySeconds = manualTimeEntries
+      .filter((entry: any) => entry.task_id === taskId)
+      .reduce((sum: number, entry: any) => sum + (entry.time_seconds || 0), 0);
+    
+    return {
+      timer_seconds: timerSeconds,
+      manual_seconds: manualSeconds,
+      manual_entry_seconds: manualEntrySeconds,
+      total_seconds: timerSeconds + manualSeconds + manualEntrySeconds,
+      total_hours: (timerSeconds + manualSeconds + manualEntrySeconds) / 3600
+    };
+  };
+
+  // Helper function to calculate total time for a deliverable
+  const getDeliverableTotalTime = (deliverableId: string) => {
+    const deliverable = deliverables.find((d: any) => d.id === deliverableId);
+    const deliverableTasks = tasks.filter((task: any) => task.deliverable_id === deliverableId);
+    
+    // Sum all task times
+    const taskTimes = deliverableTasks.map((task: any) => getTaskTotalTime(task.id));
+    const taskTimerSeconds = taskTimes.reduce((sum, time) => sum + time.timer_seconds, 0);
+    const taskManualSeconds = taskTimes.reduce((sum, time) => sum + time.manual_seconds, 0);
+    const taskManualEntrySeconds = taskTimes.reduce((sum, time) => sum + time.manual_entry_seconds, 0);
+    
+    // Add deliverable's own manual time
+    const deliverableManualSeconds = deliverable?.manual_time_seconds || 0;
+    const deliverableManualEntrySeconds = manualTimeEntries
+      .filter((entry: any) => entry.deliverable_id === deliverableId)
+      .reduce((sum: number, entry: any) => sum + (entry.time_seconds || 0), 0);
+    
+    const totalSeconds = taskTimerSeconds + taskManualSeconds + taskManualEntrySeconds + deliverableManualSeconds + deliverableManualEntrySeconds;
+    
+    return {
+      timer_seconds: taskTimerSeconds,
+      manual_seconds: taskManualSeconds + deliverableManualSeconds,
+      manual_entry_seconds: taskManualEntrySeconds + deliverableManualEntrySeconds,
+      total_seconds: totalSeconds,
+      total_hours: totalSeconds / 3600
+    };
+  };
+
+  // Helper function to calculate total time for a phase
+  const getPhaseTotalTime = (phaseId: string) => {
+    const phase = phases.find((p: any) => p.id === phaseId);
+    const phaseDeliverables = deliverables.filter((del: any) => del.phase_id === phaseId);
+    
+    // Sum all deliverable times
+    const deliverableTimes = phaseDeliverables.map((del: any) => getDeliverableTotalTime(del.id));
+    const deliverableTimerSeconds = deliverableTimes.reduce((sum, time) => sum + time.timer_seconds, 0);
+    const deliverableManualSeconds = deliverableTimes.reduce((sum, time) => sum + time.manual_seconds, 0);
+    const deliverableManualEntrySeconds = deliverableTimes.reduce((sum, time) => sum + time.manual_entry_seconds, 0);
+    
+    // Add phase's own manual time
+    const phaseManualSeconds = phase?.manual_time_seconds || 0;
+    const phaseManualEntrySeconds = manualTimeEntries
+      .filter((entry: any) => entry.phase_id === phaseId)
+      .reduce((sum: number, entry: any) => sum + (entry.time_seconds || 0), 0);
+    
+    const totalSeconds = deliverableTimerSeconds + deliverableManualSeconds + deliverableManualEntrySeconds + phaseManualSeconds + phaseManualEntrySeconds;
+    
+    return {
+      timer_seconds: deliverableTimerSeconds,
+      manual_seconds: deliverableManualSeconds + phaseManualSeconds,
+      manual_entry_seconds: deliverableManualEntrySeconds + phaseManualEntrySeconds,
+      total_seconds: totalSeconds,
+      total_hours: totalSeconds / 3600
+    };
+  };
+
+  // Calculate project-level totals
+  const allTaskTimes = tasks.map((task: any) => getTaskTotalTime(task.id));
+  const allDeliverableTimes = deliverables.map((del: any) => getDeliverableTotalTime(del.id));
+  const allPhaseTimes = phases.map((phase: any) => getPhaseTotalTime(phase.id));
+  
+  // Project manual time entries not assigned to tasks/deliverables/phases
+  const projectLevelManualEntries = manualTimeEntries
+    .filter((entry: any) => !entry.task_id && !entry.deliverable_id && !entry.phase_id)
+    .reduce((sum: number, entry: any) => sum + (entry.time_seconds || 0), 0);
+  
+  const projectTotalTimerSeconds = allTaskTimes.reduce((sum, time) => sum + time.timer_seconds, 0);
+  const projectTotalManualSeconds = allDeliverableTimes.reduce((sum, time) => sum + time.manual_seconds, 0);
+  const projectTotalManualEntrySeconds = allDeliverableTimes.reduce((sum, time) => sum + time.manual_entry_seconds, 0) + projectLevelManualEntries;
+  const projectTotalSeconds = projectTotalTimerSeconds + projectTotalManualSeconds + projectTotalManualEntrySeconds;
+  const projectTotalHours = projectTotalSeconds / 3600;
   
   const totalDeclarableHours = deliverables.reduce((sum: number, del: any) => 
-    sum + (del.declarable_hours || 0), 0);
+    sum + (del.declarable_hours || 0), 0) + phases.reduce((sum: number, phase: any) => 
+    sum + (phase.declarable_hours || 0), 0);
   
-  const efficiency = totalDeclarableHours > 0 ? (totalDeclarableHours / totalTimeSpent) * 100 : 0;
+  const efficiency = totalDeclarableHours > 0 ? (totalDeclarableHours / projectTotalHours) * 100 : 0;
   
   const completedTasks = tasks.filter((task: any) => task.completed);
   const taskCompletionRate = tasks.length > 0 ? (completedTasks.length / tasks.length) * 100 : 0;
 
-  // Build hierarchical structure
+  // Build hierarchical structure with complete time data
   const enrichedPhases = phases.map((phase: any) => {
+    const phaseTime = getPhaseTotalTime(phase.id);
     const phaseDeliverables = deliverables.filter((del: any) => del.phase_id === phase.id);
     const phaseTasks = tasks.filter((task: any) => 
       phaseDeliverables.some((del: any) => del.id === task.deliverable_id)
     );
-    const phaseTimeEntries = timeEntries.filter((entry: any) => 
-      phaseTasks.some((task: any) => task.id === entry.task_id) ||
-      phaseDeliverables.some((del: any) => del.id === entry.deliverable_id)
-    );
-    
-    const phaseTimeSpent = phaseTimeEntries.reduce((sum: number, entry: any) => 
-      sum + (entry.duration_seconds || 0), 0) / 3600;
     
     const phaseDeclarableHours = phaseDeliverables.reduce((sum: number, del: any) => 
-      sum + (del.declarable_hours || 0), 0);
+      sum + (del.declarable_hours || 0), 0) + (phase.declarable_hours || 0);
 
     return {
       ...phase,
       deliverables: phaseDeliverables.map((del: any) => {
+        const deliverableTime = getDeliverableTotalTime(del.id);
         const deliverableTasks = tasks.filter((task: any) => task.deliverable_id === del.id);
-        const deliverableTimeEntries = timeEntries.filter((entry: any) => 
-          entry.deliverable_id === del.id || 
-          deliverableTasks.some((task: any) => task.id === entry.task_id)
-        );
-        
-        const deliverableTimeSpent = deliverableTimeEntries.reduce((sum: number, entry: any) => 
-          sum + (entry.duration_seconds || 0), 0) / 3600;
         
         return {
           ...del,
-          tasks: deliverableTasks,
-          time_spent_hours: deliverableTimeSpent,
+          tasks: deliverableTasks.map((task: any) => {
+            const taskTime = getTaskTotalTime(task.id);
+            return {
+              ...task,
+              time_breakdown: {
+                timer_hours: taskTime.timer_seconds / 3600,
+                manual_hours: taskTime.manual_seconds / 3600,
+                manual_entry_hours: taskTime.manual_entry_seconds / 3600,
+                total_hours: taskTime.total_hours
+              }
+            };
+          }),
+          time_breakdown: {
+            timer_hours: deliverableTime.timer_seconds / 3600,
+            manual_hours: deliverableTime.manual_seconds / 3600,
+            manual_entry_hours: deliverableTime.manual_entry_seconds / 3600,
+            total_hours: deliverableTime.total_hours
+          },
           completion_rate: deliverableTasks.length > 0 ? 
             (deliverableTasks.filter((t: any) => t.completed).length / deliverableTasks.length) * 100 : 0
         };
       }),
-      time_spent_hours: phaseTimeSpent,
+      time_breakdown: {
+        timer_hours: phaseTime.timer_seconds / 3600,
+        manual_hours: phaseTime.manual_seconds / 3600,
+        manual_entry_hours: phaseTime.manual_entry_seconds / 3600,
+        total_hours: phaseTime.total_hours
+      },
       declarable_hours_total: phaseDeclarableHours,
       completion_rate: phaseTasks.length > 0 ? 
         (phaseTasks.filter((t: any) => t.completed).length / phaseTasks.length) * 100 : 0
@@ -176,7 +274,12 @@ function prepareProjectContext(context: any) {
       ...project,
       statistics: {
         progress_percentage: project.progress || 0,
-        time_spent_hours: totalTimeSpent,
+        time_breakdown: {
+          timer_hours: projectTotalTimerSeconds / 3600,
+          manual_hours: projectTotalManualSeconds / 3600,
+          manual_entry_hours: projectTotalManualEntrySeconds / 3600,
+          total_hours: projectTotalHours
+        },
         declarable_hours_total: totalDeclarableHours,
         efficiency_percentage: Math.round(efficiency),
         task_completion_rate: Math.round(taskCompletionRate),
@@ -188,10 +291,37 @@ function prepareProjectContext(context: any) {
     },
     hierarchy: {
       phases: enrichedPhases,
-      standalone_deliverables: standaloneDeliverables
+      standalone_deliverables: standaloneDeliverables.map((del: any) => {
+        const deliverableTime = getDeliverableTotalTime(del.id);
+        const deliverableTasks = tasks.filter((task: any) => task.deliverable_id === del.id);
+        
+        return {
+          ...del,
+          tasks: deliverableTasks.map((task: any) => {
+            const taskTime = getTaskTotalTime(task.id);
+            return {
+              ...task,
+              time_breakdown: {
+                timer_hours: taskTime.timer_seconds / 3600,
+                manual_hours: taskTime.manual_seconds / 3600,
+                manual_entry_hours: taskTime.manual_entry_seconds / 3600,
+                total_hours: taskTime.total_hours
+              }
+            };
+          }),
+          time_breakdown: {
+            timer_hours: deliverableTime.timer_seconds / 3600,
+            manual_hours: deliverableTime.manual_seconds / 3600,
+            manual_entry_hours: deliverableTime.manual_entry_seconds / 3600,
+            total_hours: deliverableTime.total_hours
+          },
+          completion_rate: deliverableTasks.length > 0 ? 
+            (deliverableTasks.filter((t: any) => t.completed).length / deliverableTasks.length) * 100 : 0
+        };
+      })
     },
     meetings: meetings,
-    recent_activity: generateRecentActivity(tasks, timeEntries, deliverables)
+    recent_activity: generateRecentActivity(tasks, timeEntries, deliverables, manualTimeEntries)
   };
 }
 
@@ -212,7 +342,7 @@ COMPLETE PROJECT HIËRARCHIE EN CONTEXT:
 - Eind datum: ${project.end_date || 'Niet ingesteld'}
 
 📈 PROJECT STATISTIEKEN:
-- Totaal bestede tijd: ${project.statistics.time_spent_hours.toFixed(1)}h
+- Totaal bestede tijd: ${project.statistics.time_breakdown.total_hours.toFixed(1)}h (Timer: ${project.statistics.time_breakdown.timer_hours.toFixed(1)}h, Handmatig: ${(project.statistics.time_breakdown.manual_hours + project.statistics.time_breakdown.manual_entry_hours).toFixed(1)}h)
 - Declarabele uren: ${project.statistics.declarable_hours_total}h
 - Efficiency: ${project.statistics.efficiency_percentage}%
 - Taken voltooid: ${project.statistics.completed_tasks}/${project.statistics.total_tasks} (${project.statistics.task_completion_rate}%)
@@ -227,7 +357,7 @@ ${hierarchy.phases.map((phase: any) => `
 ├── Target datum: ${phase.target_date || 'Niet ingesteld'}
 ├── Voortgang: ${phase.completion_rate.toFixed(1)}%
 ├── Declarabele uren: ${phase.declarable_hours_total}h
-├── Bestede tijd: ${phase.time_spent_hours.toFixed(1)}h
+├── Bestede tijd: ${phase.time_breakdown.total_hours.toFixed(1)}h (Timer: ${phase.time_breakdown.timer_hours.toFixed(1)}h, Handmatig: ${(phase.time_breakdown.manual_hours + phase.time_breakdown.manual_entry_hours).toFixed(1)}h)
 └── DELIVERABLES (${phase.deliverables.length}):
 ${phase.deliverables.map((del: any) => `
     ├── ${del.title}
@@ -235,7 +365,7 @@ ${phase.deliverables.map((del: any) => `
     │   ├── Due datum: ${del.due_date || 'Niet ingesteld'}
     │   ├── Target datum: ${del.target_date || 'Niet ingesteld'}
     │   ├── Declarabele uren: ${del.declarable_hours || 0}h
-    │   ├── Bestede tijd: ${del.time_spent_hours.toFixed(1)}h
+    │   ├── Bestede tijd: ${del.time_breakdown.total_hours.toFixed(1)}h (Timer: ${del.time_breakdown.timer_hours.toFixed(1)}h, Handmatig: ${(del.time_breakdown.manual_hours + del.time_breakdown.manual_entry_hours).toFixed(1)}h)
     │   ├── Voortgang: ${del.completion_rate.toFixed(1)}%
     │   └── TAKEN (${del.tasks.length}):
 ${del.tasks.map((task: any) => `
@@ -287,7 +417,7 @@ function formatChatHistory(chatHistory: any[]) {
   }));
 }
 
-function generateRecentActivity(tasks: any[], timeEntries: any[], deliverables: any[]) {
+function generateRecentActivity(tasks: any[], timeEntries: any[], deliverables: any[], manualTimeEntries: any[]) {
   const recent = [];
   
   // Recent task completions
@@ -304,7 +434,7 @@ function generateRecentActivity(tasks: any[], timeEntries: any[], deliverables: 
     });
   });
   
-  // Recent time entries
+  // Recent time entries (timer)
   const recentTimeEntries = timeEntries
     .filter(entry => entry.end_time)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -313,7 +443,20 @@ function generateRecentActivity(tasks: any[], timeEntries: any[], deliverables: 
   recentTimeEntries.forEach(entry => {
     recent.push({
       type: 'time_logged',
-      description: `${(entry.duration_seconds / 3600).toFixed(1)}h tijd geregistreerd`,
+      description: `${(entry.duration_seconds / 3600).toFixed(1)}h tijd geregistreerd (timer)`,
+      date: entry.created_at
+    });
+  });
+  
+  // Recent manual time entries
+  const recentManualEntries = manualTimeEntries
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 3);
+  
+  recentManualEntries.forEach(entry => {
+    recent.push({
+      type: 'manual_time_logged',
+      description: `${(entry.time_seconds / 3600).toFixed(1)}h handmatig tijd toegevoegd`,
       date: entry.created_at
     });
   });

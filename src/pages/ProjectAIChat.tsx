@@ -45,7 +45,7 @@ export function ProjectAIChat() {
       if (!projectId) throw new Error('Project ID is required');
 
       // Fetch all related data in parallel
-      const [projectRes, deliverables, phases, timeEntries, meetings] = await Promise.all([supabase.from('projects').select('*').eq('id', projectId).single(), supabase.from('deliverables').select('*').eq('project_id', projectId), supabase.from('phases').select('*').eq('project_id', projectId), supabase.from('time_entries').select('*').eq('project_id', projectId), supabase.from('project_meetings').select('*').eq('project_id', projectId)]);
+      const [projectRes, deliverables, phases, timeEntries, meetings, manualTimeEntries] = await Promise.all([supabase.from('projects').select('*').eq('id', projectId).single(), supabase.from('deliverables').select('*').eq('project_id', projectId), supabase.from('phases').select('*').eq('project_id', projectId), supabase.from('time_entries').select('*').eq('project_id', projectId), supabase.from('project_meetings').select('*').eq('project_id', projectId), supabase.from('manual_time_entries').select('*').eq('project_id', projectId)]);
 
       // Get tasks for all deliverables
       const tasksRes = deliverables.data?.length > 0 ? await supabase.from('tasks').select('*').in('deliverable_id', deliverables.data.map(d => d.id)) : {
@@ -57,7 +57,8 @@ export function ProjectAIChat() {
         tasks: tasksRes.data || [],
         phases: phases.data || [],
         timeEntries: timeEntries.data || [],
-        meetings: meetings.data || []
+        meetings: meetings.data || [],
+        manualTimeEntries: manualTimeEntries.data || []
       };
     },
     enabled: !!projectId
