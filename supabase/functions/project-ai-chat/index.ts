@@ -63,22 +63,18 @@ serve(async (req) => {
           effort: 'medium',
           summary: 'auto'
         },
-        store: true
-      };
-
-      // Add web search tools if enabled
-      if (useWebSearch) {
-        requestBody.tools = [
+        store: true,
+        // O4 models require tools - always add file_search as minimum
+        tools: useWebSearch ? [
           {
-            type: 'web_search_preview',
-            user_location: {
-              type: 'approximate'
-            },
-            search_context_size: 'medium'
+            type: 'file_search'
           }
-        ];
-        requestBody.tool_choice = 'required';
-      }
+        ] : [
+          {
+            type: 'file_search'
+          }
+        ]
+      };
 
       response = await fetch('https://api.openai.com/v1/responses', {
         method: 'POST',
@@ -100,19 +96,8 @@ serve(async (req) => {
         max_completion_tokens: 2000
       };
 
-      // Add web search tools if enabled
-      if (useWebSearch) {
-        requestBody.tools = [
-          {
-            type: 'web_search_preview',
-            user_location: {
-              type: 'approximate'
-            },
-            search_context_size: 'medium'
-          }
-        ];
-        requestBody.tool_choice = 'required';
-      }
+      // Note: Web search is not available for standard chat completions
+      // Only available through specific OpenAI endpoints that we don't have access to
 
       response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',

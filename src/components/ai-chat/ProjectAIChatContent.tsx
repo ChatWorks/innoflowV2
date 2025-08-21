@@ -183,11 +183,12 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
               <Textarea ref={textareaRef} value={inputMessage} onChange={e => setInputMessage(e.target.value)} onKeyDown={handleKeyPress} placeholder="Stel een vraag over je project..." rows={1} className="min-h-[48px] max-h-32 resize-none border-gray-300 focus:border-gray-400 focus:ring-gray-400 text-base" />
             </div>
             <Button 
-              onClick={() => setUseWebSearch(!useWebSearch)} 
+              onClick={() => {}} // Disabled
               size="icon" 
-              variant={useWebSearch ? "default" : "outline"}
-              className="h-[48px] w-[48px]"
-              title="Web zoeken inschakelen"
+              variant="outline"
+              disabled={true}
+              className="h-[48px] w-[48px] opacity-50 cursor-not-allowed"
+              title="Web zoeken is tijdelijk niet beschikbaar"
             >
               <Search className="h-5 w-5" />
             </Button>
@@ -198,7 +199,6 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
           
           <p className="text-xs text-gray-500 text-center">
             AI antwoorden kunnen onjuist zijn. Controleer belangrijke informatie altijd.
-            {useWebSearch && <span className="text-blue-600 font-medium"> • Web zoeken ingeschakeld</span>}
           </p>
         </div>
       </div>
