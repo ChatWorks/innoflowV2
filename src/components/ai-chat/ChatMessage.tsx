@@ -12,7 +12,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const isAI = message.message_type === 'ai';
 
   return (
-    <div className="mx-3 my-3 animate-fade-in">
+    <div className="mx-3 my-8 animate-fade-in">
       {isAI ? (
         // AI Message - Clean white card with subtle border
         <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
@@ -70,7 +70,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
         </div>
       ) : (
         // User Message - Clean white card
-        <div className="ml-12 animate-slide-in-right">
+        <div className="animate-slide-in-right">
           <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
             <div className="flex items-start gap-3">
               <Avatar className="h-8 w-8 flex-shrink-0 animate-scale-in">
