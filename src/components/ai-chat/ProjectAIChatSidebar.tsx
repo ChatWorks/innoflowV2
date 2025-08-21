@@ -78,13 +78,13 @@ export const ProjectAIChatSidebar: React.FC<ProjectAIChatSidebarProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col border-r bg-background">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="p-4 border-b">
+      <div className="p-4 border-b border-gray-200">
         <Button 
           onClick={handleNewChat}
           disabled={isCreating}
-          className="w-full gap-2"
+          className="w-full gap-2 bg-gray-900 hover:bg-gray-800 text-white font-medium"
           size="sm"
         >
           <Plus className="h-4 w-4" />
@@ -94,93 +94,102 @@ export const ProjectAIChatSidebar: React.FC<ProjectAIChatSidebarProps> = ({
 
       {/* Chat History */}
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1">
-          {sessions.map((session) => (
-            <div
-              key={session.id}
-              className={`group relative rounded-lg border transition-colors ${
-                currentSessionId === session.id
-                  ? 'bg-accent text-accent-foreground border-accent'
-                  : 'hover:bg-accent/50 border-transparent'
-              }`}
-            >
-              {editingSessionId === session.id ? (
-                <div className="flex items-center gap-1 p-2">
-                  <Input
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleEditSave();
-                      if (e.key === 'Escape') handleEditCancel();
-                    }}
-                    className="h-6 text-xs"
-                    autoFocus
-                  />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleEditSave}
-                    className="h-6 w-6 p-0"
-                  >
-                    <Check className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleEditCancel}
-                    className="h-6 w-6 p-0"
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 p-2">
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate(`/project/${projectId}/ai-chat/${session.id}`)}
-                    className="flex-1 justify-start h-auto p-1 text-left"
-                  >
-                    <MessageSquare className="h-3 w-3 mr-2 flex-shrink-0" />
-                    <span className="truncate text-xs">{session.title}</span>
-                  </Button>
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <MoreHorizontal className="h-3 w-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-40">
-                      <DropdownMenuItem
-                        onClick={() => handleEditStart(session.id, session.title)}
-                      >
-                        <Edit2 className="h-3 w-3 mr-2" />
-                        Hernoemen
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDelete(session.id)}
-                        className="text-destructive"
-                      >
-                        <Trash2 className="h-3 w-3 mr-2" />
-                        Verwijderen
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              )}
-            </div>
-          ))}
+        <div className="p-3 space-y-2">
+          {sessions.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-8">
+              Nog geen gesprekken
+            </p>
+          ) : (
+            sessions.map((session) => (
+              <div
+                key={session.id}
+                className={`group relative rounded-md transition-colors ${
+                  currentSessionId === session.id
+                    ? 'bg-gray-100 border border-gray-200'
+                    : 'hover:bg-gray-50 border border-transparent'
+                }`}
+              >
+                {editingSessionId === session.id ? (
+                  <div className="flex items-center gap-2 p-3">
+                    <Input
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleEditSave();
+                        if (e.key === 'Escape') handleEditCancel();
+                      }}
+                      className="h-8 text-sm border-gray-300 focus:border-gray-400"
+                      autoFocus
+                    />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleEditSave}
+                      className="h-7 w-7 p-0 text-green-600 hover:bg-green-50"
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleEditCancel}
+                      className="h-7 w-7 p-0 text-red-600 hover:bg-red-50"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 p-3">
+                    <Button
+                      variant="ghost"
+                      onClick={() => navigate(`/project/${projectId}/ai-chat/${session.id}`)}
+                      className="flex-1 justify-start h-auto p-0 text-left hover:bg-transparent"
+                    >
+                      <MessageSquare className="h-4 w-4 mr-3 flex-shrink-0 text-gray-500" />
+                      <span className="truncate text-sm font-medium text-gray-800">{session.title}</span>
+                    </Button>
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40 border-gray-200">
+                        <DropdownMenuItem
+                          onClick={() => handleEditStart(session.id, session.title)}
+                          className="text-gray-700 hover:bg-gray-50"
+                        >
+                          <Edit2 className="h-4 w-4 mr-2" />
+                          Hernoemen
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(session.id)}
+                          className="text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Verwijderen
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
+              </div>
+            ))
+          )}
         </div>
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-3 border-t text-xs text-muted-foreground">
-        <p>AI Projectassistent</p>
-        <p>Powered by GPT-5</p>
+      <div className="p-4 border-t border-gray-200 bg-gray-50">
+        <div className="text-center">
+          <p className="text-sm font-semibold text-gray-800">AI Projectassistent</p>
+          <p className="text-xs text-gray-500 mt-1">Powered by GPT-5</p>
+        </div>
       </div>
     </div>
   );

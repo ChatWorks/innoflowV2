@@ -89,19 +89,19 @@ export function ProjectAIChat() {
   return <>
       <SEO title={`AI Chat - ${project?.name || 'Project'}`} description={`AI-gestuurde projectassistent voor ${project?.name}. Krijg inzichten, analyses en aanbevelingen voor je projectbeheer.`} />
       
-      <div className="h-screen flex flex-col">
+      <div className="h-screen flex flex-col bg-white">
         {/* Header */}
-        <header className="border-b px-4 py-3 flex items-center gap-3 bg-[fafafa] bg-slate-50">
-          <Button variant="ghost" size="sm" onClick={() => navigate(`/project/${projectId}`)} className="gap-2">
+        <header className="border-b border-gray-200 px-6 py-4 flex items-center gap-4 bg-white">
+          <Button variant="ghost" size="sm" onClick={() => navigate(`/project/${projectId}`)} className="gap-2 text-gray-600 hover:text-gray-800">
             <ArrowLeft className="h-4 w-4" />
             Terug naar project
           </Button>
           
           <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <Bot className="h-5 w-5 text-primary" />
-              <h1 className="text-lg font-semibold">AI Projectassistent</h1>
-              {project && <span className="text-sm text-muted-foreground">
+            <div className="flex items-center gap-3">
+              <Bot className="h-6 w-6 text-gray-700" />
+              <h1 className="text-xl font-bold text-gray-900">AI Projectassistent</h1>
+              {project && <span className="text-base text-gray-500 font-medium">
                   · {project.name}
                 </span>}
             </div>
@@ -111,12 +111,12 @@ export function ProjectAIChat() {
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
           {/* Sidebar */}
-          <div className="w-80 flex-shrink-0">
+          <div className="w-80 flex-shrink-0 border-r border-gray-200 bg-white">
             <ProjectAIChatSidebar projectId={projectId} currentSessionId={sessionId} />
           </div>
           
           {/* Chat Content */}
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden bg-gray-50">
             <ProjectAIChatContent sessionId={sessionId} projectContext={projectContext} />
           </div>
         </div>

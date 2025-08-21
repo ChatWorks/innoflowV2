@@ -72,58 +72,62 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
     return actions.slice(0, 4); // Show max 4 quick actions
   };
   if (!sessionId) {
-    return <div className="h-full flex flex-col items-center justify-center text-center p-8 bg-white">
-        <div className="max-w-md space-y-4">
-          <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-            <Sparkles className="h-8 w-8 text-primary" />
+    return <div className="h-full flex flex-col items-center justify-center text-center p-12 bg-white">
+        <div className="max-w-lg space-y-6">
+          <div className="w-20 h-20 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
+            <Sparkles className="h-10 w-10 text-gray-600" />
           </div>
-          <h3 className="text-lg font-semibold">AI Projectassistent</h3>
-          <p className="text-sm text-muted-foreground">
-            Selecteer een bestaand gesprek of start een nieuwe chat om vragen te stellen over je project.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            De AI assistent heeft toegang tot al je projectgegevens en kan helpen met analyse, 
-            planning en optimalisatie van je workflow.
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-gray-900">AI Projectassistent</h2>
+            <p className="text-base text-gray-600">
+              Selecteer een bestaand gesprek of start een nieuwe chat om vragen te stellen over je project.
+            </p>
+          </div>
+          <p className="text-sm text-gray-500 leading-relaxed">
+            De AI assistent heeft toegang tot al je projectgegevens en kan helpen met **analyse**, 
+            **planning** en **optimalisatie** van je workflow.
           </p>
         </div>
       </div>;
   }
-  return <div className="h-full flex flex-col">
+  return <div className="h-full flex flex-col bg-white">
       {/* Messages Area */}
-      <ScrollArea ref={scrollAreaRef} className="flex-1">
+      <ScrollArea ref={scrollAreaRef} className="flex-1 bg-white">
         <div className="min-h-full flex flex-col">
-          {messages.length === 0 ? <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white">
-              <div className="max-w-md space-y-4">
-                <div className="w-12 h-12 mx-auto rounded-full flex items-center justify-center bg-blue-50">
-                  <Sparkles className="h-6 w-6 text-primary" />
+          {messages.length === 0 ? <div className="flex-1 flex flex-col items-center justify-center p-12 text-center bg-white">
+              <div className="max-w-lg space-y-6">
+                <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center bg-gray-100">
+                  <Sparkles className="h-8 w-8 text-gray-600" />
                 </div>
-                <h4 className="font-medium">Start een gesprek</h4>
-                <p className="text-sm text-muted-foreground">
-                  Stel een vraag over je project. Ik kan helpen met status updates, 
-                  planning, risico-analyse en optimalisatie tips.
-                </p>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-gray-900">Start een gesprek</h3>
+                  <p className="text-base text-gray-600 leading-relaxed">
+                    Stel een vraag over je project. Ik kan helpen met **status updates**, 
+                    **planning**, **risico-analyse** en **optimalisatie tips**.
+                  </p>
+                </div>
                 
                 {/* Quick Actions */}
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground">Probeer een van deze vragen:</p>
-                  <div className="grid grid-cols-1 gap-2">
-                    {getQuickActions().map((action, index) => <Button key={index} variant="outline" size="sm" onClick={() => setInputMessage(action)} className="text-xs h-auto py-2 px-3 whitespace-normal text-left justify-start text-black bg-blue-50">
+                <div className="space-y-4">
+                  <p className="text-sm font-semibold text-gray-700">Probeer een van deze vragen:</p>
+                  <div className="grid grid-cols-1 gap-3 max-w-md mx-auto">
+                    {getQuickActions().map((action, index) => <Button key={index} variant="outline" size="sm" onClick={() => setInputMessage(action)} className="text-sm h-auto py-3 px-4 whitespace-normal text-left justify-start text-gray-700 border-gray-200 hover:bg-gray-50 font-medium">
                         {action}
                       </Button>)}
                   </div>
                 </div>
               </div>
-            </div> : <div className="space-y-0">
+            </div> : <div className="space-y-0 bg-white">
               {messages.map(message => <ChatMessage key={message.id} message={message} />)}
               
               {/* Loading indicator */}
-              {isSendingAI && <div className="flex gap-3 p-4 bg-muted/50">
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                    <Loader2 className="h-4 w-4 text-primary-foreground animate-spin" />
+              {isSendingAI && <div className="flex gap-4 p-6 bg-gray-50 border-b border-gray-200">
+                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">
+                    <Loader2 className="h-4 w-4 text-white animate-spin" />
                   </div>
                   <div className="flex-1">
-                    <div className="font-medium text-sm mb-2">AI Assistent</div>
-                    <div className="text-sm text-muted-foreground">Bezig met analyseren...</div>
+                    <div className="font-semibold text-base mb-1 text-gray-900">AI Assistent</div>
+                    <div className="text-sm text-gray-600">Bezig met analyseren van je projectgegevens...</div>
                   </div>
                 </div>}
             </div>}
@@ -131,25 +135,25 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="border-t p-4 bg-white">
-        <div className="max-w-4xl mx-auto space-y-3">
+      <div className="border-t border-gray-200 p-6 bg-white">
+        <div className="max-w-4xl mx-auto space-y-4">
           {/* Quick actions for empty chat */}
-          {messages.length === 0 && <div className="flex flex-wrap gap-2">
-              {getQuickActions().slice(0, 3).map((action, index) => <Button key={index} variant="secondary" size="sm" onClick={() => setInputMessage(action)} className="text-xs">
+          {messages.length === 0 && <div className="flex flex-wrap gap-2 justify-center">
+              {getQuickActions().slice(0, 3).map((action, index) => <Button key={index} variant="outline" size="sm" onClick={() => setInputMessage(action)} className="text-sm border-gray-200 text-gray-700 hover:bg-gray-50">
                   {action}
                 </Button>)}
             </div>}
           
-          <div className="flex gap-2 items-end">
+          <div className="flex gap-3 items-end">
             <div className="flex-1 relative">
-              <Textarea ref={textareaRef} value={inputMessage} onChange={e => setInputMessage(e.target.value)} onKeyDown={handleKeyPress} placeholder="Stel een vraag over je project..." rows={1} className="min-h-[44px] max-h-32 resize-none pr-12 bg-blue-50" />
+              <Textarea ref={textareaRef} value={inputMessage} onChange={e => setInputMessage(e.target.value)} onKeyDown={handleKeyPress} placeholder="Stel een vraag over je project..." rows={1} className="min-h-[48px] max-h-32 resize-none border-gray-300 focus:border-gray-400 focus:ring-gray-400 text-base" />
             </div>
-            <Button onClick={handleSendMessage} disabled={!inputMessage.trim() || isSendingAI} size="icon" className="h-[44px] w-[44px]">
-              {isSendingAI ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            <Button onClick={handleSendMessage} disabled={!inputMessage.trim() || isSendingAI} size="icon" className="h-[48px] w-[48px] bg-gray-900 hover:bg-gray-800">
+              {isSendingAI ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
           </div>
           
-          <p className="text-xs text-muted-foreground text-center">
+          <p className="text-xs text-gray-500 text-center">
             AI antwoorden kunnen onjuist zijn. Controleer belangrijke informatie altijd.
           </p>
         </div>
