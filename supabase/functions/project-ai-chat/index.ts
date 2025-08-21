@@ -25,20 +25,32 @@ serve(async (req) => {
     console.log('Project AI Chat - Processing message for project:', projectId);
     console.log('Using model:', model, 'Web search:', useWebSearch);
 
-    // Always use chat/completions API
+    // Use OpenAI Responses API
+    const systemPrompt = createSystemPrompt(enrichedContext);
+    const conversationHistory = formatChatHistoryForResponses(chatHistory);
+    
+    // Construct full input with context and conversation history
+    let fullInput = systemPrompt + '\n\n';
+    if (conversationHistory.length > 0) {
+      fullInput += 'GESPREKSGESCHIEDENIS:\n' + conversationHistory + '\n\n';
+    }
+    fullInput += 'HUIDIGE VRAAG: ' + message;
+
     const requestBody: any = {
       model: model || 'gpt-5-mini-2025-08-07',
-      messages: [
-        { role: 'system', content: createSystemPrompt(enrichedContext) },
-        ...formatChatHistoryForChat(chatHistory),
-        { role: 'user', content: message }
-      ],
+      input: fullInput,
       max_completion_tokens: 4000
     };
 
-    console.log('System prompt length:', createSystemPrompt(enrichedContext).length, 'characters');
+    // Add web search tool if requested
+    if (useWebSearch) {
+      requestBody.tools = [{ type: 'web_search' }];
+    }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    console.log('System prompt length:', systemPrompt.length, 'characters');
+    console.log('Full input length:', fullInput.length, 'characters');
+
+    const response = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
@@ -49,20 +61,34 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('OpenAI Responses API error:', response.status, errorText);
+      throw new Error(`OpenAI Responses API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('OpenAI Response received for project:', projectId);
-    console.log('Usage tokens:', data.usage);
+    console.log('OpenAI Responses API - Response received for project:', projectId);
+    console.log('Full OpenAI Response:', JSON.stringify(data, null, 2));
     
-    // Handle chat completions API response
-    let aiResponse = data.choices?.[0]?.message?.content;
+    // Handle Responses API response structure
+    let aiResponse = '';
     
-    // Check for empty or null response
+    if (data.output && Array.isArray(data.output)) {
+      // Find the text content in the output array
+      const textOutput = data.output.find((item: any) => 
+        item.type === 'message' && item.content && Array.isArray(item.content)
+      );
+      
+      if (textOutput && textOutput.content.length > 0) {
+        const textContent = textOutput.content.find((content: any) => content.type === 'text');
+        if (textContent && textContent.text) {
+          aiResponse = textContent.text;
+        }
+      }
+    }
+    
+    // Check for empty response and provide fallback
     if (!aiResponse || aiResponse.trim() === '') {
-      console.log('Empty response detected, finish_reason:', data.choices?.[0]?.finish_reason);
+      console.log('Empty response detected from Responses API');
       aiResponse = 'Het antwoord kon niet worden gegenereerd. Probeer je vraag korter of specifieker te maken.';
     }
     
@@ -328,6 +354,17 @@ function formatChatHistory(chatHistory: any[]) {
       }
     ]
   }));
+}
+
+function formatChatHistoryForResponses(chatHistory: any[]): string {
+  if (!chatHistory || chatHistory.length === 0) {
+    return '';
+  }
+  
+  return chatHistory.slice(-6).map((msg: any) => {
+    const role = msg.message_type === 'user' ? 'Gebruiker' : 'AI Assistent';
+    return `${role}: ${msg.content}`;
+  }).join('\n');
 }
 
 function formatChatHistoryForChat(chatHistory: any[]) {
