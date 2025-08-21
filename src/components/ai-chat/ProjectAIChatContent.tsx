@@ -92,9 +92,9 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
       {/* Messages Area */}
       <ScrollArea ref={scrollAreaRef} className="flex-1">
         <div className="min-h-full flex flex-col">
-          {messages.length === 0 ? <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+          {messages.length === 0 ? <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white">
               <div className="max-w-md space-y-4">
-                <div className="w-12 h-12 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                <div className="w-12 h-12 mx-auto rounded-full flex items-center justify-center bg-blue-50">
                   <Sparkles className="h-6 w-6 text-primary" />
                 </div>
                 <h4 className="font-medium">Start een gesprek</h4>
@@ -107,7 +107,7 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground">Probeer een van deze vragen:</p>
                   <div className="grid grid-cols-1 gap-2">
-                    {getQuickActions().map((action, index) => <Button key={index} variant="outline" size="sm" onClick={() => setInputMessage(action)} className="text-xs h-auto py-2 px-3 whitespace-normal text-left justify-start">
+                    {getQuickActions().map((action, index) => <Button key={index} variant="outline" size="sm" onClick={() => setInputMessage(action)} className="text-xs h-auto py-2 px-3 whitespace-normal text-left justify-start text-black bg-blue-50">
                         {action}
                       </Button>)}
                   </div>
@@ -131,7 +131,7 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="border-t p-4">
+      <div className="border-t p-4 bg-white">
         <div className="max-w-4xl mx-auto space-y-3">
           {/* Quick actions for empty chat */}
           {messages.length === 0 && <div className="flex flex-wrap gap-2">
@@ -142,7 +142,7 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
           
           <div className="flex gap-2 items-end">
             <div className="flex-1 relative">
-              <Textarea ref={textareaRef} value={inputMessage} onChange={e => setInputMessage(e.target.value)} onKeyDown={handleKeyPress} placeholder="Stel een vraag over je project..." className="min-h-[44px] max-h-32 resize-none pr-12" rows={1} />
+              <Textarea ref={textareaRef} value={inputMessage} onChange={e => setInputMessage(e.target.value)} onKeyDown={handleKeyPress} placeholder="Stel een vraag over je project..." rows={1} className="min-h-[44px] max-h-32 resize-none pr-12 bg-blue-50" />
             </div>
             <Button onClick={handleSendMessage} disabled={!inputMessage.trim() || isSendingAI} size="icon" className="h-[44px] w-[44px]">
               {isSendingAI ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
