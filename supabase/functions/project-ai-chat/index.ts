@@ -25,90 +25,27 @@ serve(async (req) => {
     console.log('Project AI Chat - Processing message for project:', projectId);
     console.log('Using model:', model, 'Web search:', useWebSearch);
 
-    // Choose API endpoint and request format based on model
-    let response;
-    
-    if (model === 'o4-mini-deep-research') {
-      // Use reasoning API for O4 models - always requires web_search_preview tool
-      const requestBody: any = {
-        model: 'o4-mini-deep-research',
-        input: [
-          {
-            role: 'developer',
-            content: [
-              {
-                type: 'input_text',
-                text: createSystemPrompt(enrichedContext)
-              }
-            ]
-          },
-          ...formatChatHistory(chatHistory),
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'input_text',
-                text: message
-              }
-            ]
-          }
-        ],
-        text: {
-          format: {
-            type: 'text'
-          },
-          verbosity: 'medium'
-        },
-        reasoning: {
-          effort: 'medium',
-          summary: 'auto'
-        },
-        store: true,
-        // O4 models always require tools - use web_search_preview
-        tools: [
-          {
-            type: 'web_search_preview',
-            user_location: {
-              type: 'approximate'
-            },
-            search_context_size: 'medium'
-          }
-        ]
-        // Note: removed tool_choice to let OpenAI decide when to use tools
-      };
+    // Always use chat/completions API
+    const requestBody: any = {
+      model: model || 'gpt-5-mini-2025-08-07',
+      messages: [
+        { role: 'system', content: createSystemPrompt(enrichedContext) },
+        ...formatChatHistoryForChat(chatHistory),
+        { role: 'user', content: message }
+      ],
+      max_completion_tokens: 4000
+    };
 
-      response = await fetch('https://api.openai.com/v1/responses', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-    } else {
-      // Use chat completions API for GPT models
-      const requestBody: any = {
-        model: 'gpt-5-mini-2025-08-07',
-        messages: [
-          { role: 'system', content: createSystemPrompt(enrichedContext) },
-          ...formatChatHistoryForChat(chatHistory),
-          { role: 'user', content: message }
-        ],
-        max_completion_tokens: 2000
-      };
+    console.log('System prompt length:', createSystemPrompt(enrichedContext).length, 'characters');
 
-      // Note: Web search is not available for standard chat completions
-      // Only available through specific OpenAI endpoints that we don't have access to
-
-      response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-    }
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -118,23 +55,18 @@ serve(async (req) => {
 
     const data = await response.json();
     console.log('OpenAI Response received for project:', projectId);
-    console.log('Full OpenAI Response:', JSON.stringify(data, null, 2));
+    console.log('Usage tokens:', data.usage);
     
-    let aiResponse;
+    // Handle chat completions API response
+    let aiResponse = data.choices?.[0]?.message?.content;
     
-    if (model === 'o4-mini-deep-research') {
-      // Handle reasoning API response
-      const messageOutput = data.output?.find(item => item.type === 'message');
-      aiResponse = messageOutput?.content?.[0]?.text || 
-                   data.output?.[0]?.content?.[0]?.text || 
-                   'Er is een fout opgetreden bij het verwerken van je vraag.';
-    } else {
-      // Handle chat completions API response
-      aiResponse = data.choices?.[0]?.message?.content || 
-                   'Er is een fout opgetreden bij het verwerken van je vraag.';
+    // Check for empty or null response
+    if (!aiResponse || aiResponse.trim() === '') {
+      console.log('Empty response detected, finish_reason:', data.choices?.[0]?.finish_reason);
+      aiResponse = 'Het antwoord kon niet worden gegenereerd. Probeer je vraag korter of specifieker te maken.';
     }
     
-    console.log('Extracted AI Response:', aiResponse);
+    console.log('Extracted AI Response length:', aiResponse.length, 'characters');
 
     return new Response(JSON.stringify({ response: aiResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -352,84 +284,38 @@ function formatTimeSeconds(seconds: number): string {
 }
 
 function createSystemPrompt(enrichedContext: any) {
-  const { project, hierarchy, meetings } = enrichedContext;
+  const { project, hierarchy } = enrichedContext;
   
-  return `Je bent een AI Project Assistent voor project "${project.name}" van client "${project.client}".
+  // Get active/incomplete tasks only
+  const activeTasks = hierarchy.phases
+    .flatMap((phase: any) => phase.deliverables)
+    .concat(hierarchy.standalone_deliverables)
+    .flatMap((del: any) => del.tasks || [])
+    .filter((task: any) => !task.completed)
+    .slice(0, 10); // Limit to 10 most important active tasks
 
-COMPLETE PROJECT HIËRARCHIE EN CONTEXT:
+  const projectStats = project.statistics;
 
-📊 PROJECT OVERZICHT:
-- Status: ${project.status}
-- Voortgang: ${project.statistics.progress_percentage}%
-- Projectwaarde: €${project.project_value?.toLocaleString() || 'Niet ingesteld'}
-- Budget: €${project.budget?.toLocaleString() || 'Niet ingesteld'}
-- Uurtarief: €${project.hourly_rate || 75}/uur
-- Start datum: ${project.start_date || 'Niet ingesteld'}
-- Eind datum: ${project.end_date || 'Niet ingesteld'}
+  return `Je bent een AI Project Assistent voor "${project.name}" (${project.client}).
 
-📈 PROJECT STATISTIEKEN:
-- Totaal bestede tijd: ${formatTimeSeconds(project.statistics.time_breakdown.total_hours * 3600)} (Timer: ${formatTimeSeconds(project.statistics.time_breakdown.timer_hours * 3600)}, Handmatig: ${formatTimeSeconds(project.statistics.time_breakdown.manual_hours * 3600)})
-- Declarabele uren: ${project.statistics.declarable_hours_total}h
-- Efficiency: ${project.statistics.efficiency_percentage}%
-- Taken voltooid: ${project.statistics.completed_tasks}/${project.statistics.total_tasks} (${project.statistics.task_completion_rate}%)
-- Deliverables: ${project.statistics.total_deliverables}
-- Fasen: ${project.statistics.total_phases}
+📊 PROJECT STATUS:
+- Voortgang: ${projectStats.progress_percentage}%
+- Taken: ${projectStats.completed_tasks}/${projectStats.total_tasks} voltooid
+- Bestede tijd: ${Math.round(projectStats.time_breakdown.total_hours)}h
+- Efficiency: ${projectStats.efficiency_percentage}%
+- Budget: €${project.budget?.toLocaleString() || 'onbekend'}
 
-📋 PROJECT HIËRARCHIE:
+🎯 ACTIEVE TAKEN (${activeTasks.length}):
+${activeTasks.map((task: any) => `• ${task.title} (${Math.round(task.time_breakdown.total_hours)}h besteed)`).join('\n')}
 
-${hierarchy.phases.map((phase: any) => `
-🔶 FASE: ${phase.name}
-├── Status: ${phase.status || 'Niet ingesteld'}
-├── Target datum: ${phase.target_date || 'Niet ingesteld'}
-├── Voortgang: ${phase.completion_rate.toFixed(1)}%
-├── Declarabele uren: ${phase.declarable_hours_total}h
-├── Bestede tijd: ${formatTimeSeconds(phase.time_breakdown.total_hours * 3600)} (Timer: ${formatTimeSeconds(phase.time_breakdown.timer_hours * 3600)}, Handmatig: ${formatTimeSeconds(phase.time_breakdown.manual_hours * 3600)})
-└── DELIVERABLES (${phase.deliverables.length}):
-${phase.deliverables.map((del: any) => `
-    ├── ${del.title}
-    │   ├── Status: ${del.status}
-    │   ├── Due datum: ${del.due_date || 'Niet ingesteld'}
-    │   ├── Target datum: ${del.target_date || 'Niet ingesteld'}
-    │   ├── Declarabele uren: ${del.declarable_hours || 0}h
-    │   ├── Bestede tijd: ${formatTimeSeconds(del.time_breakdown.total_hours * 3600)} (Timer: ${formatTimeSeconds(del.time_breakdown.timer_hours * 3600)}, Handmatig: ${formatTimeSeconds(del.time_breakdown.manual_hours * 3600)})
-    │   ├── Voortgang: ${del.completion_rate.toFixed(1)}%
-    │   └── TAKEN (${del.tasks.length}):
-${del.tasks.map((task: any) => `
-    │       ${task.completed ? '✅' : '⏳'} ${task.title}
-    │           ${task.assigned_to ? `(Toegewezen aan: ${task.assigned_to})` : ''}
-    │           └── Bestede tijd: ${formatTimeSeconds(task.time_breakdown.total_hours * 3600)} (Timer: ${formatTimeSeconds(task.time_breakdown.timer_hours * 3600)}, Handmatig: ${formatTimeSeconds(task.time_breakdown.manual_hours * 3600)})
-`).join('')}
-`).join('')}
-`).join('')}
+Als expert project assistent help je met:
+- Project analyse & voortgang tracking
+- Efficiency optimalisatie & knelpunten identificeren  
+- Planning & prioritering van taken
+- Budget & tijd management
+- Concrete, data-gedreven adviezen
 
-${hierarchy.standalone_deliverables.length > 0 ? `
-🔶 LOSSE DELIVERABLES (niet in fase):
-${hierarchy.standalone_deliverables.map((del: any) => `
-├── ${del.title} - Status: ${del.status}
-`).join('')}
-` : ''}
-
-${meetings.length > 0 ? `
-📅 MEETINGS:
-${meetings.slice(0, 5).map((meeting: any) => `
-├── ${meeting.meeting_date}: ${meeting.subject}
-${meeting.description ? `│   └── ${meeting.description}` : ''}
-`).join('')}
-` : ''}
-
-JOUW EXPERTISE ALS AI PROJECT ASSISTENT:
-
-1. **Hiërarchische Project Analyse**: Je begrijpt de complete project structuur - elke taak behoort tot een deliverable, deliverables kunnen tot fasen behoren, en alles rolt op naar het project niveau.
-
-2. **Cross-Reference Intelligence**: Je kunt verbanden leggen tussen taken, deliverables en fasen. Je ziet welke elementen elkaar blokkeren of beïnvloeden.
-
-3. **Time & Budget Tracking**: Je monitort tijd per taak/deliverable/fase en ziet waar budgetten worden overschreden.
-
-4. **Efficiency Optimization**: Je identificeert knelpunten en geeft concrete adviezen voor verbetering.
-
-5. **Strategic Planning**: Je helpt met prioritering, planning en risicomanagement op basis van de huidige projectstatus.
-
-Geef altijd concrete, data-gedreven adviezen in het Nederlands. Verwijs naar specifieke taken, deliverables en fasen met hun exacte namen wanneer relevant. Gebruik de hiërarchische context om diepgaande analyses te maken.`;
+Antwoord in het Nederlands met specifieke verwijzingen naar taken en deliverables.`;
 }
 
 function formatChatHistory(chatHistory: any[]) {
