@@ -105,7 +105,11 @@ serve(async (req) => {
       );
       
       if (textOutput && textOutput.content.length > 0) {
-        const textContent = textOutput.content.find((content: any) => content.type === 'text');
+        // Look for both 'output_text' (Responses API format) and 'text' (fallback)
+        const textContent = textOutput.content.find((content: any) => 
+          content.type === 'output_text' || content.type === 'text'
+        );
+        console.log('Found text content with type:', textContent?.type);
         if (textContent && textContent.text) {
           aiResponse = textContent.text;
         }
