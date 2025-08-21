@@ -371,6 +371,7 @@ ${phase.deliverables.map((del: any) => `
 ${del.tasks.map((task: any) => `
     │       ${task.completed ? '✅' : '⏳'} ${task.title}
     │           ${task.assigned_to ? `(Toegewezen aan: ${task.assigned_to})` : ''}
+    │           └── Bestede tijd: ${task.time_breakdown.total_hours.toFixed(1)}h (Timer: ${task.time_breakdown.timer_hours.toFixed(1)}h, Handmatig: ${(task.time_breakdown.manual_hours + task.time_breakdown.manual_entry_hours).toFixed(1)}h)
 `).join('')}
 `).join('')}
 `).join('')}
