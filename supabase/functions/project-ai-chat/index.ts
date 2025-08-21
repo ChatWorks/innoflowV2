@@ -137,23 +137,22 @@ function prepareProjectContext(context: any) {
     const deliverable = deliverables.find((d: any) => d.id === deliverableId);
     const deliverableTasks = tasks.filter((task: any) => task.deliverable_id === deliverableId);
     
-    // Sum all task times
+    // Sum all task times ONLY (matches frontend progressCalculations.ts logic)
     const taskTimes = deliverableTasks.map((task: any) => getTaskTotalTime(task.id));
     const taskTimerSeconds = taskTimes.reduce((sum, time) => sum + time.timer_seconds, 0);
     const taskManualSeconds = taskTimes.reduce((sum, time) => sum + time.manual_seconds, 0);
     const taskManualEntrySeconds = taskTimes.reduce((sum, time) => sum + time.manual_entry_seconds, 0);
     
-    // Always add deliverable-level manual time (matches frontend behavior)
-    const deliverableManualSeconds = deliverable?.manual_time_seconds || 0;
+    // Do NOT add deliverable manual_time_seconds - only task time counts (matches frontend)
     const deliverableManualEntrySeconds = manualTimeEntries
       .filter((entry: any) => entry.deliverable_id === deliverableId && !entry.task_id)
       .reduce((sum: number, entry: any) => sum + (entry.time_seconds || 0), 0);
     
-    const totalSeconds = taskTimerSeconds + taskManualSeconds + taskManualEntrySeconds + deliverableManualSeconds + deliverableManualEntrySeconds;
+    const totalSeconds = taskTimerSeconds + taskManualSeconds + taskManualEntrySeconds + deliverableManualEntrySeconds;
     
     return {
       timer_seconds: taskTimerSeconds,
-      manual_seconds: taskManualSeconds + deliverableManualSeconds,
+      manual_seconds: taskManualSeconds,
       manual_entry_seconds: taskManualEntrySeconds + deliverableManualEntrySeconds,
       total_seconds: totalSeconds,
       total_hours: totalSeconds / 3600
