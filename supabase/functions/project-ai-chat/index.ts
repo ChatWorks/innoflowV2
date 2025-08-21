@@ -73,6 +73,8 @@ serve(async (req) => {
 
     console.log('System prompt length:', systemPrompt.length, 'characters');
     console.log('Full input length:', fullInput.length, 'characters');
+    console.log('Request body being sent to OpenAI:', JSON.stringify(requestBody, null, 2));
+    console.log('Function version: v2.1 - Responses API with max_output_tokens');
 
     const response = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
