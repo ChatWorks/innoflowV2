@@ -18,6 +18,10 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
     sendAIMessage,
     isSendingAI
   } = useProjectChatMessages(sessionId);
+  
+  // Debug logging
+  console.log('ProjectAIChatContent - sessionId:', sessionId);
+  console.log('ProjectAIChatContent - messages:', messages);
   const [inputMessage, setInputMessage] = useState('');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);

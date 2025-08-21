@@ -31,6 +31,10 @@ export const ProjectAIChatSidebar: React.FC<ProjectAIChatSidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const { sessions, createSession, updateSession, deleteSession, isCreating } = useProjectChatSessions(projectId);
+  
+  // Debug logging
+  console.log('ProjectAIChatSidebar - currentSessionId:', currentSessionId);
+  console.log('ProjectAIChatSidebar - sessions:', sessions);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
 
