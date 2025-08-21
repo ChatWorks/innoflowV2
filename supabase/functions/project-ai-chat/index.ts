@@ -29,7 +29,7 @@ serve(async (req) => {
     let response;
     
     if (model === 'o4-mini-deep-research') {
-      // Use reasoning API for O4 models - requires web_search_preview tool
+      // Use reasoning API for O4 models - always requires web_search_preview tool
       const requestBody: any = {
         model: 'o4-mini-deep-research',
         input: [
@@ -64,7 +64,7 @@ serve(async (req) => {
           summary: 'auto'
         },
         store: true,
-        // O4 models require tools - always use web_search_preview
+        // O4 models always require tools - use web_search_preview
         tools: [
           {
             type: 'web_search_preview',
@@ -73,8 +73,8 @@ serve(async (req) => {
             },
             search_context_size: 'medium'
           }
-        ],
-        tool_choice: 'required'
+        ]
+        // Note: removed tool_choice to let OpenAI decide when to use tools
       };
 
       response = await fetch('https://api.openai.com/v1/responses', {
