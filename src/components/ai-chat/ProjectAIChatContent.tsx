@@ -137,9 +137,10 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
                         variant="outline" 
                         size="sm" 
                         onClick={() => setInputMessage(action)} 
-                        className="h-auto py-4 px-5 whitespace-normal text-left justify-start bg-card/80 backdrop-blur-sm border-border/50 hover:bg-primary/10 hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md"
+                        className="h-auto py-4 px-5 whitespace-normal text-left justify-start bg-card/80 backdrop-blur-sm border-border/50 hover:bg-slate-50 hover:border-slate-300 hover:shadow-lg transition-all duration-300 shadow-sm hover:scale-[1.02] animate-fade-in group"
+                        style={{ animationDelay: `${index * 0.1}s` }}
                       >
-                        <span className="text-sm font-medium text-foreground">{action}</span>
+                        <span className="text-sm font-medium text-foreground group-hover:text-slate-700 transition-colors">{action}</span>
                       </Button>
                     )}
                   </div>
@@ -149,15 +150,22 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
               {messages.map(message => <ChatMessage key={message.id} message={message} />)}
               
               {/* Loading indicator */}
-              {isSendingAI && <div className="mx-6 my-4">
-                  <div className="bg-gradient-to-br from-primary to-primary/80 text-white rounded-2xl p-6 shadow-lg">
+              {isSendingAI && <div className="mx-6 my-4 animate-fade-in">
+                  <div className="bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800 text-white rounded-2xl p-6 shadow-xl border border-slate-600/50 animate-pulse">
                     <div className="flex gap-4 items-center">
-                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                        <Loader2 className="h-5 w-5 text-white animate-spin" />
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center flex-shrink-0 animate-spin shadow-lg">
+                        <Loader2 className="h-6 w-6 text-white" />
                       </div>
                       <div className="flex-1">
-                        <div className="font-semibold text-lg mb-1">AI Assistent</div>
-                        <div className="text-white/90">Bezig met analyseren van je projectgegevens...</div>
+                        <div className="font-bold text-lg mb-1 animate-slide-in-right">AI Assistent</div>
+                        <div className="text-white/90 animate-slide-in-right" style={{ animationDelay: '0.1s' }}>
+                          Bezig met analyseren van je projectgegevens
+                          <span className="inline-flex">
+                            <span className="animate-bounce" style={{ animationDelay: '0.0s' }}>.</span>
+                            <span className="animate-bounce" style={{ animationDelay: '0.1s' }}>.</span>
+                            <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>.</span>
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -216,22 +224,25 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
               onClick={() => setUseWebSearch(!useWebSearch)} 
               size="icon" 
               variant={useWebSearch ? "default" : "outline"}
-              className={`h-[52px] w-[52px] transition-all duration-200 ${
+              className={`h-[52px] w-[52px] transition-all duration-300 hover:scale-110 ${
                 useWebSearch 
-                  ? 'bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg' 
-                  : 'bg-background/80 border-border/50 hover:bg-primary/10 hover:border-primary/30'
+                  ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 shadow-lg hover:shadow-xl animate-pulse' 
+                  : 'bg-background/80 border-border/50 hover:bg-emerald-50 hover:border-emerald-300 hover:shadow-md'
               }`}
               title={useWebSearch ? "Web zoeken uitschakelen" : "Web zoeken inschakelen"}
             >
-              <Search className="h-5 w-5" />
+              <Search className={`h-5 w-5 transition-all duration-300 ${useWebSearch ? 'text-white' : 'text-slate-600 group-hover:text-emerald-600'}`} />
             </Button>
             <Button 
               onClick={handleSendMessage} 
               disabled={!inputMessage.trim() || isSendingAI} 
               size="icon" 
-              className="h-[52px] w-[52px] bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="h-[52px] w-[52px] bg-gradient-to-br from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-110 active:scale-95"
             >
-              {isSendingAI ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+              {isSendingAI ? 
+                <Loader2 className="h-5 w-5 animate-spin text-white" /> : 
+                <Send className="h-5 w-5 text-white hover:animate-pulse" />
+              }
             </Button>
           </div>
           
