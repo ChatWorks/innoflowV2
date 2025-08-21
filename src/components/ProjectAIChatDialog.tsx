@@ -48,7 +48,11 @@ export function ProjectAIChatDialog({
       const savedMessages = localStorage.getItem(`project_chat_${project.id}`);
       if (savedMessages) {
         const parsed = JSON.parse(savedMessages);
-        setMessages(parsed.messages || []);
+        const messagesWithValidTimestamps = (parsed.messages || []).map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp) // Convert string/number back to Date
+        }));
+        setMessages(messagesWithValidTimestamps);
       } else {
         // Welcome message
         setMessages([{
@@ -218,7 +222,7 @@ Wat wil je weten over dit project?`,
                       </ReactMarkdown>
                     </div>
                     <span className="text-xs opacity-70 mt-1 block">
-                      {message.timestamp.toLocaleTimeString('nl-NL', { 
+                      {new Date(message.timestamp).toLocaleTimeString('nl-NL', { 
                         hour: '2-digit', 
                         minute: '2-digit' 
                       })}
