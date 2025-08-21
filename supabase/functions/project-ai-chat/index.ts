@@ -137,17 +137,17 @@ function prepareProjectContext(context: any) {
     const deliverable = deliverables.find((d: any) => d.id === deliverableId);
     const deliverableTasks = tasks.filter((task: any) => task.deliverable_id === deliverableId);
     
-    // Sum all task times
+    // Sum all task times - this should be the main calculation
     const taskTimes = deliverableTasks.map((task: any) => getTaskTotalTime(task.id));
     const taskTimerSeconds = taskTimes.reduce((sum, time) => sum + time.timer_seconds, 0);
     const taskManualSeconds = taskTimes.reduce((sum, time) => sum + time.manual_seconds, 0);
     const taskManualEntrySeconds = taskTimes.reduce((sum, time) => sum + time.manual_entry_seconds, 0);
     
-    // Add deliverable's own manual time
-    const deliverableManualSeconds = deliverable?.manual_time_seconds || 0;
-    const deliverableManualEntrySeconds = manualTimeEntries
-      .filter((entry: any) => entry.deliverable_id === deliverableId)
-      .reduce((sum: number, entry: any) => sum + (entry.time_seconds || 0), 0);
+    // Only add deliverable-level time if no tasks exist (standalone deliverable time)
+    const deliverableManualSeconds = deliverableTasks.length === 0 ? (deliverable?.manual_time_seconds || 0) : 0;
+    const deliverableManualEntrySeconds = deliverableTasks.length === 0 ? manualTimeEntries
+      .filter((entry: any) => entry.deliverable_id === deliverableId && !entry.task_id)
+      .reduce((sum: number, entry: any) => sum + (entry.time_seconds || 0), 0) : 0;
     
     const totalSeconds = taskTimerSeconds + taskManualSeconds + taskManualEntrySeconds + deliverableManualSeconds + deliverableManualEntrySeconds;
     
@@ -165,17 +165,17 @@ function prepareProjectContext(context: any) {
     const phase = phases.find((p: any) => p.id === phaseId);
     const phaseDeliverables = deliverables.filter((del: any) => del.phase_id === phaseId);
     
-    // Sum all deliverable times
+    // Sum all deliverable times - this should be the main calculation
     const deliverableTimes = phaseDeliverables.map((del: any) => getDeliverableTotalTime(del.id));
     const deliverableTimerSeconds = deliverableTimes.reduce((sum, time) => sum + time.timer_seconds, 0);
     const deliverableManualSeconds = deliverableTimes.reduce((sum, time) => sum + time.manual_seconds, 0);
     const deliverableManualEntrySeconds = deliverableTimes.reduce((sum, time) => sum + time.manual_entry_seconds, 0);
     
-    // Add phase's own manual time
-    const phaseManualSeconds = phase?.manual_time_seconds || 0;
-    const phaseManualEntrySeconds = manualTimeEntries
-      .filter((entry: any) => entry.phase_id === phaseId)
-      .reduce((sum: number, entry: any) => sum + (entry.time_seconds || 0), 0);
+    // Only add phase-level time if no deliverables exist (standalone phase time)
+    const phaseManualSeconds = phaseDeliverables.length === 0 ? (phase?.manual_time_seconds || 0) : 0;
+    const phaseManualEntrySeconds = phaseDeliverables.length === 0 ? manualTimeEntries
+      .filter((entry: any) => entry.phase_id === phaseId && !entry.deliverable_id && !entry.task_id)
+      .reduce((sum: number, entry: any) => sum + (entry.time_seconds || 0), 0) : 0;
     
     const totalSeconds = deliverableTimerSeconds + deliverableManualSeconds + deliverableManualEntrySeconds + phaseManualSeconds + phaseManualEntrySeconds;
     
