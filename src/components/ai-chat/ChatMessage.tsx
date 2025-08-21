@@ -12,7 +12,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const isAI = message.message_type === 'ai';
 
   return (
-    <div className={`flex gap-4 p-6 border-b border-gray-100 ${isAI ? 'bg-gray-50' : 'bg-white'}`}>
+    <div className={`flex items-start gap-4 p-6 border-b border-gray-100 ${isAI ? 'bg-gray-50' : 'bg-white'}`}>
       <Avatar className="h-10 w-10 flex-shrink-0">
         <AvatarFallback className={isAI ? 'bg-gray-700' : 'bg-gray-500'}>
           {isAI ? (
