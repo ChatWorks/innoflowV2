@@ -82,13 +82,13 @@ export const ProjectAIChatSidebar: React.FC<ProjectAIChatSidebarProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-gradient-to-br from-primary to-primary/90">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-6 border-b border-white/20">
         <Button 
           onClick={handleNewChat}
           disabled={isCreating}
-          className="w-full gap-2 bg-gray-900 hover:bg-gray-800 text-white font-medium"
+          className="w-full gap-2 bg-white/20 hover:bg-white/30 text-white font-semibold backdrop-blur-sm border border-white/30 transition-all duration-200"
           size="sm"
         >
           <Plus className="h-4 w-4" />
@@ -98,23 +98,23 @@ export const ProjectAIChatSidebar: React.FC<ProjectAIChatSidebarProps> = ({
 
       {/* Chat History */}
       <ScrollArea className="flex-1">
-        <div className="p-3 space-y-2">
+        <div className="p-4 space-y-3">
           {sessions.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-8">
+            <p className="text-sm text-white/70 text-center py-8">
               Nog geen gesprekken
             </p>
           ) : (
             sessions.map((session) => (
               <div
                 key={session.id}
-                className={`group relative rounded-md transition-colors ${
+                className={`group relative rounded-lg transition-all duration-200 ${
                   currentSessionId === session.id
-                    ? 'bg-gray-100 border border-gray-200'
-                    : 'hover:bg-gray-50 border border-transparent'
+                    ? 'bg-white/20 backdrop-blur-sm border border-white/30 shadow-lg'
+                    : 'hover:bg-white/10 border border-transparent'
                 }`}
               >
                 {editingSessionId === session.id ? (
-                  <div className="flex items-center gap-2 p-3">
+                  <div className="flex items-center gap-2 p-4">
                     <Input
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
@@ -122,14 +122,14 @@ export const ProjectAIChatSidebar: React.FC<ProjectAIChatSidebarProps> = ({
                         if (e.key === 'Enter') handleEditSave();
                         if (e.key === 'Escape') handleEditCancel();
                       }}
-                      className="h-8 text-sm border-gray-300 focus:border-gray-400"
+                      className="h-8 text-sm bg-white/20 border-white/30 text-white placeholder:text-white/70 focus:border-white/50"
                       autoFocus
                     />
                     <Button
                       size="sm"
                       variant="ghost"
                       onClick={handleEditSave}
-                      className="h-7 w-7 p-0 text-green-600 hover:bg-green-50"
+                      className="h-7 w-7 p-0 text-green-300 hover:bg-green-500/20"
                     >
                       <Check className="h-4 w-4" />
                     </Button>
@@ -137,20 +137,20 @@ export const ProjectAIChatSidebar: React.FC<ProjectAIChatSidebarProps> = ({
                       size="sm"
                       variant="ghost"
                       onClick={handleEditCancel}
-                      className="h-7 w-7 p-0 text-red-600 hover:bg-red-50"
+                      className="h-7 w-7 p-0 text-red-300 hover:bg-red-500/20"
                     >
                       <X className="h-4 w-4" />
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2 p-3">
+                  <div className="flex items-center gap-2 p-4">
                     <Button
                       variant="ghost"
                       onClick={() => navigate(`/project/${projectId}/ai-chat/${session.id}`)}
                       className="flex-1 justify-start h-auto p-0 text-left hover:bg-transparent"
                     >
-                      <MessageSquare className="h-4 w-4 mr-3 flex-shrink-0 text-gray-500" />
-                      <span className="truncate text-sm font-medium text-gray-800">{session.title}</span>
+                      <MessageSquare className="h-4 w-4 mr-3 flex-shrink-0 text-white/70" />
+                      <span className="truncate text-sm font-medium text-white">{session.title}</span>
                     </Button>
                     
                     <DropdownMenu>
@@ -158,22 +158,22 @@ export const ProjectAIChatSidebar: React.FC<ProjectAIChatSidebarProps> = ({
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600"
+                          className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-white/50 hover:text-white/80 hover:bg-white/10"
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40 border-gray-200">
+                      <DropdownMenuContent align="end" className="w-40 bg-background/95 backdrop-blur-sm border-border/50">
                         <DropdownMenuItem
                           onClick={() => handleEditStart(session.id, session.title)}
-                          className="text-gray-700 hover:bg-gray-50"
+                          className="text-foreground hover:bg-primary/10"
                         >
                           <Edit2 className="h-4 w-4 mr-2" />
                           Hernoemen
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(session.id)}
-                          className="text-red-600 hover:bg-red-50"
+                          className="text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Verwijderen
@@ -189,10 +189,10 @@ export const ProjectAIChatSidebar: React.FC<ProjectAIChatSidebarProps> = ({
       </ScrollArea>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 bg-gray-50">
+      <div className="p-6 border-t border-white/20 bg-white/10 backdrop-blur-sm">
         <div className="text-center">
-          <p className="text-sm font-semibold text-gray-800">AI Projectassistent</p>
-          <p className="text-xs text-gray-500 mt-1">Powered by GPT-5</p>
+          <p className="text-sm font-bold text-white">AI Projectassistent</p>
+          <p className="text-xs text-white/70 mt-1">Powered by GPT-5</p>
         </div>
       </div>
     </div>

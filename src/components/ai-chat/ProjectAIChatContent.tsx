@@ -90,62 +90,76 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
     return actions.slice(0, 4); // Show max 4 quick actions
   };
   if (!sessionId) {
-    return <div className="h-full flex flex-col items-center justify-center text-center p-12 bg-white">
-        <div className="max-w-lg space-y-6">
-          <div className="w-20 h-20 mx-auto rounded-full bg-gray-100 flex items-center justify-center">
-            <Sparkles className="h-10 w-10 text-gray-600" />
+    return <div className="h-full flex flex-col items-center justify-center text-center p-12 bg-gradient-to-br from-background via-background/50 to-primary/5">
+        <div className="max-w-lg space-y-8">
+          <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
+            <Sparkles className="h-12 w-12 text-white" />
           </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-900">AI Projectassistent</h2>
-            <p className="text-base text-gray-600">
+          <div className="space-y-3">
+            <h2 className="text-3xl font-bold text-foreground">AI Projectassistent</h2>
+            <p className="text-lg text-muted-foreground leading-relaxed">
               Selecteer een bestaand gesprek of start een nieuwe chat om vragen te stellen over je project.
             </p>
           </div>
-          <p className="text-sm text-gray-500 leading-relaxed">
-            De AI assistent heeft toegang tot al je projectgegevens en kan helpen met **analyse**, 
-            **planning** en **optimalisatie** van je workflow.
-          </p>
+          <div className="bg-card/80 backdrop-blur-sm p-6 rounded-xl border border-border/50 shadow-sm">
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              De AI assistent heeft toegang tot al je projectgegevens en kan helpen met <span className="font-semibold text-primary">analyse</span>, 
+              <span className="font-semibold text-primary"> planning</span> en <span className="font-semibold text-primary">optimalisatie</span> van je workflow.
+            </p>
+          </div>
         </div>
       </div>;
   }
-  return <div className="h-full flex flex-col bg-white">
+  return <div className="h-full flex flex-col bg-gradient-to-br from-background via-background/50 to-primary/5">
       {/* Messages Area */}
-      <ScrollArea ref={scrollAreaRef} className="flex-1 bg-white">
+      <ScrollArea ref={scrollAreaRef} className="flex-1">
         <div className="min-h-full flex flex-col">
-          {messages.length === 0 ? <div className="flex-1 flex flex-col items-center justify-center p-12 text-center bg-white">
-              <div className="max-w-lg space-y-6">
-                <div className="w-16 h-16 mx-auto rounded-full flex items-center justify-center bg-gray-100">
-                  <Sparkles className="h-8 w-8 text-gray-600" />
+          {messages.length === 0 ? <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+              <div className="max-w-lg space-y-8">
+                <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center bg-gradient-to-br from-primary to-primary/80 shadow-lg">
+                  <Sparkles className="h-10 w-10 text-white" />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-gray-900">Start een gesprek</h3>
-                  <p className="text-base text-gray-600 leading-relaxed">
-                    Stel een vraag over je project. Ik kan helpen met **status updates**, 
-                    **planning**, **risico-analyse** en **optimalisatie tips**.
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-bold text-foreground">Start een gesprek</h3>
+                  <p className="text-lg text-muted-foreground leading-relaxed">
+                    Stel een vraag over je project. Ik kan helpen met <span className="font-semibold text-primary">status updates</span>, 
+                    <span className="font-semibold text-primary"> planning</span>, <span className="font-semibold text-primary">risico-analyse</span> en <span className="font-semibold text-primary">optimalisatie tips</span>.
                   </p>
                 </div>
                 
                 {/* Quick Actions */}
-                <div className="space-y-4">
-                  <p className="text-sm font-semibold text-gray-700">Probeer een van deze vragen:</p>
+                <div className="space-y-6">
+                  <p className="text-sm font-semibold text-foreground">Probeer een van deze vragen:</p>
                   <div className="grid grid-cols-1 gap-3 max-w-md mx-auto">
-                    {getQuickActions().map((action, index) => <Button key={index} variant="outline" size="sm" onClick={() => setInputMessage(action)} className="text-sm h-auto py-3 px-4 whitespace-normal text-left justify-start text-gray-700 border-gray-200 hover:bg-gray-50 font-medium">
-                        {action}
-                      </Button>)}
+                    {getQuickActions().map((action, index) => 
+                      <Button 
+                        key={index} 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setInputMessage(action)} 
+                        className="h-auto py-4 px-5 whitespace-normal text-left justify-start bg-card/80 backdrop-blur-sm border-border/50 hover:bg-primary/10 hover:border-primary/30 transition-all duration-200 shadow-sm hover:shadow-md"
+                      >
+                        <span className="text-sm font-medium text-foreground">{action}</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
-            </div> : <div className="space-y-0 bg-white">
+            </div> : <div className="space-y-0">
               {messages.map(message => <ChatMessage key={message.id} message={message} />)}
               
               {/* Loading indicator */}
-              {isSendingAI && <div className="flex gap-4 p-6 bg-gray-50 border-b border-gray-200">
-                  <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">
-                    <Loader2 className="h-4 w-4 text-white animate-spin" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-base mb-1 text-gray-900">AI Assistent</div>
-                    <div className="text-sm text-gray-600">Bezig met analyseren van je projectgegevens...</div>
+              {isSendingAI && <div className="mx-6 my-4">
+                  <div className="bg-gradient-to-br from-primary to-primary/80 text-white rounded-2xl p-6 shadow-lg">
+                    <div className="flex gap-4 items-center">
+                      <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                        <Loader2 className="h-5 w-5 text-white animate-spin" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold text-lg mb-1">AI Assistent</div>
+                        <div className="text-white/90">Bezig met analyseren van je projectgegevens...</div>
+                      </div>
+                    </div>
                   </div>
                 </div>}
             </div>}
@@ -153,52 +167,77 @@ export const ProjectAIChatContent: React.FC<ProjectAIChatContentProps> = ({
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 p-6 bg-white">
-        <div className="max-w-4xl mx-auto space-y-4">
+      <div className="border-t border-border/20 p-6 bg-card/30 backdrop-blur-sm">
+        <div className="max-w-4xl mx-auto space-y-6">
           {/* AI Model Selection */}
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">AI Model:</span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold text-foreground">AI Model:</span>
               <Select value={selectedModel} onValueChange={setSelectedModel}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-56 bg-background/80 border-border/50 hover:border-primary/30 transition-colors">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gpt-5-mini">GPT-5 Mini</SelectItem>
-                  <SelectItem value="o4-mini-deep-research">O4 Mini Deep Research</SelectItem>
+                <SelectContent className="bg-background/95 backdrop-blur-sm border-border/50">
+                  <SelectItem value="gpt-5-mini" className="hover:bg-primary/10">GPT-5 Mini</SelectItem>
+                  <SelectItem value="o4-mini-deep-research" className="hover:bg-primary/10">O4 Mini Deep Research</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           {/* Quick actions for empty chat */}
-          {messages.length === 0 && <div className="flex flex-wrap gap-2 justify-center">
-              {getQuickActions().slice(0, 3).map((action, index) => <Button key={index} variant="outline" size="sm" onClick={() => setInputMessage(action)} className="text-sm border-gray-200 text-gray-700 hover:bg-gray-50">
-                  {action}
-                </Button>)}
+          {messages.length === 0 && <div className="flex flex-wrap gap-3 justify-center">
+              {getQuickActions().slice(0, 3).map((action, index) => 
+                <Button 
+                  key={index} 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setInputMessage(action)} 
+                  className="bg-background/80 border-border/50 hover:bg-primary/10 hover:border-primary/30 transition-all duration-200"
+                >
+                  <span className="text-sm font-medium">{action}</span>
+                </Button>
+              )}
             </div>}
           
           <div className="flex gap-3 items-end">
             <div className="flex-1 relative">
-              <Textarea ref={textareaRef} value={inputMessage} onChange={e => setInputMessage(e.target.value)} onKeyDown={handleKeyPress} placeholder="Stel een vraag over je project..." rows={1} className="min-h-[48px] max-h-32 resize-none border-gray-300 focus:border-gray-400 focus:ring-gray-400 text-base" />
+              <Textarea 
+                ref={textareaRef} 
+                value={inputMessage} 
+                onChange={e => setInputMessage(e.target.value)} 
+                onKeyDown={handleKeyPress} 
+                placeholder="Stel een vraag over je project..." 
+                rows={1} 
+                className="min-h-[52px] max-h-32 resize-none bg-background/80 border-border/50 focus:border-primary/50 focus:ring-primary/20 text-base backdrop-blur-sm shadow-sm"
+              />
             </div>
             <Button 
               onClick={() => setUseWebSearch(!useWebSearch)} 
               size="icon" 
               variant={useWebSearch ? "default" : "outline"}
-              className="h-[48px] w-[48px]"
+              className={`h-[52px] w-[52px] transition-all duration-200 ${
+                useWebSearch 
+                  ? 'bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg' 
+                  : 'bg-background/80 border-border/50 hover:bg-primary/10 hover:border-primary/30'
+              }`}
               title={useWebSearch ? "Web zoeken uitschakelen" : "Web zoeken inschakelen"}
             >
               <Search className="h-5 w-5" />
             </Button>
-            <Button onClick={handleSendMessage} disabled={!inputMessage.trim() || isSendingAI} size="icon" className="h-[48px] w-[48px] bg-gray-900 hover:bg-gray-800">
+            <Button 
+              onClick={handleSendMessage} 
+              disabled={!inputMessage.trim() || isSendingAI} 
+              size="icon" 
+              className="h-[52px] w-[52px] bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {isSendingAI ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
             </Button>
           </div>
           
-          <p className="text-xs text-gray-500 text-center">
+          <p className="text-xs text-muted-foreground text-center leading-relaxed">
             AI antwoorden kunnen onjuist zijn. Controleer belangrijke informatie altijd.
-            {useWebSearch && <span className="text-blue-600 font-medium"> • Web zoeken ingeschakeld</span>}
+            {useWebSearch && <span className="text-primary font-semibold"> • Web zoeken ingeschakeld</span>}
           </p>
         </div>
       </div>
