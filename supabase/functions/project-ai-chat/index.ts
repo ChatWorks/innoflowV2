@@ -84,8 +84,10 @@ serve(async (req) => {
 
     const data = await response.json();
     console.log('OpenAI Response received for project:', projectId);
+    console.log('Full OpenAI Response:', JSON.stringify(data, null, 2));
     
     const aiResponse = data.output?.[0]?.content?.[0]?.text || 'Er is een fout opgetreden bij het verwerken van je vraag.';
+    console.log('Extracted AI Response:', aiResponse);
 
     return new Response(JSON.stringify({ response: aiResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

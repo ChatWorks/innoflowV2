@@ -96,6 +96,7 @@ Wat wil je weten over dit project?`,
     setIsLoading(true);
 
     try {
+      console.log('Sending message to AI:', inputMessage);
       const { data, error } = await supabase.functions.invoke('project-ai-chat', {
         body: {
           message: inputMessage,
@@ -112,8 +113,16 @@ Wat wil je weten over dit project?`,
         }
       });
 
+      console.log('AI Response data:', data);
+      console.log('AI Response error:', error);
+
       if (error) {
         throw error;
+      }
+
+      if (!data?.response) {
+        console.error('No response in data:', data);
+        throw new Error('Geen response ontvangen van AI');
       }
 
       const aiMessage: Message = {
@@ -123,6 +132,7 @@ Wat wil je weten over dit project?`,
         timestamp: new Date()
       };
 
+      console.log('Adding AI message:', aiMessage);
       const finalMessages = [...newMessages, aiMessage];
       setMessages(finalMessages);
       saveMessages(finalMessages);
